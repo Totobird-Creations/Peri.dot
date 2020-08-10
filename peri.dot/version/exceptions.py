@@ -2,18 +2,17 @@ from colorama import init, Fore, Style
 init()
 
 class E_Error():
-    def __init__(self, exc, msg, start, end, line, context):
+    def __init__(self, exc, msg, start, end, context):
         self.exc = exc
         self.msg = msg
         self.start = start
         self.end = end
-        self.line = line
         self.context = context
 
     def asstring(self):
         result = self.traceback()
-        result += f'''   >{Fore.YELLOW}{self.start.ftext}{Style.RESET_ALL}
-    {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end - self.start.column)}{Style.RESET_ALL}
+        result += f'''   >{Fore.YELLOW}{self.start.lntext}{Style.RESET_ALL}
+    {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}
 {Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
         return(result)
 
@@ -34,8 +33,12 @@ class E_Error():
 
 
 class E_SyntaxError(E_Error):
-    def __init__(self, msg, start, end, line, context=None):
-        super().__init__('SyntaxError', msg, start, end, line, context)
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('SyntaxError', msg, start, end, context)
+
+class E_EscapeError(E_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('EscapeError', msg, start, end, context)
 
 
 

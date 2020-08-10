@@ -17,6 +17,7 @@ class Position():
         self.column = column
         self.file = file_
         self.ftext = ftext
+        self.lntext = self.ftext.split('\n')[self.line]
 
     def advance(self, char=None):
         self.index += 1
@@ -24,6 +25,7 @@ class Position():
         if char == '\n':
             self.line += 1
             self.column = 0
+        self.lntext = self.ftext.split('\n')[self.line]
 
         return(self)
 
@@ -33,6 +35,7 @@ class Position():
         if char == '\n':
             self.line -= 1
             self.column = len(self.ftext.split('\n')[self.line]) - 1
+        self.lntext = self.ftext.split('\n')[self.line]
 
         return(self)
 
@@ -69,19 +72,37 @@ class Lexer():
             if self.char in ' \t':
                 self.advance()
 
-            elif self.char in '\n':
+            elif self.char == '\n':
                 tokens.append(Token(TT_EOL, start=self.pos))
                 self.advance()
 
             elif self.char in DIGITS + '.':
                 tokens.append(self.makenumber())
 
+            elif self.char in '"\'':
+                token, error = self.makestring(self.char)
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
+            elif self.char == '\\':
+                self.advance()
+
+                if self.char not in '\n':
+                    end = self.pos.copy()
+                    end.advance()
+                    return((None, E_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
+
+                self.advance()
+
             else:
                 start = self.pos.copy()
                 char = self.char
                 self.advance()
 
-                return(([], E_SyntaxError(f'Illegal character "{char}" was found', start, self.pos.column, self.text)))
+                return(([], E_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
 
         tokens.append(Token(TT_EOL, start=self.pos))
         tokens.append(Token(TT_EOF, start=self.pos))
@@ -107,3 +128,47 @@ class Lexer():
             return(Token(TT_INT, int(num), start=start, end=self.pos))
         else:
             return(Token(TT_FLOAT, float(num), start=start, end=self.pos))
+
+    def makestring(self, quotetype):
+        string = ''
+        start = self.pos.copy()
+
+        chars = {
+            '\\': '\\',
+            'n' : '\n',
+            '\n': '\n',
+            't' : '\t'
+        }
+        escaped = False
+
+        self.advance()
+
+        while self.char != None and (self.char != quotetype or escaped):
+            if escaped:
+                char = chars.get(self.char)
+                if not char:
+                    end = self.pos.copy()
+                    end.advance()
+                    return((None, E_EscapeError(f'"{self.char}" can not be escaped', start=self.pos, end=end)))
+                string += char
+
+                escaped = False
+            else:
+                if self.char == '\\':
+                    escaped = True
+                elif self.char == '\n':
+                    end = self.pos.copy()
+                    end.advance()
+                    return((None, E_EscapeError(f'Invalid EOL, expected "{quotetype}"', start=self.pos, end=end)))
+                else:
+                    string += self.char
+            self.advance()
+
+        if not self.char:
+            end = self.pos.copy()
+            end.advance()
+            return((None, E_EscapeError(f'Invalid EOF, expected "{quotetype}"', start=self.pos, end=end)))
+
+        self.advance()
+
+        return((Token(TT_STRING, string, start=start, end=self.pos), None))

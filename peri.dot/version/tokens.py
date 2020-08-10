@@ -1,8 +1,9 @@
-TT_INT   = 'INT'
-TT_FLOAT = 'FLOAT'
+TT_INT    = 'INT'
+TT_FLOAT  = 'FLOAT'
+TT_STRING = 'STRING'
 
-TT_EOL   = 'EOL'
-TT_EOF   = 'EOF'
+TT_EOL    = 'EOL'
+TT_EOF    = 'EOF'
 
 class Token():
     def __init__(self, type_, value=None, start=None, end=None):
@@ -16,8 +17,13 @@ class Token():
             self.end = end.copy()
 
     def __repr__(self):
+        if isinstance(self.value, str):
+            value = f'"{self.value}"'
+        else:
+            value = self.value
+
         if self.value:
-            return(f'<{self.type}: {self.value}>')
+            return(f'<{self.type}: {value}>')
         else:
             return(f'<{self.type}>')
 

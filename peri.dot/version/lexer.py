@@ -37,7 +37,7 @@ class Position():
         return(self)
 
     def copy(self):
-        return(Position(self.file, self.text, index=self.index, line=self.line, column=self.column))
+        return(Position(self.file, self.ftext, index=self.index, line=self.line, column=self.column))
 
 ##########################################
 # LEXER                                  #
@@ -49,7 +49,7 @@ class Lexer():
         self.text = text
         self.pos = Position(file_, text)
         self.char = None
-        self.advnace()
+        self.advance()
 
     def advance(self):
         self.pos.advance(self.char)
@@ -83,6 +83,7 @@ class Lexer():
 
                 return(([], E_SyntaxError(f'Illegal character "{char}" was found', start, self.pos.column, self.text)))
 
+        tokens.append(Token(TT_EOL, start=self.pos))
         tokens.append(Token(TT_EOF, start=self.pos))
         return((tokens, None))
 
@@ -101,8 +102,8 @@ class Lexer():
             else:
                 num += self.char
             self.advance()
-            
+
         if dots == 0:
             return(Token(TT_INT, int(num), start=start, end=self.pos))
         else:
-            return(Token(TT_FLOAT, int(num), start=start, end=self.pos))
+            return(Token(TT_FLOAT, float(num), start=start, end=self.pos))

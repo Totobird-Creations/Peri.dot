@@ -4,6 +4,7 @@ from colorama import init, Fore, Style
 init()
 
 from version.exceptions import *
+from version.lexer import *
 
 VERSION = 'Alpha 00'
 
@@ -51,15 +52,25 @@ def main(help, version, repl, filename):
 
     if filename:
         text = ''
+
         try:
             with open(filename, 'r') as f:
-                f = f.read()
-                text += f'{f}\n\n'
+                text = f.read()
+
         except Exception as e:
             exc = sys.exc_info()
             print(E_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
             exit(1)
-        print(text)
+
+        lexer = Lexer(filename, text)
+        tokens, error = lexer.maketokens()
+
+        if error:
+            print(error.asstring())
+            exit(1)
+
+        print(' '.join([str(i) for i in tokens]))
+
     elif not (version or help) or repl:
         print(E_NotSupportedError(f'The repl is not yet supported', 'none', '').asstring())
         exit(1)

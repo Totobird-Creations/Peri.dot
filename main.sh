@@ -1,1 +1,1 @@
-python ./peri.dot/__init__.py
+python ./peri.dot test.peri

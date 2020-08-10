@@ -114,6 +114,12 @@ class Lexer():
                 self.advance()
 
 
+            elif self.char == '#':
+                self.advance()
+
+                while self.char not in ['\n', None]:
+                    self.advance()
+
             else:
                 start = self.pos.copy()
                 char = self.char

@@ -1,3 +1,7 @@
+##########################################
+# DEPENDENCIES                           #
+##########################################
+
 import click
 import sys
 from colorama import init, Fore, Style
@@ -5,6 +9,10 @@ init()
 
 from version.exceptions import *
 from version.lexer import *
+
+##########################################
+# LOGO                                   #
+##########################################
 
 VERSION = 'Alpha 00'
 
@@ -32,6 +40,10 @@ def logo():
     logo = f'{Fore.GREEN}{Style.BRIGHT}{logo}{Style.RESET_ALL}'
     print(logo, end='\n')
     return(logo)
+
+##########################################
+# ARGUMENTS                              #
+##########################################
 
 @click.command()
 @click.option('-h', '--help',    is_flag=True)

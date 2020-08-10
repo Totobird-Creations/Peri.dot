@@ -1,3 +1,7 @@
+##########################################
+# TOKENS                                 #
+##########################################
+
 TT_INT        = 'INT'
 TT_FLOAT      = 'FLOAT'
 TT_STRING     = 'STRING'
@@ -7,6 +11,10 @@ TT_IDENTIFIER = 'IDENTIFIER'
 
 TT_EOL        = 'EOL'
 TT_EOF        = 'EOF'
+
+##########################################
+# TOKEN OBJECT                           #
+##########################################
 
 class Token():
     def __init__(self, type_, value=None, start=None, end=None):

@@ -65,19 +65,25 @@ class Lexer():
         self.pos.retreat(self.char)
         self.char = self.text[self.pos.index]
 
+
+
     def maketokens(self):
         tokens = []
         while self.char != None:
 
+
             if self.char in ' \t':
                 self.advance()
+
 
             elif self.char == '\n':
                 tokens.append(Token(TT_EOL, start=self.pos))
                 self.advance()
 
+
             elif self.char in DIGITS + '.':
                 tokens.append(self.makenumber())
+
 
             elif self.char in '"\'':
                 token, error = self.makestring(self.char)
@@ -86,6 +92,16 @@ class Lexer():
                     return(([], error))
 
                 tokens.append(token)
+
+
+            elif self.char in ALPHABET + '_':
+                token, error = self.makeidentifier()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
 
             elif self.char == '\\':
                 self.advance()
@@ -97,12 +113,14 @@ class Lexer():
 
                 self.advance()
 
+
             else:
                 start = self.pos.copy()
                 char = self.char
                 self.advance()
 
                 return(([], E_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
+
 
         tokens.append(Token(TT_EOL, start=self.pos))
         tokens.append(Token(TT_EOF, start=self.pos))
@@ -172,3 +190,17 @@ class Lexer():
         self.advance()
 
         return((Token(TT_STRING, string, start=start, end=self.pos), None))
+
+    def makeidentifier(self):
+        identifier = ''
+        start = self.pos.copy()
+
+        while self.char != None and self.char in ALPHANUMERIC + '_':
+            identifier += self.char
+
+            self.advance()
+
+        if identifier in [KEYWORDS[i] for i in KEYWORDS.keys()]:
+            return((Token(TT_KEYWORD, identifier, start=start, end=self.pos), None))
+
+        return((Token(TT_IDENTIFIER, identifier, start=start, end=self.pos), None))

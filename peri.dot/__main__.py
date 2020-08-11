@@ -2,16 +2,20 @@
 # DEPENDENCIES                           #
 ##########################################
 
+import os
+from   pathlib import Path
+os.chdir(str(Path(__file__).parent.parent))
+
 import sys
 
-from version.context          import *
-from version.exceptions       import *
-from version.lexer            import *
-from version.parser           import *
-from version.interpreter      import *
+from version.context            import *
+from version.exceptions         import *
+from version.lexer              import *
+from version.parser             import *
+from version.interpreter        import *
 
-import version.modules.click  as click
-from version.modules.colorama import init, Fore, Style
+import version.modules.click    as click
+from   version.modules.colorama import init, Fore, Style
 init()
 
 ##########################################

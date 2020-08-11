@@ -76,9 +76,13 @@ class Parser():
         return(res)
 
 
-    def binaryop(self, func, optypes):
+    def binaryop(self, funca, optypes, funcb=None):
+        if not funcb:
+            funcb = funca
+
         res = ParseResult()
-        lfactor = res.register(func())
+
+        lfactor = res.register(funca())
 
         if res.error:
             return(res)
@@ -87,7 +91,7 @@ class Parser():
             optoken = self.curtoken
             res.registeradvancement()
             self.advance()
-            rfactor = res.register(func())
+            rfactor = res.register(funcb())
 
             if res.error:
                 return(res)
@@ -111,8 +115,17 @@ class Parser():
     def term(self):
         return(
             self.binaryop(
-                self.factor,
+                self.raised,
                 (TT_ASTRISK, TT_FSLASH)
+            )
+        )
+
+
+    def raised(self):
+        return(
+            self.binaryop(
+                self.factor,
+                (TT_CARAT)
             )
         )
 
@@ -132,7 +145,16 @@ class Parser():
 
             return(res.success(UnaryOpNode(token, factor)))
 
-        elif token.type == TT_INT:
+        return(
+            self.atom()
+        )
+
+
+    def atom(self):
+        res = ParseResult()
+        token = self.curtoken
+
+        if token.type == TT_INT:
             res.registeradvancement()
             self.advance()
 
@@ -183,10 +205,10 @@ class Parser():
             )
 
         return(
-            res.failure(
-                Exc_SyntaxError(
-                    'Expected type not found',
-                    token.start, token.end 
+                res.failure(
+                    Exc_SyntaxError(
+                        'Expected type, operation not found',
+                        token.start, token.end 
+                    )
                 )
             )
-        )

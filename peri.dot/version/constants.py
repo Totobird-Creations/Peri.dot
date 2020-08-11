@@ -9,8 +9,7 @@ ALPHABET = string.ascii_letters
 ALPHANUMERIC = ALPHABET + DIGITS
 
 KEYWORDS = {
-    'bool-true':  'True',
-    'bool-false': 'False'
+    'varcreate'    : 'var'
 }
 
 TYPES = {
@@ -20,3 +19,8 @@ TYPES = {
     'string'       : 'Str',
     'boolean'      : 'Bool'
 }
+
+RESERVED = [
+    'True',
+    'False'
+]

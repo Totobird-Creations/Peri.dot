@@ -108,6 +108,10 @@ class Lexer():
                 tokens.append(Token(TT_FSLASH, start=self.pos))
                 self.advance()
 
+            elif self.char == '^':
+                tokens.append(Token(TT_CARAT, start=self.pos))
+                self.advance()
+
 
             elif self.char == '(':
                 tokens.append(Token(TT_LPAREN, start=self.pos))

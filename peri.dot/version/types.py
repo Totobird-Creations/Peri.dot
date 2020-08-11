@@ -42,7 +42,7 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, self.end, self.context)))
 
     def __repr__(self):
-        return(f'<{self.type}:{self.value}>')
+        return(f'{self.value}')
 
 
 
@@ -132,7 +132,12 @@ class IntType(TypeObj):
     def raised(self, other):
         if isinstance(other, IntType):
             return((
-                IntType(self.value ^ other.value)
+                IntType(
+                    pow(
+                        self.value,
+                        other.value
+                    )
+                )
                     .setcontext(self.context),
                 None
             ))
@@ -243,6 +248,31 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
+                    other.start, other.end,
+                    self.context
+                )
+            ))
+
+
+
+
+class StringType(TypeObj):
+    def __init__(self, value):
+        super().__init__(value, type_=TYPES['string'])
+
+
+    def add(self, other):
+        if isinstance(other, StringType):
+            return((
+                StringType(self.value + other.value)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None,
+                Exc_TypeError(
+                    f'{other.type} can not be added to {self.type}',
                     other.start, other.end,
                     self.context
                 )

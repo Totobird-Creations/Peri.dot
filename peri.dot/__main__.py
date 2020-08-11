@@ -2,13 +2,14 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import click
 import sys
-from colorama import init, Fore, Style
-init()
 
 from version.exceptions import *
 from version.lexer import *
+
+import version.modules.click as click
+from version.modules.colorama import init, Fore, Style
+init()
 
 ##########################################
 # LOGO                                   #

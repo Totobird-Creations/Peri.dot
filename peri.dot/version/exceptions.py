@@ -1,4 +1,4 @@
-from colorama import init, Fore, Style
+from .modules.colorama import init, Fore, Style
 init()
 
 class E_Error():

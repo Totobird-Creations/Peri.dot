@@ -7,6 +7,7 @@ import sys
 from version.exceptions       import *
 from version.lexer            import *
 from version.parser           import *
+from version.interpreter      import *
 
 import version.modules.click  as click
 from version.modules.colorama import init, Fore, Style
@@ -78,6 +79,7 @@ def main(help, version, repl, filename):
             print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
             exit(1)
 
+
         lexer = Lexer(filename, text)
         tokens, error = lexer.maketokens()
 
@@ -92,7 +94,14 @@ def main(help, version, repl, filename):
             print(ast.error.asstring())
             exit(1)
 
-        print(ast.node)
+        interpreter = Interpreter()
+        result = interpreter.visit(ast.node)
+
+        if result.error:
+            print(result.error.asstring())
+            exit(1)
+
+        print(result.value)
 
 
     elif not (version or help) or repl:

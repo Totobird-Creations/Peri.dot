@@ -12,3 +12,11 @@ KEYWORDS = {
     'bool-true':  'True',
     'bool-false': 'False'
 }
+
+TYPES = {
+    'invalid'      : 'Invalid',
+    'integer'      : 'Int',
+    'floatingpoint': 'Float',
+    'string'       : 'Str',
+    'boolean'      : 'Bool'
+}

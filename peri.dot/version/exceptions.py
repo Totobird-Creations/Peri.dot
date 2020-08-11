@@ -1,5 +1,13 @@
+##########################################
+# DEPENDENCIES                           #
+##########################################
+
 from .modules.colorama import init, Fore, Style
 init()
+
+##########################################
+# LEX, PARSE, INTERPRET ERRORS           #
+##########################################
 
 class Exc_Error():
     def __init__(self, exc, msg, start, end, context):
@@ -32,15 +40,25 @@ class Exc_Error():
 
 
 
-class Exc_SyntaxError(Exc_Error):
-    def __init__(self, msg, start, end, context=None):
-        super().__init__('SyntaxError', msg, start, end, context)
-
 class Exc_EscapeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('EscapeError', msg, start, end, context)
 
+class Exc_SyntaxError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('SyntaxError', msg, start, end, context)
 
+class Exc_TypeError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('TypeError', msg, start, end, context)
+
+class Exc_ValueError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('ValueError', msg, start, end, context)
+
+##########################################
+# ARGUMENT ERRORS                        #
+##########################################
 
 class Cmd_CmdError():
     def __init__(self, exc, msg, argnum, arg):

@@ -1,7 +1,7 @@
 from .modules.colorama import init, Fore, Style
 init()
 
-class E_Error():
+class Exc_Error():
     def __init__(self, exc, msg, start, end, context):
         self.exc = exc
         self.msg = msg
@@ -32,17 +32,17 @@ class E_Error():
 
 
 
-class E_SyntaxError(E_Error):
+class Exc_SyntaxError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('SyntaxError', msg, start, end, context)
 
-class E_EscapeError(E_Error):
+class Exc_EscapeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('EscapeError', msg, start, end, context)
 
 
 
-class E_CmdError():
+class Cmd_CmdError():
     def __init__(self, exc, msg, argnum, arg):
         self.exc = exc
         self.msg = msg
@@ -57,10 +57,10 @@ class E_CmdError():
 {Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
         return(result)
 
-class E_CmdArgumentError(E_CmdError):
+class Cmd_CmdArgumentError(Cmd_CmdError):
     def __init__(self, msg, argnum, arg):
         super().__init__('CmdArgumentError', msg, argnum, arg)
 
-class E_NotSupportedError(E_CmdError):
+class Cmd_NotSupportedError(Cmd_CmdError):
     def __init__(self, msg, argnum, arg):
         super().__init__('NotSupportedError', msg, argnum, arg)

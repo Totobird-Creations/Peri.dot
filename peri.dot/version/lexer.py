@@ -75,7 +75,6 @@ class Lexer():
             if self.char in ' \t':
                 self.advance()
 
-
             elif self.char == '\n':
                 tokens.append(Token(TT_EOL, start=self.pos))
                 self.advance()
@@ -84,7 +83,6 @@ class Lexer():
             elif self.char in DIGITS + '.':
                 tokens.append(self.makenumber())
 
-
             elif self.char in '"\'':
                 token, error = self.makestring(self.char)
 
@@ -92,6 +90,32 @@ class Lexer():
                     return(([], error))
 
                 tokens.append(token)
+
+
+            elif self.char == '+':
+                tokens.append(Token(TT_PLUS, start=self.pos))
+                self.advance()
+
+            elif self.char == '-':
+                tokens.append(Token(TT_DASH, start=self.pos))
+                self.advance()
+
+            elif self.char == '*':
+                tokens.append(Token(TT_ASTRISK, start=self.pos))
+                self.advance()
+
+            elif self.char == '/':
+                tokens.append(Token(TT_FSLASH, start=self.pos))
+                self.advance()
+
+
+            elif self.char == '(':
+                tokens.append(Token(TT_LPAREN, start=self.pos))
+                self.advance()
+
+            elif self.char == ')':
+                tokens.append(Token(TT_RPAREN, start=self.pos))
+                self.advance()
 
 
             elif self.char in ALPHABET + '_':
@@ -109,7 +133,7 @@ class Lexer():
                 if self.char not in '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, E_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
+                    return((None, Exc_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
 
                 self.advance()
 
@@ -125,10 +149,10 @@ class Lexer():
                 char = self.char
                 self.advance()
 
-                return(([], E_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
+                return(([], Exc_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
 
 
-        tokens.append(Token(TT_EOL, start=self.pos))
+        #tokens.append(Token(TT_EOL, start=self.pos))
         tokens.append(Token(TT_EOF, start=self.pos))
         return((tokens, None))
 
@@ -153,6 +177,7 @@ class Lexer():
         else:
             return(Token(TT_FLOAT, float(num), start=start, end=self.pos))
 
+
     def makestring(self, quotetype):
         string = ''
         start = self.pos.copy()
@@ -173,7 +198,7 @@ class Lexer():
                 if not char:
                     end = self.pos.copy()
                     end.advance()
-                    return((None, E_EscapeError(f'"{self.char}" can not be escaped', start=self.pos, end=end)))
+                    return((None, Exc_EscapeError(f'"{self.char}" can not be escaped', start=self.pos, end=end)))
                 string += char
 
                 escaped = False
@@ -183,7 +208,7 @@ class Lexer():
                 elif self.char == '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, E_EscapeError(f'Invalid EOL, expected "{quotetype}"', start=self.pos, end=end)))
+                    return((None, Exc_EscapeError(f'Invalid EOL, expected "{quotetype}"', start=self.pos, end=end)))
                 else:
                     string += self.char
             self.advance()
@@ -191,11 +216,12 @@ class Lexer():
         if not self.char:
             end = self.pos.copy()
             end.advance()
-            return((None, E_EscapeError(f'Invalid EOF, expected "{quotetype}"', start=self.pos, end=end)))
+            return((None, Exc_EscapeError(f'Invalid EOF, expected "{quotetype}"', start=self.pos, end=end)))
 
         self.advance()
 
         return((Token(TT_STRING, string, start=start, end=self.pos), None))
+
 
     def makeidentifier(self):
         identifier = ''

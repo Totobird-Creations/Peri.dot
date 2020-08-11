@@ -6,6 +6,15 @@ TT_INT        = 'INT'
 TT_FLOAT      = 'FLOAT'
 TT_STRING     = 'STRING'
 
+TT_PLUS       = 'PLUS'
+TT_DASH       = 'MINUS'
+TT_ASTRISK    = 'TIMES'
+TT_FSLASH     = 'DIVBY'
+TT_CARAT      = 'RAISED'
+
+TT_LPAREN     = 'LPAREN'
+TT_RPAREN     = 'RPAREN'
+
 TT_KEYWORD    = 'KEYWORD'
 TT_IDENTIFIER = 'IDENTIFIER'
 
@@ -22,10 +31,12 @@ class Token():
         self.value = value
         if start:
             self.start = start.copy()
-            self.end = start.copy()
-            self.end.advance()
+
         if end:
             self.end = end.copy()
+        else:
+            self.end = start.copy()
+            self.end.advance()
 
     def __repr__(self):
         if isinstance(self.value, str):

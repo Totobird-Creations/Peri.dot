@@ -4,10 +4,11 @@
 
 import sys
 
-from version.exceptions import *
-from version.lexer import *
+from version.exceptions       import *
+from version.lexer            import *
+from version.parser           import *
 
-import version.modules.click as click
+import version.modules.click  as click
 from version.modules.colorama import init, Fore, Style
 init()
 
@@ -55,6 +56,7 @@ def main(help, version, repl, filename):
     if version:
         logo()
 
+
     if help:
         print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{__file__} [OPTIONS]* [FILE]?{Style.RESET_ALL}
 
@@ -62,6 +64,7 @@ def main(help, version, repl, filename):
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-v{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--version{Style.RESET_ALL} - {Fore.GREEN}Display logo and version.{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}''')
+
 
     if filename:
         text = ''
@@ -72,7 +75,7 @@ def main(help, version, repl, filename):
 
         except Exception as e:
             exc = sys.exc_info()
-            print(E_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
+            print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
             exit(1)
 
         lexer = Lexer(filename, text)
@@ -82,10 +85,18 @@ def main(help, version, repl, filename):
             print(error.asstring())
             exit(1)
 
-        print(' '.join([str(i) for i in tokens]))
+        parser = Parser(tokens)
+        ast = parser.parse()
+
+        if ast.error:
+            print(ast.error.asstring())
+            exit(1)
+
+        print(ast.node)
+
 
     elif not (version or help) or repl:
-        print(E_NotSupportedError(f'The repl is not yet supported', 'none', '').asstring())
+        print(Cmd_NotSupportedError(f'The repl is not yet supported', 'none', '').asstring())
         exit(1)
 
 if __name__ == '__main__':

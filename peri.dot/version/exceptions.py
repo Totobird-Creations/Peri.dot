@@ -32,7 +32,7 @@ class Exc_Error():
         while context:
             result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}Line {Style.BRIGHT}{pos.line}{Style.RESET_ALL}{Fore.GREEN}, Column {Style.BRIGHT}{pos.column}{Style.RESET_ALL}{Fore.GREEN}, In {Style.BRIGHT}{context.display}{Style.RESET_ALL}\n''' + result
 
-            pos = context.parententrypos
+            pos = context.parententry
             context = context.parent
 
         result = f'{Fore.BLUE}{Style.BRIGHT}Traceback (most recent call last):{Style.RESET_ALL}\n' + result

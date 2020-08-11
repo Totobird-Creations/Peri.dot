@@ -35,42 +35,50 @@ class RTResult():
 ##########################################
 
 class Interpreter():
-    def visit(self, node):
+    def visit(self, node, context):
         method = f'visit_{type(node).__name__}'
         method = getattr(self, method)
 
         return(
-            method(node)
+            method(node, context)
         )
 
 
-    def visit_IntNode(self, node):
+    def visit_IntNode(self, node, context):
         return(
             RTResult().success(
                 IntType(node.token.value)
+                    .setcontext(context)
                     .setpos(node.start, node.end)
             )
         )
 
-    def visit_FloatNode(self, node):
+    def visit_FloatNode(self, node, context):
         return(
             RTResult().success(
                 FloatType(node.token.value)
+                    .setcontext(context)
                     .setpos(node.start, node.end)
             )
         )
 
-    def visit_StringNode(self, node):
+    def visit_StringNode(self, node, context):
         return(
             RTResult().success(
                 StringType(node.token.value)
+                    .setcontext(context)
                     .setpos(node.start, node.end)
             )
         )
 
-    def visit_UnaryOpNode(self, node):
+    def visit_UnaryOpNode(self, node, context):
         res = RTResult()
-        number = res.register(self.visit(node.node))
+        number = res.register(
+            self.visit(
+                node.node,
+                context
+            )
+        )
 
         if res.error:
             return(res)
@@ -96,14 +104,24 @@ class Interpreter():
             )
         )
 
-    def visit_BinaryOpNode(self, node):
+    def visit_BinaryOpNode(self, node, context):
         res = RTResult()
 
-        left = res.register(self.visit(node.lnode))
+        left = res.register(
+            self.visit(
+                node.lnode,
+                context
+            )
+        )
         if res.error:
             return(res)
 
-        right = res.register(self.visit(node.rnode))
+        right = res.register(
+            self.visit(
+                node.rnode,
+                context
+            )
+        )
         if res.error:
             return(res)
 

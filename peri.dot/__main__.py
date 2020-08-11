@@ -4,6 +4,7 @@
 
 import sys
 
+from version.context          import *
 from version.exceptions       import *
 from version.lexer            import *
 from version.parser           import *
@@ -95,7 +96,8 @@ def main(help, version, repl, filename):
             exit(1)
 
         interpreter = Interpreter()
-        result = interpreter.visit(ast.node)
+        context = Context('<module>')
+        result = interpreter.visit(ast.node, context)
 
         if result.error:
             print(result.error.asstring())

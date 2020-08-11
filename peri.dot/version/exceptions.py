@@ -30,7 +30,7 @@ class Exc_Error():
         context = self.context
 
         while context:
-            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}Line {Style.BRIGHT}{pos.line}{Style.RESET_ALL}{Fore.GREEN}, Column {Style.BRIGHT}{pos.column}{Style.RESET_ALL}{Fore.GREEN}, In {Style.BRIGHT}{context.display}{Style.RESET_ALL}\n''' + result
+            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}Line {Style.BRIGHT}{pos.line + 1}{Style.RESET_ALL}{Fore.GREEN}, Column {Style.BRIGHT}{pos.column + 1}{Style.RESET_ALL}{Fore.GREEN}, In {Style.BRIGHT}{context.display}{Style.RESET_ALL}\n''' + result
 
             pos = context.parententry
             context = context.parent

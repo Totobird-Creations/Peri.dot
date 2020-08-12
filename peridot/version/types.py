@@ -2,7 +2,6 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .constants  import *
 from .exceptions import *
 
 ##########################################
@@ -306,5 +305,5 @@ class StringType(TypeObj):
 class BooleanType(TypeObj):
     def __init__(self, value):
         if not isinstance(value, bool):
-            raise TypeError('Internal Error: Non boolean value receievd')
+            raise TypeError(f'Internal Error: Non boolean value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])

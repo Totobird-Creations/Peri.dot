@@ -1,5 +1,12 @@
 expr:
     - KEYWORD:varcreate IDENTIFIER (COMMA IDENTIFIER)* EQ expr
+    - comp-expr ((KEYWORD:logicaland|KEYWORD:logicalor) comp-expr)*
+
+comp-expr:
+    - KEYWORD:logicalnot comp-expr
+    - arith-expr ((EQEQUALS|BANGEQUALS|LESSTHAN|LTEQUALS|GREATERTHAN|GTEQUALS) arith-expr)*
+
+arith-expr:
     - term ((PLUS|DASH) term)*
 
 term:

@@ -95,17 +95,17 @@ class TypeObj():
             ))
     def lessthan(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
-    def ltequals(self, other):
+    def ltequals(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, other.end, self.context)))
-    def greaterthan(self, other):
+    def greaterthan(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>\'', self.start, other.end, self.context)))
-    def gtequals(self, other):
+    def gtequals(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>=\'', self.start, other.end, self.context)))
-    def and_(self, other):
+    def and_(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, other.end, self.context)))
-    def or_(self, other):
+    def or_(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, other.end, self.context)))
-    def not_(self):
+    def not_(self) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context)))
 
     def __repr__(self):

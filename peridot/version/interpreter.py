@@ -2,9 +2,9 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .constants  import *
-from .tokens import *
-from .types  import *
+from .constants  import * # type: ignore
+from .tokens import * # type: ignore
+from .types  import * # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #

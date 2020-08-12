@@ -3,7 +3,7 @@
 ##########################################
 
 import string
-from   .types import *
+from   .types import NullType, BooleanType # type: ignore
 
 ##########################################
 # CONSTANTS                              #

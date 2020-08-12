@@ -2,10 +2,10 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .constants  import *
-from .exceptions import *
-from .nodes      import *
-from .tokens     import *
+from .constants  import * # type: ignore
+from .exceptions import * # type: ignore
+from .nodes      import * # type: ignore
+from .tokens     import * # type: ignore
 
 ##########################################
 # PARSE RESULT                           #

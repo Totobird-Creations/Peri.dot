@@ -2,9 +2,9 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .constants  import *
-from .exceptions import *
-from .tokens     import *
+from .constants  import * # type: ignore
+from .exceptions import * # type: ignore
+from .tokens     import * # type: ignore
 
 ##########################################
 # POSITION                               #

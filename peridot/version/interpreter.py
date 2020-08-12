@@ -78,6 +78,7 @@ class Interpreter():
 
 
     def visit_VarAccessNode(self, node, context):
+        raise Exception('Test Exception')
         res = RTResult()
 
         name = node.token.value

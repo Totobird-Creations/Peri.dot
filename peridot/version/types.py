@@ -1,11 +1,11 @@
-from __future__ import annotations
-from typing import Any,Optional
-
 ##########################################
 # DEPENDENCIES                           #
 ##########################################
 
-from .exceptions import *
+from __future__ import annotations
+from typing import Any,Optional
+
+from .exceptions import  Exc_TypeError, Exc_ValueError # type: ignore
 
 ##########################################
 # CONSTANTS                              #
@@ -45,17 +45,17 @@ class TypeObj():
 
 
 
-    def add(self, other):
+    def add(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be added to', self.start, other.end, self.context)))
-    def subtract(self, other):
+    def subtract(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be subtracted from', self.start, other.end, self.context)))
-    def multiply(self, other):
+    def multiply(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be multiplied', self.start, other.end, self.context)))
-    def divide(self, other):
+    def divide(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, other.end, self.context)))
-    def raised(self, other):
+    def raised(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, other.end, self.context)))
-    def eqequals(self: Any, other: Any) -> (BooleanType, None):
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -74,7 +74,7 @@ class TypeObj():
                     .setcontext(self.context),
                 None
             ))
-    def bangequals(self, other: Any) -> (BooleanType, None):
+    def bangequals(self, other: Any) -> Tuple[BooleanType, None]:
         if type(self) != type(other):
             return((
                 BooleanType(
@@ -93,19 +93,19 @@ class TypeObj():
                     .setcontext(self.context),
                 None
             ))
-    def lessthan(self, other: Any) -> (None, Exc_TypeError):
+    def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
-    def ltequals(self, other: Any) -> (None, Exc_TypeError):
+    def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, other.end, self.context)))
-    def greaterthan(self, other: Any) -> (None, Exc_TypeError):
+    def greaterthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>\'', self.start, other.end, self.context)))
-    def gtequals(self, other: Any) -> (None, Exc_TypeError):
+    def gtequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>=\'', self.start, other.end, self.context)))
-    def and_(self, other: Any) -> (None, Exc_TypeError):
+    def and_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, other.end, self.context)))
-    def or_(self, other: Any) -> (None, Exc_TypeError):
+    def or_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, other.end, self.context)))
-    def not_(self) -> (None, Exc_TypeError):
+    def not_(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context)))
 
     def __repr__(self):
@@ -117,7 +117,7 @@ class NullType(TypeObj):
     def __init__(self):
         super().__init__(None, type_=TYPES['nonetype'])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return(f'Null')
 
 
@@ -130,7 +130,7 @@ class IntType(TypeObj):
         super().__init__(value, type_=TYPES['integer'])
 
 
-    def add(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
+    def add(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
@@ -148,7 +148,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
+    def subtract(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
@@ -166,7 +166,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
+    def multiply(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
@@ -184,7 +184,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def divide(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
+    def divide(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             if other.value == 0:
                 return((
@@ -212,7 +212,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def raised(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
+    def raised(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(
@@ -235,7 +235,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def lessthan(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -248,7 +248,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def ltequals(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def ltequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -261,7 +261,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def greaterthan(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def greaterthan(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -274,7 +274,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def gtequals(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def gtequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -295,7 +295,7 @@ class FloatType(TypeObj):
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 
-    def add(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+    def add(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
 
         if isinstance(other, FloatType):
             return((
@@ -314,7 +314,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+    def subtract(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
@@ -332,7 +332,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+    def multiply(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
@@ -350,7 +350,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def divide(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+    def divide(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             if other.value == 0:
                 return((
@@ -378,7 +378,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def raised(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+    def raised(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(
@@ -401,7 +401,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def lessthan(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -421,7 +421,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def ltequals(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -441,7 +441,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def greaterthan(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -461,7 +461,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def gtequals(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -491,7 +491,7 @@ class StringType(TypeObj):
         super().__init__(value, type_=TYPES['string'])
 
 
-    def add(self, other: StringType) -> (Optional[StringType], Optional[Exc_typeError]):
+    def add(self, other: StringType) -> Tuple[Optional[StringType], Optional[Exc_TypeError]]:
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
@@ -518,7 +518,7 @@ class BooleanType(TypeObj):
             raise TypeError(f'Internal Error: Non boolean value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])
 
-    def and_(self, other: BooleanType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def and_(self, other: BooleanType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -538,7 +538,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def or_(self, other: BooleanType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
+    def or_(self, other: BooleanType) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -558,7 +558,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def not_(self)-> (BooleanType, None):
+    def not_(self)-> Tuple[BooleanType, None]:
         return((
             BooleanType(
                 not self.value

@@ -12,39 +12,39 @@ from peridot.version.exceptions import *
 
 
 class TestPeridotInt:
-    def test_totobird_int(self):
+    def test_int(self):
         a = IntType(4)
         assert(isinstance(a, IntType))
         assert(a.value == 4)
 
-    def test_totobird_not_int(self):
+    def test_not_int(self):
         with pytest.raises(TypeError):
             a = IntType(4.2)
         with pytest.raises(TypeError):
             a = IntType("String")
 
-    def test_totobird_int_add(self):
+    def test_int_add(self):
         a = IntType(4)
         b = IntType(2)
         c,err = a.add(b)
         assert(c.value == 6)
         assert(err == None)
 
-    def test_totobird_int_subtract(self):
+    def test_int_subtract(self):
         a = IntType(100)
         b = IntType(42)
         c,err = a.subtract(b)
         assert(c.value == 58)
         assert(err == None)
 
-    def test_totobird_int_multiply(self):
+    def test_int_multiply(self):
         a = IntType(10)
         b = IntType(42)
         c,err = a.multiply(b)
         assert(c.value == 420)
         assert(err == None)
 
-    def test_totobird_int_divide(self):
+    def test_int_divide(self):
         a = IntType(42)
         b = IntType(10)
         c,err = a.divide(b)
@@ -52,19 +52,21 @@ class TestPeridotInt:
         assert(err == None)
 
 class TestPeridotFloat:
-    def test_totobird_float(test):
+    def test_float(test):
         a = FloatType(4.2)
         assert(isinstance(a, FloatType))
         assert(a.value == 4.2)
 
-    def test_totobird_not_float(self):
+    def test_not_float(self):
         with pytest.raises(TypeError):
             a = FloatType(4)
         with pytest.raises(TypeError):
             a = FloatType("String")
 
+    
+
 class TestPeridotCrossTypes:
-    def test_totobird_int_add_float(test):
+    def test_int_add_float(test):
         a = IntType(4)
         b = FloatType(2.3)
         c,err = a.add(b)

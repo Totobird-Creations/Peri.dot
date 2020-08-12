@@ -1,9 +1,4 @@
 from version.catch import *
-from version.context            import *
-from version.exceptions         import *
-from version.lexer              import *
-from version.parser             import *
-from version.interpreter        import *
 
 @catch
 def improvederrormessage():
@@ -17,6 +12,12 @@ def improvederrormessage():
     import version.modules.click.src.click    as click
     from   version.modules.colorama.colorama import init, Fore, Style
     init()
+
+    from version.context            import Context, SymbolTable
+    from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError
+    from version.lexer              import Lexer
+    from version.parser             import Parser
+    from version.interpreter        import Interpreter
 
     ##########################################
     # LOGO                                   #

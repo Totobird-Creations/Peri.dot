@@ -4,7 +4,7 @@ from .modules.colorama.colorama import init, Fore, Style
 init()
 
 _HEADER = '\n- INTERNAL ERROR '
-_FOOTER = f'{Fore.BLUE}{Style.BRIGHT}DO NOT report this error on github\n  (https://github.com/toto-bird/Peri.dot/issues/new){Style.RESET_ALL}'
+_FOOTER = f'{Fore.BLUE}{Style.BRIGHT}Please report this error on github\n  (https://github.com/toto-bird/Peri.dot/issues/new){Style.RESET_ALL}'
 
 def catch(func):
     try:

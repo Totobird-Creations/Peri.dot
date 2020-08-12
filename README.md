@@ -1,5 +1,7 @@
 # Peri.dot
 
+![Peri.dot Logo](https://raw.githubusercontent.com/toto-bird/Peri.dot/master/logo.png)
+
 This project uses submodules for known version of the python [click](https://click.palletsprojects.com/en/7.x/) and [colorama](https://pypi.org/project/colorama/) packages.
 
 Running/testing this repository

@@ -18,7 +18,7 @@ init()
 # LOGO                                   #
 ##########################################
 
-VERSION = 'Pre-01'
+VERSION = 'Pre-02'
 
 def logo():
     logolines = [

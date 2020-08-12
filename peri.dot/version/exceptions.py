@@ -2,7 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .modules.colorama import init, Fore, Style
+from .modules.colorama.colorama import init, Fore, Style
 init()
 
 ##########################################

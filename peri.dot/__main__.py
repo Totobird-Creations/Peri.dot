@@ -12,8 +12,8 @@ from version.lexer              import *
 from version.parser             import *
 from version.interpreter        import *
 
-import version.modules.click    as click
-from   version.modules.colorama import init, Fore, Style
+import version.modules.click.src.click    as click
+from   version.modules.colorama.colorama import init, Fore, Style
 init()
 
 ##########################################

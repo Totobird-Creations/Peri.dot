@@ -91,22 +91,23 @@ def main(help, version, repl, filename):
                 print(error.asstring())
                 exit(1)
 
-            parser = Parser(tokens)
-            ast = parser.parse()
+            if len(tokens) - 2:
+                parser = Parser(tokens)
+                ast = parser.parse()
 
-            if ast.error:
-                print(ast.error.asstring())
-                exit(1)
+                if ast.error:
+                    print(ast.error.asstring())
+                    exit(1)
 
-            interpreter = Interpreter()
-            context = Context('<module>', symbols=symbols)
-            result = interpreter.visit(ast.node, context)
+                interpreter = Interpreter()
+                context = Context('<module>', symbols=symbols)
+                result = interpreter.visit(ast.node, context)
 
-            if result.error:
-                print(result.error.asstring())
-                exit(1)
+                if result.error:
+                    print(result.error.asstring())
+                    exit(1)
 
-            print(result.value)
+                print(result.value)
 
 
     elif not (version or help) or repl:

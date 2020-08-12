@@ -67,7 +67,7 @@ class Parser():
 
     def parse(self):
         res = self.expr()
-        if not res.error and self.curtoken.type != TT_EOF:
+        if not res.error and self.curtoken.type != TT_EOL:
             return(
                 res.failure(
                     Exc_SyntaxError(

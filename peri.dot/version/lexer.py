@@ -165,7 +165,7 @@ class Lexer():
                 return(([], Exc_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
 
 
-        #tokens.append(Token(TT_EOL, start=self.pos))
+        tokens.append(Token(TT_EOL, start=self.pos))
         tokens.append(Token(TT_EOF, start=self.pos))
         return((tokens, None))
 

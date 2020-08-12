@@ -299,3 +299,12 @@ class StringType(TypeObj):
                     self.context
                 )
             ))
+
+
+
+
+class BooleanType(TypeObj):
+    def __init__(self, value):
+        if not isinstance(value, float):
+            raise TypeError('Internal Error: Non boolean value receievd')
+        super().__init__(value, type_=TYPES['boolean'])

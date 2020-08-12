@@ -14,9 +14,14 @@ ALPHABET = string.ascii_letters
 ALPHANUMERIC = ALPHABET + DIGITS
 
 BUILTINS = {
-    'Null'     : NullType()
+    'Null'      : NullType(),
+    'True'      : BooleanType(True),
+    'False'     : BooleanType(False)
 }
 
 KEYWORDS = {
-    'varcreate': 'var'
+    'varcreate' : 'var',
+    'logicaland': 'and',
+    'logicalor' : 'or',
+    'logicalnot': 'not'
 }

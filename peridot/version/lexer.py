@@ -114,8 +114,37 @@ class Lexer():
 
 
             elif self.char == '=':
-                tokens.append(Token(TT_EQUALS, start=self.pos))
-                self.advance()
+                token, error = self.makeequals()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
+            elif self.char == '!':
+                token, error = self.makebang()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
+            elif self.char == '<':
+                token, error = self.makelessthan()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
+            elif self.char == '>':
+                token, error = self.makegreaterthan()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
+
 
             elif self.char == ',':
                 tokens.append(Token(TT_COMMA, start=self.pos))
@@ -213,7 +242,7 @@ class Lexer():
                 if not char:
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Exc_EscapeError(f'"{self.char}" can not be escaped', start=self.pos, end=end)))
+                    return((None, Exc_EscapeError(f'\'{self.char}\' can not be escaped', start=self.pos, end=end)))
                 string += char
 
                 escaped = False
@@ -223,7 +252,7 @@ class Lexer():
                 elif self.char == '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Exc_EscapeError(f'Invalid EOL, expected "{quotetype}"', start=self.pos, end=end)))
+                    return((None, Exc_EscapeError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
                 else:
                     string += self.char
             self.advance()
@@ -231,11 +260,47 @@ class Lexer():
         if not self.char:
             end = self.pos.copy()
             end.advance()
-            return((None, Exc_EscapeError(f'Invalid EOF, expected "{quotetype}"', start=self.pos, end=end)))
+            return((None, Exc_EscapeError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
 
         self.advance()
 
         return((Token(TT_STRING, string, start=start, end=self.pos), None))
+
+
+    def makeequals(self):
+        start = self.pos.copy()
+
+        self.advance()
+
+        if self.char == '=':
+            self.advance()
+            return((Token(TT_EQEQUALS, string, start=start, end=self.pos), None))
+
+        return((Token(TT_EQUALS, string, start=start, end=self.pos), None))
+
+
+    def makebang(self):
+        start = self.pos.copy()
+
+        self.advance()
+
+        if self.char == '=':
+            self.advance()
+            return((Token(TT_BANGEQUALS, string, start=start, end=self.pos), None))
+
+        return((None, Exc_EscapeError(f'Expected \'=\' not found', start=self.pos, end=self.pos.copy())))
+
+
+    def makelessthan(self):
+        start = self.pos.copy()
+
+        self.advance()
+
+        if self.char == '=':
+            self.advance()
+            return((Token(TT_LTEQUALS, string, start=start, end=self.pos), None))
+
+        return((Token(TT_LESSTHAN, string, start=start, end=self.pos), None))
 
 
     def makeidentifier(self):

@@ -1,0 +1,17 @@
+expr:
+    - KEYWORD:varcreate IDENTIFIER (COMMA IDENTIFIER)* EQ expr
+    - term ((PLUS|DASH) term)*
+
+term:
+    - raised ((ASTRISK|FSLASH) raised)*
+
+raised:
+    - factor (CARAT factor)*
+
+factor:
+    - (PLUS|DASH) factor
+    - atom
+
+atom:
+    - INT|FLOAT|STRING|IDENTIFIER
+    - LPAREN expr RPAREN

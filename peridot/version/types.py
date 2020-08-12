@@ -305,6 +305,6 @@ class StringType(TypeObj):
 
 class BooleanType(TypeObj):
     def __init__(self, value):
-        if not isinstance(value, float):
+        if not isinstance(value, bool):
             raise TypeError('Internal Error: Non boolean value receievd')
         super().__init__(value, type_=TYPES['boolean'])

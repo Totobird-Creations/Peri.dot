@@ -114,7 +114,8 @@ class Interpreter():
     def visit_VarAssignNode(self, node, context):
         res = RTResult()
 
-        for name in [i.value for i in node.tokens]:
+        for i in node.tokens:
+            name = i.value
             prevvalue = context.symbols.access(name)
 
             if not prevvalue:
@@ -122,7 +123,7 @@ class Interpreter():
                     res.failure(
                         Exc_IdentifierError(
                             f'\'{name}\' is not defined',
-                            node.token.start, node.token.end
+                            i.start, i.end
                         )
                     )
                 )

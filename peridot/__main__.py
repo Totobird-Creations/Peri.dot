@@ -2,7 +2,6 @@ from version.catch import *
 
 @catch
 def improvederrormessage():
-
     ##########################################
     # DEPENDENCIES                           #
     ##########################################
@@ -15,9 +14,10 @@ def improvederrormessage():
 
     from version.context            import Context, SymbolTable
     from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError
+    from version.interpreter        import Interpreter
     from version.lexer              import Lexer
     from version.parser             import Parser
-    from version.interpreter        import Interpreter
+    from version.repl               import Repl
 
     ##########################################
     # LOGO                                   #
@@ -117,8 +117,9 @@ def improvederrormessage():
 
 
         elif not (version or help) or repl:
-            print(Cmd_NotSupportedError(f'The repl is not yet supported', 'none', '').asstring())
-            exit(1)
+            symbols = SymbolTable()
+
+            Repl()
 
 
     main()

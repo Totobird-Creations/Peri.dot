@@ -35,7 +35,7 @@ class Exc_Error():
             pos = context.parententry
             context = context.parent
 
-        result = f'{Fore.BLUE}{Style.BRIGHT}Traceback (most recent call last):{Style.RESET_ALL}\n' + result
+        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Traceback (most recent call last):{Style.RESET_ALL}\n' + result
         return(result)
 
 

@@ -27,7 +27,7 @@ class SymbolTable():
         self.parent = None
 
 
-    def access(self, name) -> Any:
+    def access(self, name: str) -> Any:
         value = self.symbols.get(name, None)
 
         if value == None and self.parent:
@@ -38,9 +38,9 @@ class SymbolTable():
         return(value)
 
 
-    def assign(self, name, value):
+    def assign(self, name: str, value: Any):
         self.symbols[name] = value
 
 
-    def remove(self, name):
+    def remove(self, name: str):
         del self.symbols[name]

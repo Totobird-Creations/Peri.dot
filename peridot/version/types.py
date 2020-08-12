@@ -6,6 +6,19 @@ from .constants  import *
 from .exceptions import *
 
 ##########################################
+# CONSTANTS                              #
+##########################################
+
+TYPES = {
+    'invalid'      : 'Invalid',
+    'nonetype'     : 'Null',
+    'integer'      : 'Int',
+    'floatingpoint': 'Float',
+    'string'       : 'Str',
+    'boolean'      : 'Bool'
+}
+
+##########################################
 # TYPES                                  #
 ##########################################
 

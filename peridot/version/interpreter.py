@@ -2,6 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
+from .constants  import *
 from .tokens import *
 from .types  import *
 
@@ -80,6 +81,15 @@ class Interpreter():
         res = RTResult()
 
         name = node.token.value
+
+        value = BUILTINS.get(name, None)
+        if value:
+            return(
+                res.success(
+                    value
+                )
+            )
+
         value = context.symbols.access(name)
 
         if not value:

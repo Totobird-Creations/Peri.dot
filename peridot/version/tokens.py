@@ -2,27 +2,34 @@
 # TOKENS                                 #
 ##########################################
 
-TT_INT        = 'INT'
-TT_FLOAT      = 'FLOAT'
-TT_STRING     = 'STRING'
+TT_INT         = 'INT'
+TT_FLOAT       = 'FLOAT'
+TT_STRING      = 'STRING'
 
-TT_PLUS       = 'PLUS'
-TT_DASH       = 'MINUS'
-TT_ASTRISK    = 'TIMES'
-TT_FSLASH     = 'DIVBY'
-TT_CARAT      = 'RAISED'
+TT_PLUS        = 'PLUS'
+TT_DASH        = 'MINUS'
+TT_ASTRISK     = 'TIMES'
+TT_FSLASH      = 'DIVBY'
+TT_CARAT       = 'RAISED'
 
-TT_LPAREN     = 'LPAREN'
-TT_RPAREN     = 'RPAREN'
+TT_LPAREN      = 'LPAREN'
+TT_RPAREN      = 'RPAREN'
 
-TT_EQUALS     = 'EQUALS'
-TT_COMMA      = 'COMMA'
+TT_EQUALS      = 'EQUALS'
+TT_COMMA       = 'COMMA'
 
-TT_KEYWORD    = 'KEYWORD'
-TT_IDENTIFIER = 'IDENTIFIER'
+TT_EQEQUALS    = 'EQEQUALS'
+TT_BANGEQUALS  = 'BANGEQUALS'
+TT_LESSTHAN    = 'LESSTHAN'
+TT_LTEQUALS    = 'LTEQUALS'
+TT_GREATERTHAN = 'GREATERTHAN'
+TT_GTEQUALS    = 'GTEQUALS'
 
-TT_EOL        = 'EOL'
-TT_EOF        = 'EOF'
+TT_KEYWORD     = 'KEYWORD'
+TT_IDENTIFIER  = 'IDENTIFIER'
+
+TT_EOL         = 'EOL'
+TT_EOF         = 'EOF'
 
 ##########################################
 # TOKEN OBJECT                           #

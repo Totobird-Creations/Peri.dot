@@ -1,3 +1,13 @@
 True
 False
+
 1 == 2
+1 != 2
+1 > 2
+1 >= 2
+1 < 2
+1 <= 2
+
+True and True
+True or False
+not True

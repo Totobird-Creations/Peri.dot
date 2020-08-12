@@ -193,7 +193,7 @@ class Interpreter():
 
     def visit_UnaryOpNode(self, node, context):
         res = RTResult()
-        number = res.register(
+        result = res.register(
             self.visit(
                 node.node,
                 context
@@ -206,7 +206,9 @@ class Interpreter():
         error = None
 
         if node.optoken.type == TT_DASH:
-            number, error = number.multiply(IntType(-1))
+            result, error = result.multiply(IntType(-1))
+        elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
+            result, error = result.not_(IntType(-1))
 
         if error:
             return(
@@ -217,7 +219,7 @@ class Interpreter():
 
         return(
             res.success(
-                number.setpos(
+                result.setpos(
                     node.start,
                     node.end
                 )
@@ -256,6 +258,22 @@ class Interpreter():
             result, error = left.divide(right)
         elif node.optoken.type == TT_CARAT:
             result, error = left.raised(right)
+        elif node.optoken.type == TT_EQEQUALS:
+            result, error = left.eqequals(right)
+        elif node.optoken.type == TT_BANGEQUALS:
+            result, error = left.bangequals(right)
+        elif node.optoken.type == TT_LESSTHAN:
+            result, error = left.eqequals(right)
+        elif node.optoken.type == TT_GREATERTHAN:
+            result, error = left.eqequals(right)
+        elif node.optoken.type == TT_LTEQUALS:
+            result, error = left.eqequals(right)
+        elif node.optoken.type == TT_GTEQUALS:
+            result, error = left.eqequals(right)
+        elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicaland']):
+            result, error = left.and_(right)
+        elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalor']):
+            result, error = left.or_(right)
 
         if error:
             return(

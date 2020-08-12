@@ -1,14 +1,6 @@
 import pytest
-from peridot.version.types import IntType,FloatType,NullType
+from peridot.version.types import IntType,FloatType,BooleanType,NullType
 from peridot.version.exceptions import *
-#import importlib.util
-#import sys
-#import os
-
-#spec = importlib.util.spec_from_file_location("pdTypes", "peri.dot/version/types.py")
-#module = importlib.util.module_from_spec(spec)
-#sys.modules["pdTypes"] = module
-#spec.loader.exec_module(module)
 
 
 class TestPeridotInt:
@@ -16,6 +8,7 @@ class TestPeridotInt:
         a = IntType(4)
         assert(isinstance(a, IntType))
         assert(a.value == 4)
+        assert(a.type == "Int")
 
     def test_not_int(self):
         with pytest.raises(TypeError):
@@ -51,11 +44,88 @@ class TestPeridotInt:
         assert(c.value == 4)
         assert(err == None)
 
+    def test_int_raised(self):
+        a = IntType(2)
+        b = IntType(3)
+        c, err = a.raised(b)
+        assert(c.value == 8)
+        assert(err == None)
+
+    def test_int_raised(self):
+        a = IntType(2)
+        b = IntType(3)
+        c, err = a.raised(b)
+        assert(c.value == 8)
+        assert(err == None)
+
+    def test_int_lessthan(self):
+        a = IntType(2)
+        b = IntType(3)
+        c, err = a.lessthan(b)
+        d, err = b.lessthan(a)
+        assert(isinstance(c, BooleanType))
+        assert(isinstance(d, BooleanType))
+        assert(c.value == True)
+        assert(d.value == False)
+
+    def test_int_ltequals(self):
+        a = IntType(2)
+        b = IntType(3)
+        c = IntType(3)
+        d, err = a.ltequals(b)
+        e, err = b.ltequals(a)
+        f, err = b.ltequals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == True)
+        assert(e.value == False)
+        assert(f.value == True)
+
+    def test_int_greaterthan(self):
+        a = IntType(2)
+        b = IntType(3)
+        c, err = a.greaterthan(b)
+        d, err = b.greaterthan(a)
+        assert(isinstance(c, BooleanType))
+        assert(isinstance(d, BooleanType))
+        assert(c.value == False)
+        assert(d.value == True)
+
+    def test_int_gtequals(self):
+        a = IntType(2)
+        b = IntType(3)
+        c = IntType(3)
+        d, err = a.gtequals(b)
+        e, err = b.gtequals(a)
+        f, err = b.gtequals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == False)
+        assert(e.value == True)
+        assert(f.value == True)
+
+    def test_int_equals(self):
+        a = IntType(2)
+        b = IntType(3)
+        c = IntType(3)
+        d, err = a.equals(b)
+        e, err = b.equals(a)
+        f, err = b.equals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == False)
+        assert(e.value == False)
+        assert(f.value == True)
+
 class TestPeridotFloat:
     def test_float(test):
         a = FloatType(4.2)
         assert(isinstance(a, FloatType))
         assert(a.value == 4.2)
+        assert(a.type == "Float")
 
     def test_not_float(self):
         with pytest.raises(TypeError):
@@ -91,11 +161,121 @@ class TestPeridotFloat:
         assert(c.value == 15.3)
         assert(err == None)
     
+    def test_float_raised(self):
+        a = FloatType(2.1)
+        b = FloatType(3.0)
+        c, err = a.raised(b)
+        assert(c.value == 9.261)
+        assert(err == None)
+
+    def test_float_lessthan(self):
+        a = FloatType(2.1)
+        b = FloatType(3.0)
+        c, err = a.lessthan(b)
+        d, err = b.lessthan(a)
+        assert(isinstance(c, BooleanType))
+        assert(isinstance(d, BooleanType))
+        assert(c.value == True)
+        assert(d.value == False)
+
+    def test_float_ltequals(self):
+        a = FloatType(2.1)
+        b = FloatType(3.4)
+        c = FloatType(3.4)
+        d, err = a.ltequals(b)
+        e, err = b.ltequals(a)
+        f, err = b.ltequals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == True)
+        assert(e.value == False)
+        assert(f.value == True)
+
+    def test_float_greaterthan(self):
+        a = FloatType(2.1)
+        b = FloatType(3.4)
+        c, err = a.greaterthan(b)
+        d, err = b.greaterthan(a)
+        assert(isinstance(c, BooleanType))
+        assert(isinstance(d, BooleanType))
+        assert(c.value == False)
+        assert(d.value == True)
+
+    def test_float_gtequals(self):
+        a = FloatType(2.1)
+        b = FloatType(3.4)
+        c = FloatType(3.4)
+        d, err = a.gtequals(b)
+        e, err = b.gtequals(a)
+        f, err = b.gtequals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == False)
+        assert(e.value == True)
+        assert(f.value == True)
+
+    def test_float_equals(self):
+        a = FloatType(2.1)
+        b = FloatType(3.4)
+        c = FloatType(3.4)
+        d, err = a.equals(b)
+        e, err = b.equals(a)
+        f, err = b.equals(c)
+        assert(isinstance(d, BooleanType))
+        assert(isinstance(e, BooleanType))
+        assert(isinstance(f, BooleanType))
+        assert(d.value == False)
+        assert(e.value == False)
+        assert(f.value == True)
 
 class TestPeridotCrossTypes:
-    def test_int_add_float(test):
+    def test_int_add_float(self):
         a = IntType(4)
         b = FloatType(2.3)
         c,err = a.add(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_int_mult_float(self):
+        a = IntType(4)
+        b = FloatType(2.3)
+        c, err = a.multiply(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_float_mult_int(self):
+        b = IntType(4)
+        a = FloatType(2.3)
+        c, err = a.multiply(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_float_lessthan_int(self):
+        a = IntType(2)
+        b = FloatType(3.0)
+        c, err = b.lessthan(a)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_int_lessthan_float(self):
+        a = IntType(2)
+        b = FloatType(3.0)
+        c, err = a.lessthan(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_int_equals_float(self):
+        a = IntType(2)
+        b = FloatType(2.0)
+        c, err = a.equals(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
+
+    def test_int_equals_float(self):
+        a = IntType(2.0)
+        b = FloatType(2)
+        c, err = a.equals(b)
         assert(c == None)
         assert(isinstance(err, Exc_TypeError))

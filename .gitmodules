@@ -1,6 +1,6 @@
 [submodule "peri.dot/version/modules/click"]
-	path = peri.dot/version/modules/click
+	path = peridot/version/modules/click
 	url = https://github.com/pallets/click.git
 [submodule "peri.dot/version/modules/colorama"]
-	path = peri.dot/version/modules/colorama
+	path = peridot/version/modules/colorama
 	url = https://github.com/tartley/colorama.git

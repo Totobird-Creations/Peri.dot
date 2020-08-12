@@ -1,3 +1,5 @@
+from typing import Any
+
 ##########################################
 # CONTEXT                                #
 ##########################################
@@ -21,7 +23,7 @@ class SymbolTable():
         self.parent = None
 
 
-    def access(self, name):
+    def access(self, name) -> Any:
         value = self.symbols.get(name, None)
 
         if value == None and self.parent:

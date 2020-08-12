@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import Any,Optional
+
 ##########################################
 # DEPENDENCIES                           #
 ##########################################
@@ -52,7 +55,7 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, other.end, self.context)))
     def raised(self, other):
         return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, other.end, self.context)))
-    def eqequals(self, other):
+    def eqequals(self: Any, other: Any) -> (BooleanType, None):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -71,7 +74,7 @@ class TypeObj():
                     .setcontext(self.context),
                 None
             ))
-    def bangequals(self, other):
+    def bangequals(self, other: Any) -> (BooleanType, None):
         if type(self) != type(other):
             return((
                 BooleanType(
@@ -90,7 +93,7 @@ class TypeObj():
                     .setcontext(self.context),
                 None
             ))
-    def lessthan(self, other):
+    def lessthan(self, other: Any) -> (None, Exc_TypeError):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
     def ltequals(self, other):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, other.end, self.context)))
@@ -120,13 +123,14 @@ class NullType(TypeObj):
 
 
 class IntType(TypeObj):
+
     def __init__(self, value):
         if isinstance(value, bool) or not isinstance(value, int):
             raise TypeError(f'Internal Error: Non integer value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['integer'])
 
 
-    def add(self, other):
+    def add(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
@@ -144,7 +148,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def subtract(self, other):
+    def subtract(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
@@ -162,7 +166,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def multiply(self, other):
+    def multiply(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
@@ -180,7 +184,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def divide(self, other):
+    def divide(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
         if isinstance(other, IntType):
             if other.value == 0:
                 return((
@@ -208,7 +212,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def raised(self, other):
+    def raised(self, other: IntType) -> (Optional[IntType], Optional[Exc_TypeError]):
         if isinstance(other, IntType):
             return((
                 IntType(
@@ -231,7 +235,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other):
+    def lessthan(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -244,7 +248,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def ltequals(self, other):
+    def ltequals(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -257,7 +261,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def greaterthan(self, other):
+    def greaterthan(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -270,7 +274,7 @@ class IntType(TypeObj):
         else:
             return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
-    def gtequals(self, other):
+    def gtequals(self, other: IntType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -291,7 +295,8 @@ class FloatType(TypeObj):
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 
-    def add(self, other):
+    def add(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
+
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value + other.value)
@@ -309,7 +314,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def subtract(self, other):
+    def subtract(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
@@ -327,7 +332,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def multiply(self, other):
+    def multiply(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
@@ -345,7 +350,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def divide(self, other):
+    def divide(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
         if isinstance(other, FloatType):
             if other.value == 0:
                 return((
@@ -373,7 +378,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def raised(self, other):
+    def raised(self, other: FloatType) -> (Optional[FloatType], Optional[Exc_TypeError]):
         if isinstance(other, FloatType):
             return((
                 FloatType(
@@ -396,7 +401,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other):
+    def lessthan(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -416,7 +421,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other):
+    def ltequals(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -436,7 +441,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other):
+    def greaterthan(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -456,7 +461,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other):
+    def gtequals(self, other: FloatType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -486,7 +491,7 @@ class StringType(TypeObj):
         super().__init__(value, type_=TYPES['string'])
 
 
-    def add(self, other):
+    def add(self, other: StringType) -> (Optional[StringType], Optional[Exc_typeError]):
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
@@ -513,7 +518,7 @@ class BooleanType(TypeObj):
             raise TypeError(f'Internal Error: Non boolean value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])
 
-    def and_(self, other):
+    def and_(self, other: BooleanType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -533,7 +538,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def or_(self, other):
+    def or_(self, other: BooleanType) -> (Optional[BooleanType], Optional[Exc_TypeError]):
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -553,7 +558,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def not_(self):
+    def not_(self)-> (BooleanType, None):
         return((
             BooleanType(
                 not self.value

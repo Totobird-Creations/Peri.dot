@@ -25,7 +25,7 @@ def improvederrormessage():
 
     VERSION = 'Pre-02'
 
-    def logo():
+    def logo() -> str:
         logolines = [
             f'    _____----_____',
             f'   / \ PERI.DOT / \   Peri.dot - {VERSION}',
@@ -66,6 +66,7 @@ def improvederrormessage():
 
         if help:
             print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{__file__} [OPTIONS]* [FILE]?{Style.RESET_ALL}
+
 
 {Fore.BLUE}{Style.BRIGHT}Options:{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}

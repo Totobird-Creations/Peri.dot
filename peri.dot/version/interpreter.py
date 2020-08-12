@@ -44,6 +44,7 @@ class Interpreter():
         )
 
 
+
     def visit_IntNode(self, node, context):
         return(
             RTResult().success(
@@ -52,6 +53,7 @@ class Interpreter():
                     .setpos(node.start, node.end)
             )
         )
+
 
     def visit_FloatNode(self, node, context):
         return(
@@ -62,6 +64,7 @@ class Interpreter():
             )
         )
 
+
     def visit_StringNode(self, node, context):
         return(
             RTResult().success(
@@ -70,6 +73,113 @@ class Interpreter():
                     .setpos(node.start, node.end)
             )
         )
+
+
+
+    def visit_VarAccessNode(self, node, context):
+        res = RTResult()
+
+        name = node.token.value
+        value = context.symbols.access(name)
+
+        if not value:
+            return(
+                res.failure(
+                    Exc_IdentifierError(
+                        f'\'{name}\' is not defined',
+                        node.token.start, node.token.end
+                    )
+                )
+            )
+
+        return(
+            res.success(
+                value
+            )
+        )
+
+
+    def visit_VarAssignNode(self, node, context):
+        res = RTResult()
+
+        for name in [i.value for i in node.tokens]:
+            prevvalue = context.symbols.access(name)
+
+            if not prevvalue:
+                return(
+                    res.failure(
+                        Exc_IdentifierError(
+                            f'\'{name}\' is not defined',
+                            node.token.start, node.token.end
+                        )
+                    )
+                )
+
+            value = res.register(
+                self.visit(
+                    node.valnode,
+                    context
+                )
+            )
+
+            if type(prevvalue) != type(value):
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
+                            node.valnode.token.start, node.valnode.token.end
+                        )
+                    )
+                )
+
+            if res.error:
+                return(res)
+
+            context.symbols.assign(name, value)
+
+        return(
+            res.success(
+                value
+            )
+        )
+
+
+    def visit_VarCreateNode(self, node, context):
+        res = RTResult()
+
+        for name in [i.value for i in node.tokens]:
+            value = res.register(
+                self.visit(
+                    node.valnode,
+                    context
+                )
+            )
+
+            if res.error:
+                return(res)
+
+            context.symbols.assign(name, value)
+
+        return(
+            res.success(
+                value
+            )
+        )
+
+
+    def visit_VarNullNode(self, node, context):
+        res = RTResult()
+
+        for name in [i.value for i in node.tokens]:
+            context.symbols.assign(name, NullType())
+
+        return(
+            res.success(
+                NullType()
+            )
+        )
+
+
 
     def visit_UnaryOpNode(self, node, context):
         res = RTResult()
@@ -103,6 +213,7 @@ class Interpreter():
                 )
             )
         )
+
 
     def visit_BinaryOpNode(self, node, context):
         res = RTResult()

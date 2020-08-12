@@ -113,6 +113,15 @@ class Lexer():
                 self.advance()
 
 
+            elif self.char == '=':
+                tokens.append(Token(TT_EQUALS, start=self.pos))
+                self.advance()
+
+            elif self.char == ',':
+                tokens.append(Token(TT_COMMA, start=self.pos))
+                self.advance()
+
+
             elif self.char == '(':
                 tokens.append(Token(TT_LPAREN, start=self.pos))
                 self.advance()
@@ -190,7 +199,9 @@ class Lexer():
             '\\': '\\',
             'n' : '\n',
             '\n': '\n',
-            't' : '\t'
+            't' : '\t',
+            '\'': '\'',
+            '\"': '\"'
         }
         escaped = False
 

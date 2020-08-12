@@ -14,6 +14,7 @@ KEYWORDS = {
 
 TYPES = {
     'invalid'      : 'Invalid',
+    'nonetype'     : 'Null',
     'integer'      : 'Int',
     'floatingpoint': 'Float',
     'string'       : 'Str',

@@ -2,6 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
+from .constants  import *
 from .exceptions import *
 from .nodes      import *
 from .tokens     import *
@@ -54,12 +55,14 @@ class Parser():
         self.index += 1
         if self.index < len(self.tokens):
             self.curtoken = self.tokens[self.index]
+
         return(self.curtoken)
 
     def retreat(self):
         self.index -= 1
         if self.index >= 0:
             self.curtoken = self.tokens[self.index]
+
         return(self.curtoken)
 
     def parse(self):
@@ -73,6 +76,7 @@ class Parser():
                     )
                 )
             )
+
         return(res)
 
 
@@ -96,7 +100,9 @@ class Parser():
             if res.error:
                 return(res)
 
-            lfactor = BinaryOpNode(lfactor, optoken, rfactor)
+            lfactor = BinaryOpNode(
+                lfactor, optoken, rfactor
+            )
 
         return(
             res.success(lfactor)
@@ -104,6 +110,70 @@ class Parser():
 
 
     def expr(self):
+        res = ParseResult()
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['varcreate']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_IDENTIFIER:
+                return(
+                    res.failure(
+                        Exc_SyntaxError(
+                            'Expected identifier not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            variables = [self.curtoken]
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_COMMA:
+                res.registeradvancement()
+                self.advance()
+
+                if self.curtoken.type != TT_IDENTIFIER:
+                    return(
+                        res.failure(
+                            Exc_SyntaxError(
+                                'Expected identifier not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                variables.append(self.curtoken)
+
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_EQUALS:
+                return(
+                    res.success(
+                        VarNullNode(
+                            variables
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            expr = res.register(self.expr())
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    VarCreateNode(
+                        variables, expr
+                    )
+                )
+            )
+
         return(
             self.binaryop(
                 self.term,
@@ -143,16 +213,21 @@ class Parser():
             if res.error:
                 return(res)
 
-            return(res.success(UnaryOpNode(token, factor)))
+            return(
+                res.success(
+                    UnaryOpNode(
+                        token, factor
+                    )
+                )
+            )
 
-        return(
-            self.atom()
-        )
+        return(self.atom())
 
 
     def atom(self):
         res = ParseResult()
         token = self.curtoken
+
 
         if token.type == TT_INT:
             res.registeradvancement()
@@ -195,7 +270,11 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-                return(res.success(expr))
+                return(
+                    res.success(
+                        expr
+                    )
+                )
 
             return(
                 res.failure(
@@ -204,10 +283,65 @@ class Parser():
                 )
             )
 
+
+        elif token.type == TT_IDENTIFIER:
+            variables = [token]
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_COMMA:
+                res.registeradvancement()
+                self.advance()
+
+                if self.curtoken.type != TT_IDENTIFIER:
+                    return(
+                        res.failure(
+                            Exc_SyntaxError(
+                                'Expected identifier not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                variables.append(self.curtoken)
+
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type == TT_EQUALS:
+                res.registeradvancement()
+                self.advance()
+
+                expr = res.register(self.expr())
+
+                return(
+                    res.success(
+                        VarAssignNode(
+                            variables, expr
+                        )
+                    )
+                )
+            elif len(variables) > 1:
+                return(
+                    res.failure(
+                        Exc_SyntaxError(
+                            'Expected \'=\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            return(
+                res.success(
+                    VarAccessNode(token)
+                )
+            )
+
+
         return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected type, operation not found',
+                        'Expected identifier, keyword, operation, type not found',
                         token.start, token.end 
                     )
                 )

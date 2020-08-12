@@ -2,8 +2,6 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import os
-
 import sys
 
 from version.context            import *
@@ -83,29 +81,32 @@ def main(help, version, repl, filename):
             exit(1)
 
 
-        lexer = Lexer(filename, text)
-        tokens, error = lexer.maketokens()
+        symbols = SymbolTable()
 
-        if error:
-            print(error.asstring())
-            exit(1)
+        for ln in text.split('\n'):
+            lexer = Lexer(filename, ln)
+            tokens, error = lexer.maketokens()
 
-        parser = Parser(tokens)
-        ast = parser.parse()
+            if error:
+                print(error.asstring())
+                exit(1)
 
-        if ast.error:
-            print(ast.error.asstring())
-            exit(1)
+            parser = Parser(tokens)
+            ast = parser.parse()
 
-        interpreter = Interpreter()
-        context = Context('<module>')
-        result = interpreter.visit(ast.node, context)
+            if ast.error:
+                print(ast.error.asstring())
+                exit(1)
 
-        if result.error:
-            print(result.error.asstring())
-            exit(1)
+            interpreter = Interpreter()
+            context = Context('<module>', symbols=symbols)
+            result = interpreter.visit(ast.node, context)
 
-        print(result.value)
+            if result.error:
+                print(result.error.asstring())
+                exit(1)
+
+            print(result.value)
 
 
     elif not (version or help) or repl:

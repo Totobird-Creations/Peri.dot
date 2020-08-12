@@ -44,6 +44,10 @@ class Exc_EscapeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('EscapeError', msg, start, end, context)
 
+class Exc_IdentifierError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('IdentifierError', msg, start, end, context)
+
 class Exc_SyntaxError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('SyntaxError', msg, start, end, context)

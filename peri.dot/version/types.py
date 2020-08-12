@@ -46,6 +46,15 @@ class TypeObj():
 
 
 
+class NullType(TypeObj):
+    def __init__(self):
+        super().__init__(None, type_=TYPES['nonetype'])
+
+    def __repr__(self):
+        return(f'Null')
+
+
+
 class IntType(TypeObj):
     def __init__(self, value):
         super().__init__(value, type_=TYPES['integer'])

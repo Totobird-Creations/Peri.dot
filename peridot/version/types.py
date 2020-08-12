@@ -69,6 +69,8 @@ class NullType(TypeObj):
 
 class IntType(TypeObj):
     def __init__(self, value):
+        if not isinstance(value, int):
+            raise TypeError("non integeter received")
         super().__init__(value, type_=TYPES['integer'])
 
 
@@ -176,6 +178,8 @@ class IntType(TypeObj):
 
 class FloatType(TypeObj):
     def __init__(self, value):
+        if not isinstance(value, float):
+            raise TypeError("non float received")
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 

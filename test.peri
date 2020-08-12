@@ -1,13 +1,26 @@
-True
-False
+1 == 1
+2.0 == 2
 
-1 == 2
-1 != 2
-1 > 2
+1 != 1.0
+2 != 2
+
+1 < 10
+10 < 1
+
+1 <= 1
+1 <= 0
+
+10 > 1
+1 > 10
+
+1 >= 1
 1 >= 2
-1 < 2
-1 <= 2
 
 True and True
+True and False
+
 True or False
+False or False
+
+not False
 not True

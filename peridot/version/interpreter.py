@@ -84,6 +84,8 @@ class Interpreter():
 
         value = BUILTINS.get(name, None)
         if value:
+            value.setpos(node.token.start, node.token.end)
+            value.setcontext(context)
             return(
                 res.success(
                     value
@@ -208,7 +210,7 @@ class Interpreter():
         if node.optoken.type == TT_DASH:
             result, error = result.multiply(IntType(-1))
         elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
-            result, error = result.not_(IntType(-1))
+            result, error = result.not_()
 
         if error:
             return(
@@ -263,13 +265,13 @@ class Interpreter():
         elif node.optoken.type == TT_BANGEQUALS:
             result, error = left.bangequals(right)
         elif node.optoken.type == TT_LESSTHAN:
-            result, error = left.eqequals(right)
+            result, error = left.lessthan(right)
         elif node.optoken.type == TT_GREATERTHAN:
-            result, error = left.eqequals(right)
+            result, error = left.greaterthan(right)
         elif node.optoken.type == TT_LTEQUALS:
-            result, error = left.eqequals(right)
+            result, error = left.ltequals(right)
         elif node.optoken.type == TT_GTEQUALS:
-            result, error = left.eqequals(right)
+            result, error = left.gtequals(right)
         elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicaland']):
             result, error = left.and_(right)
         elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalor']):

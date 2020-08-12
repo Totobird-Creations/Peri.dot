@@ -303,6 +303,18 @@ class Lexer():
         return((Token(TT_LESSTHAN, string, start=start, end=self.pos), None))
 
 
+    def makegreaterthan(self):
+        start = self.pos.copy()
+
+        self.advance()
+
+        if self.char == '=':
+            self.advance()
+            return((Token(TT_GTEQUALS, string, start=start, end=self.pos), None))
+
+        return((Token(TT_GREATERTHAN, string, start=start, end=self.pos), None))
+
+
     def makeidentifier(self):
         identifier = ''
         start = self.pos.copy()

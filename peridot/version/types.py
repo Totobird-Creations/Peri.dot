@@ -53,9 +53,43 @@ class TypeObj():
     def raised(self, other):
         return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, other.end, self.context)))
     def eqequals(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be compared with \'==\'', self.start, other.end, self.context)))
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value == other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    False
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
     def bangequals(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be compared with \'!=\'', self.start, other.end, self.context)))
+        if type(self) != type(other):
+            return((
+                BooleanType(
+                    True
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    self.value != other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
     def lessthan(self, other):
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
     def ltequals(self, other):
@@ -68,8 +102,8 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, other.end, self.context)))
     def or_(self, other):
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, other.end, self.context)))
-    def not_(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, other.end, self.context)))
+    def not_(self):
+        return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context)))
 
     def __repr__(self):
         return(f'{self.value}')
@@ -96,6 +130,7 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -113,6 +148,7 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -130,6 +166,7 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -157,6 +194,7 @@ class IntType(TypeObj):
 
             return((
                 IntType(int(self.value / other.value))
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -179,6 +217,7 @@ class IntType(TypeObj):
                         other.value
                     )
                 )
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -192,6 +231,57 @@ class IntType(TypeObj):
                 )
             ))
 
+    def lessthan(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value < other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
+
+    def ltequals(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value <= other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
+
+    def greaterthan(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value > other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
+
+    def gtequals(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value >= other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
 
 
 class FloatType(TypeObj):
@@ -205,6 +295,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value + other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -222,6 +313,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -239,6 +331,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -266,6 +359,7 @@ class FloatType(TypeObj):
 
             return((
                 FloatType(self.value / other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -283,6 +377,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value ^ other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -291,6 +386,86 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
+                    self.start, other.end,
+                    self.context
+                )
+            ))
+
+    def lessthan(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value < other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None,
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end, 
+                    self.context
+                )
+            ))
+
+    def ltequals(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value <= other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None,
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context
+                )
+            ))
+
+    def greaterthan(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value > other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None,
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context
+                )
+            ))
+
+    def gtequals(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value >= other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None, 
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context
                 )
@@ -310,6 +485,7 @@ class StringType(TypeObj):
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -331,3 +507,53 @@ class BooleanType(TypeObj):
         if not isinstance(value, bool):
             raise TypeError(f'Internal Error: Non boolean value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])
+
+    def and_(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value and other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None, 
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context
+                )
+            ))
+
+    def or_(self, other):
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value or other.value
+                )
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                None, 
+                Exc_TypeError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context
+                )
+            ))
+
+    def not_(self):
+        return((
+            BooleanType(
+                not self.value
+            )
+                .setpos(self.start, self.end)
+                .setcontext(self.context),
+            None
+        ))

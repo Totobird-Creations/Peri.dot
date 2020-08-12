@@ -376,7 +376,12 @@ class FloatType(TypeObj):
     def raised(self, other):
         if isinstance(other, FloatType):
             return((
-                FloatType(self.value ^ other.value)
+                FloatType(
+                    pow(
+                        self.value,
+                        other.value
+                    )
+                )
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None

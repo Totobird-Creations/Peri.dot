@@ -1,1 +1,1 @@
-python ./peri.dot test.peri
+python ./peridot test.peri

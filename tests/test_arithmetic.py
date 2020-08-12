@@ -63,6 +63,33 @@ class TestPeridotFloat:
         with pytest.raises(TypeError):
             a = FloatType("String")
 
+    def test_float_add(self):
+        a = FloatType(4.7)
+        b = FloatType(2.3)
+        c,err = a.add(b)
+        assert(c.value == 7.0)
+        assert(err == None)
+
+    def test_float_subtract(self):
+        a = FloatType(30.6)
+        b = FloatType(2.0)
+        c,err = a.subtract(b)
+        assert(c.value == 28.6)
+        assert(err == None)
+
+    def test_float_multiply(self):
+        a = FloatType(2.2)
+        b = FloatType(3.4)
+        c,err = a.multiply(b)
+        assert(c.value == 7.48)
+        assert(err == None)
+
+    def test_float_divide(self):
+        a = FloatType(30.6)
+        b = FloatType(2.0)
+        c,err = a.divide(b)
+        assert(c.value == 15.3)
+        assert(err == None)
     
 
 class TestPeridotCrossTypes:

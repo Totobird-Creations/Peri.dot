@@ -43,15 +43,33 @@ class TypeObj():
 
 
     def add(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be added to', self.start, self.end, self.context)))
+        return((None, Exc_TypeError(f'{self.type} can not be added to', self.start, other.end, self.context)))
     def subtract(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be subtracted from', self.start, self.end, self.context)))
+        return((None, Exc_TypeError(f'{self.type} can not be subtracted from', self.start, other.end, self.context)))
     def multiply(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be multiplied', self.start, self.end, self.context)))
+        return((None, Exc_TypeError(f'{self.type} can not be multiplied', self.start, other.end, self.context)))
     def divide(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, self.end, self.context)))
+        return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, other.end, self.context)))
     def raised(self, other):
-        return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, self.end, self.context)))
+        return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, other.end, self.context)))
+    def eqequals(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'==\'', self.start, other.end, self.context)))
+    def bangequals(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'!=\'', self.start, other.end, self.context)))
+    def lessthan(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
+    def ltequals(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, other.end, self.context)))
+    def greaterthan(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'>\'', self.start, other.end, self.context)))
+    def gtequals(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'>=\'', self.start, other.end, self.context)))
+    def and_(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, other.end, self.context)))
+    def or_(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, other.end, self.context)))
+    def not_(self, other):
+        return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, other.end, self.context)))
 
     def __repr__(self):
         return(f'{self.value}')
@@ -69,8 +87,8 @@ class NullType(TypeObj):
 
 class IntType(TypeObj):
     def __init__(self, value):
-        if not isinstance(value, int):
-            raise TypeError("non integeter received")
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f'Internal Error: Non integer value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['integer'])
 
 
@@ -86,7 +104,7 @@ class IntType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -103,7 +121,7 @@ class IntType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{other.type} can not be subtracted from {self.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -120,7 +138,7 @@ class IntType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be multiplied by {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -132,7 +150,7 @@ class IntType(TypeObj):
                     None,
                     Exc_ValueError(
                         f'Division by zero',
-                        other.start, other.end,
+                        self.start, other.end,
                         self.context
                     )
                 ))
@@ -147,7 +165,7 @@ class IntType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be divided by {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -169,7 +187,7 @@ class IntType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -179,7 +197,7 @@ class IntType(TypeObj):
 class FloatType(TypeObj):
     def __init__(self, value):
         if not isinstance(value, float):
-            raise TypeError("non float received")
+            raise TypeError(f'Internal Error: Non floating point value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 
@@ -195,7 +213,7 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -212,7 +230,7 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{other.type} can not be subtracted from {self.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -229,7 +247,7 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be multiplied by {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -241,7 +259,7 @@ class FloatType(TypeObj):
                     None,
                     Exc_ValueError(
                         f'Division by zero',
-                        other.start, other.end,
+                        self.start, other.end,
                         self.context
                     )
                 ))
@@ -256,7 +274,7 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be divided by {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -273,7 +291,7 @@ class FloatType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))
@@ -283,6 +301,8 @@ class FloatType(TypeObj):
 
 class StringType(TypeObj):
     def __init__(self, value):
+        if not isinstance(value, str):
+            raise TypeError(f'Internal Error: Non string value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['string'])
 
 
@@ -298,7 +318,7 @@ class StringType(TypeObj):
                 None,
                 Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
-                    other.start, other.end,
+                    self.start, other.end,
                     self.context
                 )
             ))

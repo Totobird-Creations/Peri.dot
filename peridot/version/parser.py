@@ -71,7 +71,7 @@ class Parser():
             return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected operation not found',
+                        'Expected operator not found',
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -91,7 +91,7 @@ class Parser():
         if res.error:
             return(res)
 
-        while self.curtoken.type in optypes:
+        while self.curtoken.type in optypes or (self.curtoken.type, self.curtoken.value) in optypes:
             optoken = self.curtoken
             res.registeradvancement()
             self.advance()
@@ -174,6 +174,72 @@ class Parser():
                 )
             )
 
+        node = res.register(
+            self.binaryop(
+                self.compexpr,
+                ((TT_KEYWORD, KEYWORDS['logicaland']), (TT_KEYWORD, KEYWORDS['logicalor']))
+            )
+        )
+
+        if res.error:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        'Expected identifier, keyword, operator, type not found'
+                    )
+                )
+            )
+
+        return(
+            res.success(node)
+        )
+
+
+    def compexpr(self):
+        res = ParseResult()
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
+            optoken = self.curtoken
+            res.registeradvancement()
+            self.advance()
+
+            node = res.register(self.compexpr())
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    UnaryOpNode(
+                        optoken, node
+                    )
+                )
+            )
+
+        node = res.register(
+            self.binaryop(
+                self.arithexpr,
+                (TT_EQEQUALS, TT_BANGEQUALS, TT_LESSTHAN, TT_LTEQUALS, TT_GREATERTHAN, TT_GTEQUALS)
+            )
+        )
+
+        if res.error:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        'Expected identifier, keyword, operator, type not found'
+                    )
+                )
+            )
+
+        return(
+            res.success(
+                node
+            )
+        )
+
+
+    def arithexpr(self):
         return(
             self.binaryop(
                 self.term,
@@ -195,7 +261,8 @@ class Parser():
         return(
             self.binaryop(
                 self.factor,
-                (TT_CARAT)
+                tuple([TT_CARAT]),
+                self.term
             )
         )
 
@@ -341,7 +408,7 @@ class Parser():
         return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected identifier, keyword, operation, type not found',
+                        'Expected identifier, keyword, operator, type not found',
                         token.start, token.end 
                     )
                 )

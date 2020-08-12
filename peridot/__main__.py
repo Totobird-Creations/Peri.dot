@@ -23,7 +23,7 @@ def improvederrormessage():
     # LOGO                                   #
     ##########################################
 
-    VERSION = 'Pre-03'
+    VERSION = 'Pre-02'
 
     def logo() -> str:
         logolines = [

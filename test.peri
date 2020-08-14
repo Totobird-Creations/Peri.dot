@@ -1,5 +1,5 @@
-var a = func (a, b) {
-    a + b
+var try = handler{
+    10 / 0
 }
 
-a(1, 2)
+try

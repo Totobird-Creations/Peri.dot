@@ -29,9 +29,13 @@ atom:
     - IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr
     - IDENTIFIER
     - funcdef
+    - handler
 
 funcdef:
     - KEYWORD:createfunc LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN codeblock
+
+handler:
+    - KEYWORD:handler codeblock
 
 codeblock:
     - LCURLY (EOL* (expr (EOL expr))? EOL*) RCURLY

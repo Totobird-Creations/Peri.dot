@@ -15,6 +15,7 @@ ALPHANUMERIC = ALPHABET + DIGITS
 KEYWORDS = {
     'varcreate' : 'var',
     'funccreate': 'func',
+    'handler'   : 'handler',
     'logicaland': 'and',
     'logicalor' : 'or',
     'logicalnot': 'not'

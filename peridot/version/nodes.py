@@ -97,14 +97,28 @@ class VarCallNode():
 
 
 class FuncCreateNode():
-    def __init__(self, argtokens, bodynodes):
+    def __init__(self, token, argtokens, bodynodes):
+        self.token = token
         self.argtokens = argtokens
         self.bodynodes = bodynodes
 
-        if len(self.argtokens) > 0:
-            self.start = self.argtokens[0].start
-        elif len(self.bodynodes) > 0:
-            self.start = self.bodynodes[0].start
+        self.start = self.token.start
+        self.end = self.token.end
+
+        if len(self.bodynodes) > 0:
+            self.end = self.bodynodes[-1].end
+
+    def __repr__(self):
+        return(f'<Function>')
+
+
+class HandlerNode():
+    def __init__(self, token, bodynodes):
+        self.token = token
+        self.bodynodes = bodynodes
+
+        self.start = self.token.start
+        self.end = self.token.end
 
         if len(self.bodynodes) > 0:
             self.end = self.bodynodes[-1].end

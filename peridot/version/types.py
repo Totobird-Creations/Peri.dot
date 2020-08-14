@@ -671,3 +671,16 @@ class FunctionType(TypeObj):
 
     def __repr__(self):
         return(f'<{TYPES["function"]} {self.id}>')
+
+
+
+class ExceptionType(TypeObj):
+    def __init__(self, exc, msg, start):
+        super().__init__()
+        self.exc = exc
+        self.msg = msg
+        self.line = start.line
+        self.column = start.column
+
+    def __repr__(self):
+        return(f'<{self.exc}:{self.msg}, {self.line}:{self.column}>')

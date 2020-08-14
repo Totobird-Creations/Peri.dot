@@ -5,7 +5,7 @@
 from .constants  import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
-from .types      import typesinit, NullType, IntType, FloatType, StringType, BooleanType, FunctionType # type: ignore
+from .types      import typesinit, NullType, ExceptionType, IntType, FloatType, StringType, BooleanType, FunctionType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -270,6 +270,22 @@ class Interpreter():
         return(
             res.success(funcvalue)
         )
+
+
+
+    def visit_HandlerNode(self, node, context):
+        res = RTResult()
+
+        for i in node.bodynodes:
+            bodyresult = self.visit(
+                i, context
+            )
+
+            if bodyresult.error:
+                error = bodyresult.error
+                return(res.success(ExceptionType(error.exc, error.msg, error.start)))
+
+        return(res.success(NullType()))
 
 
 

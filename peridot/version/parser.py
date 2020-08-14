@@ -478,6 +478,17 @@ class Parser():
                 )
             )
 
+        elif token.matches(TT_KEYWORD, KEYWORDS['handler']):
+            funcdef = res.register(self.handler())
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    funcdef
+                )
+            )
+
         return(
             res.failure(
                 Exc_SyntaxError(
@@ -500,6 +511,8 @@ class Parser():
                     )
                 )
             )
+
+        token = self.curtoken
 
         res.registeradvancement()
         self.advance()
@@ -576,7 +589,43 @@ class Parser():
         return(
             res.success(
                 FuncCreateNode(
+                    token,
                     argtokens,
+                    codeblock
+                )
+            )
+        )
+
+
+    def handler(self):
+        res = ParseResult()
+
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['handler']):
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        f'Expected \'{KEYWORDS["handler"]}\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        token = self.curtoken
+
+        res.registeradvancement()
+        self.advance()
+
+        codeblock = res.register(
+            self.codeblock()
+        )
+
+        if res.error:
+            return(res)
+
+        return(
+            res.success(
+                HandlerNode(
+                    token,
                     codeblock
                 )
             )
@@ -600,26 +649,37 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
-        while self.curtoken.type == TT_EOL:
-            res.registeradvancement()
-            self.advance()
-
-        expr = res.register(
-            self.expr()
-        )
-
-        if res.error:
-            return(res)
-        tokens.append(expr)
-
-        while self.curtoken.type == TT_EOL:
+        if self.curtoken.type == TT_EOL:
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
                 self.advance()
 
-            if self.curtoken.type == TT_RCURLY:
-                break
+            if self.curtoken.type != TT_RCURLY:
+                expr = res.register(
+                    self.expr()
+                )
 
+                if res.error:
+                    return(res)
+                tokens.append(expr)
+
+                while self.curtoken.type == TT_EOL:
+                    while self.curtoken.type == TT_EOL:
+                        res.registeradvancement()
+                        self.advance()
+
+                    if self.curtoken.type == TT_RCURLY:
+                        break
+
+                    expr = res.register(
+                        self.expr()
+                    )
+
+                    if res.error:
+                        return(res)
+                    tokens.append(expr)
+
+        elif self.curtoken.type != TT_RCURLY:
             expr = res.register(
                 self.expr()
             )

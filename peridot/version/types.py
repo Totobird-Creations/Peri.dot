@@ -683,4 +683,4 @@ class ExceptionType(TypeObj):
         self.column = start.column
 
     def __repr__(self):
-        return(f'<{self.exc}:{self.msg}, {self.line}:{self.column}>')
+        return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')

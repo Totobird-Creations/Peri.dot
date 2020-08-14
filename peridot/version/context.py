@@ -32,7 +32,7 @@ class SymbolTable():
 
         if value == None and self.parent:
             return(
-                self.parent.get(name)
+                self.parent.access(name)
             )
 
         return(value)

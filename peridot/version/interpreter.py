@@ -5,7 +5,7 @@
 from .constants  import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
-from .types      import * # type: ignore
+from .types      import typesinit, NullType, IntType, FloatType, StringType, BooleanType, FunctionType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -83,16 +83,6 @@ class Interpreter():
 
         name = node.token.value
 
-        value = BUILTINS.get(name, None)
-        if value:
-            value.setpos(node.token.start, node.token.end)
-            value.setcontext(context)
-            return(
-                res.success(
-                    value
-                )
-            )
-
         value = context.symbols.access(name)
 
         if not value:
@@ -115,52 +105,51 @@ class Interpreter():
     def visit_VarAssignNode(self, node, context):
         res = RTResult()
 
-        for i in node.tokens:
-            name = i.value
+        name = node.token.value
 
-            value = res.register(
-                self.visit(
-                    node.valnode,
-                    context
+        value = res.register(
+            self.visit(
+                node.valnode,
+                context
+            )
+        )
+
+        if name in RESERVED:
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {value.type} to \'{name}\' (reserved)',
+                        node.start, node.end
+                    )
                 )
             )
 
-            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
-                return(
-                    res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {value.type} to \'{name}\' (reserved)',
-                            i.start, i.end
-                        )
+        prevvalue = context.symbols.access(name)
+
+        if not prevvalue:
+            return(
+                res.failure(
+                    Exc_IdentifierError(
+                        f'\'{name}\' is not defined',
+                        node.start, node.end
                     )
                 )
+            )
 
-            prevvalue = context.symbols.access(name)
-
-            if not prevvalue:
-                return(
-                    res.failure(
-                        Exc_IdentifierError(
-                            f'\'{name}\' is not defined',
-                            i.start, i.end
-                        )
+        if type(prevvalue) != type(value):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
+                        node.valnode.token.start, node.valnode.token.end
                     )
                 )
+            )
 
-            if type(prevvalue) != type(value):
-                return(
-                    res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
-                            node.valnode.token.start, node.valnode.token.end
-                        )
-                    )
-                )
+        if res.error:
+            return(res)
 
-            if res.error:
-                return(res)
-
-            context.symbols.assign(name, value)
+        context.symbols.assign(name, value)
 
         return(
             res.success(
@@ -180,7 +169,7 @@ class Interpreter():
             )
         )
 
-        if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+        if name in RESERVED:
             return(
                 res.failure(
                     Exc_TypeError(
@@ -208,7 +197,7 @@ class Interpreter():
         for i in node.tokens:
             name = i.value
 
-            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+            if name in RESERVED:
                 return(
                     res.failure(
                         Exc_TypeError(
@@ -226,15 +215,14 @@ class Interpreter():
             )
         )
 
-
     def visit_VarCallNode(self, node, context):
         res = RTResult()
 
         name = node.name
-        args = node.argnodes
+        argnodes = node.argnodes
         options = node.optionnodes
 
-        result = res.register(
+        callnode = res.register(
             self.visit(
                 node.node, context
             )
@@ -243,21 +231,44 @@ class Interpreter():
         if res.error:
             return(res)
 
-        result, error = result.call()
+        callnode = callnode.copy().setpos(node.start, node.end)
 
-        if error:
-            return(
-                res.failure(
-                    error
+        args = []
+        for argnode in argnodes:
+            args.append(
+                res.register(
+                    self.visit(
+                        argnode,
+                        context
+                    )
                 )
             )
 
-        result = result.copy().setpos(node.start, node.end).setcontext(context)
-        
+            if res.error:
+                return(res)
+
+        result = res.register(
+            callnode.call(args)
+        )
+
+        if res.error:
+            return(res)
+
         return(
-            res.success(
-                result
-            )
+            res.success(result)
+        )
+
+
+    def visit_FuncCreateNode(self, node, context):
+        res = RTResult()
+
+        bodynodes = node.bodynodes
+        argnames = [i.value for i in node.argtokens]
+        funcvalue = FunctionType(bodynodes, argnames)
+        funcvalue.setcontext(context).setpos(node.start, node.end)
+
+        return(
+            res.success(funcvalue)
         )
 
 
@@ -359,3 +370,5 @@ class Interpreter():
                 )
             )
         )
+
+typesinit(Interpreter)

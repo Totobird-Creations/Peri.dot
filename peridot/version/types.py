@@ -4,10 +4,21 @@
 
 from __future__ import annotations
 from typing import Any,Optional,Tuple, Type
+from uuid import uuid4
 
-from .context import Context, SymbolTable
+from .context    import Context, SymbolTable
 from .exceptions import Exc_ArgumentError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+from .nodes      import VarCallNode
 
+def uuid():
+    return(
+        str(uuid4())
+            .replace('-', '')
+    )
+
+def typesinit(interpreter):
+    global Interpreter
+    Interpreter = interpreter
 
 ##########################################
 # CONSTANTS                              #
@@ -19,7 +30,8 @@ TYPES = {
     'integer'      : 'Int',
     'floatingpoint': 'Float',
     'string'       : 'Str',
-    'boolean'      : 'Bool'
+    'boolean'      : 'Bool',
+    'function'     : 'Function'
 }
 
 ##########################################
@@ -48,9 +60,10 @@ class RTResult():
 ##########################################
 
 class TypeObj():
-    def __init__(self, value, type_=TYPES['invalid']):
+    def __init__(self, value=None, type_=TYPES['invalid']):
         self.value = value
         self.type  = type_
+        self.id = uuid()
 
         self.setpos()
         self.setcontext()
@@ -597,3 +610,88 @@ class BooleanType(TypeObj):
             self.value,
             None
         ))
+
+
+
+class FunctionType(TypeObj):
+    def __init__(self, bodynodes, argnames):
+        super().__init__()
+        self.bodynodes = bodynodes
+        self.argnames = argnames
+
+    def call(self, args):
+        res = RTResult()
+
+        context = Context(
+            self.id,
+            SymbolTable(self.context.symbols),
+            self.context,
+            self.start
+        )
+
+        if len(args) != len(self.argnames):
+            return(
+                res.failure(
+                    Exc_ArgumentError(
+                        f'{TYPES["function"]} takes {len(self.argnames)} arguments, {len(args)} given',
+                        self.start, self.end,
+                        self.context
+                    )
+                )
+            )
+
+        for i in range(len(args)):
+            argname = self.argnames[i]
+            argvalue = args[i]
+
+            argvalue.setcontext(context)
+            context.symbols.assign(argname, argvalue)
+
+        for i in self.bodynodes:
+            interpreter = Interpreter()
+            if isinstance(i, VarCallNode):
+                if i.node.token.value == 'return':
+                    if len(i.argnodes) != 1:
+                        return(
+                            res.failure(
+                                Exc_ArgumentError(
+                                    f'\'return\' takes 1 arguments, {len(i.argnodes)} given',
+                                    self.start, self.end,
+                                    self.context
+                                )
+                            )
+                        )
+
+                    value = res.register(
+                        interpreter.visit(
+                            i.argnodes[0],
+                            context
+                        )
+                    )
+
+                    if res.error:
+                        return(res)
+
+                    return(res.success(value))
+
+            result = res.register(
+                interpreter.visit(
+                    i,
+                    context
+                )
+            )
+
+            if res.error:
+                return(res)
+
+        return(res.success(NullType()))
+
+    def copy(self):
+        copy = FunctionType(self.bodynodes, self.argnames)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'<{TYPES["function"]} {self.id}>')

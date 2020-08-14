@@ -71,6 +71,9 @@ class Parser():
         tokens = []
 
         while self.curtoken.type != TT_EOF:
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
             token = res.register(
                 self.expr()
             )
@@ -444,6 +447,9 @@ class Parser():
             self.advance()
 
             if self.curtoken.type == TT_EQUALS:
+                res.registeradvancement()
+                self.advance()
+
                 expr = res.register(self.expr())
 
                 return(
@@ -461,14 +467,120 @@ class Parser():
                 )
             )
 
+        elif token.matches(TT_KEYWORD, KEYWORDS['funccreate']):
+            funcdef = res.register(self.funcdef())
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    funcdef
+                )
+            )
+
         return(
+            res.failure(
+                Exc_SyntaxError(
+                    'Expected identifier, keyword, operator, type not found',
+                    token.start, token.end 
+                )
+            )
+        )
+
+
+    def funcdef(self):
+        res = ParseResult()
+
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['funccreate']):
+            return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected identifier, keyword, operator, type not found',
-                        token.start, token.end 
+                        f'Expected \'{KEYWORDS["funccreate"]}\' not found',
+                        self.curtoken.start, self.curtoken.end
                     )
                 )
             )
+
+        res.registeradvancement()
+        self.advance()
+
+        if self.curtoken.type != TT_LPAREN:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        f'Expected \'(\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        argtokens = []
+
+        if self.curtoken.type == TT_IDENTIFIER:
+            argtokens.append(self.curtoken)
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_COMMA:
+                res.registeradvancement()
+                self.advance()
+
+                if self.curtoken.type != TT_IDENTIFIER:
+                    return(
+                        res.failure(
+                            Exc_SyntaxError(
+                                f'Expected identifier not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                argtokens.append(self.curtoken)
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Exc_SyntaxError(
+                            f'Expected \')\', \',\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+        elif self.curtoken.type != TT_RPAREN:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        f'Expected \')\', identifier not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        codeblock = res.register(
+            self.codeblock()
+        )
+
+        if res.error:
+            return(res)
+
+        return(
+            res.success(
+                FuncCreateNode(
+                    argtokens,
+                    codeblock
+                )
+            )
+        )
 
 
     def codeblock(self):
@@ -479,24 +591,56 @@ class Parser():
             return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expectted \'{\' not found',
+                        'Expected \'{\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
                 )
             )
+
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        expr = res.register(
+            self.expr()
+        )
+
+        if res.error:
+            return(res)
+        tokens.append(expr)
+
+        while self.curtoken.type == TT_EOL:
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type == TT_RCURLY:
+                break
+
+            expr = res.register(
+                self.expr()
+            )
+
+            if res.error:
+                return(res)
+            tokens.append(expr)
 
         if self.curtoken.type != TT_RCURLY:
             return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expectted \'}\' not found',
+                        'Expected \'}\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
                 )
             )
 
+        res.registeradvancement()
+        self.advance()
+
         return(
-            res.success(
-                CodeBlockNode(tokens)
-            )
+            res.success(tokens)
         )

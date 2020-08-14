@@ -105,9 +105,10 @@ def improvederrormessage():
                     print(ast.error.asstring())
                     exit(1)
 
+                context = Context('<module>', symbols=symbols)
+
                 for i in ast.node:
                     interpreter = Interpreter()
-                    context = Context('<module>', symbols=symbols)
                     result = interpreter.visit(i, context)
 
                     if result.error:

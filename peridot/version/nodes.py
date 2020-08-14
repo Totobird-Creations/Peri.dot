@@ -93,7 +93,24 @@ class VarCallNode():
         self.end = node.end
 
     def __repr__(self):
-        return(f'{self.token.value}({", ".join(self.argnodes)})')
+        return(f'{self.node.token.value}()')
+
+
+class FuncCreateNode():
+    def __init__(self, argtokens, bodynodes):
+        self.argtokens = argtokens
+        self.bodynodes = bodynodes
+
+        if len(self.argtokens) > 0:
+            self.start = self.argtokens[0].start
+        elif len(self.bodynodes) > 0:
+            self.start = self.bodynodes[0].start
+
+        if len(self.bodynodes) > 0:
+            self.end = self.bodynodes[-1].end
+
+    def __repr__(self):
+        return(f'<Function>')
 
 
 

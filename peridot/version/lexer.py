@@ -112,7 +112,6 @@ class Lexer():
                 tokens.append(Token(TT_CARAT, start=self.pos))
                 self.advance()
 
-
             elif self.char == '=':
                 token, error = self.makeequals()
 

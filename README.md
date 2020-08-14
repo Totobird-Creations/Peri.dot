@@ -30,18 +30,50 @@ From the top level directory  `pytest`
 
 ## Current Features
 
-* types: integers, floats, boolean, strings, null
-* types must be explicitely cast:  2 + 2.0 will raise an error
-* variable initialization: `var x = 2`
-* arithmetic: +, -, *, /, ()
-    * exponents with ^ (`2 ^ 3` returns 8)
-* global comparisons (==, !=)
-* numeric comparisons (>, <, >=, <=)
-* boolean `and`, `or` and `not`
+* Basic REPL
+* Types:
+    * Null/None: `Null`
+    * Numbers: `Int`, `Float`
+    * Strings: `Str`
+    * Booleans: `Bool`
+    * Functions: `Function`
+    * Exceptions: `Exception`
+* Types must be explicitely cast:
+    * `1 + 1` -> `2`
+    * `1 + 1.0` -> `OperationError('Float can not be added to Int')`
+* Variables:
+    * Creation/Initialization: `var x = 2`
+    * Assignment: `x = 5`
+    * Accessing: `x`
+* Arithmetic:
+    * Addition: `1 + 2`
+    * Subtraction: `5 - 1`
+    * Multiplication: `10 * 2`
+    * Division: `25 / 5`
+    * Exponents: `2 ^ 3`
+* Global comparisons:
+    * Equals: `==`
+    * Not Equals: `!=`
+* Numeric comparisons:
+    * Greater than: `>`
+    * Less than: `<`
+    * Greater than or equal to: `>=`
+    * Less than or equal to `<=`
+* Boolean operations: `and`, `or` and `not`
+* Functions
+    * Creation: `var add = func(a, b) {a + b}`
+    * Calling: `add(2, 6)`
+* Exception handler `var x = handler {10 / 0}`
 
 ## Coming Soon
 
-* REPL
-* functions
-* assert / in-peri.dot testing
-* arrays and dictionaries
+* Improved repl
+* Assert / in-peri.dot testing: `assert(x == 9, 'x is not equal to 9')`
+* More types:
+    * Arrays: `[1, 2, 3, 4]`
+    * Dictionaries: `{'name': 'John', 'age': 47}`
+* Returning values from functions: `return(True)`
+* If statement: `if x == 1 {var y = 3} elif x == 2 {var y = 2} else {var y = 1}`
+* For and while loops: `for i in [True, True, False] {print(i)}`
+* Built-in variables: `True`, `False`, `Null`
+* Built-in functions: `Str()`, `print('Hello World!')`

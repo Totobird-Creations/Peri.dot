@@ -2,7 +2,7 @@
 
 ![Peri.dot Logo](logo.png)
 
-Peri.dot is a strongly typed dynamic language, with type inference, implemented in Python.  The file extension is ".peri"
+Peri.dot is a strongly typed interpreted language, with type inference, implemented in Python. The file extension is ".peri"
 
 
 ## "Installation"

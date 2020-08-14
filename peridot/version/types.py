@@ -649,30 +649,6 @@ class FunctionType(TypeObj):
 
         for i in self.bodynodes:
             interpreter = Interpreter()
-            if isinstance(i, VarCallNode):
-                if i.node.token.value == 'return':
-                    if len(i.argnodes) != 1:
-                        return(
-                            res.failure(
-                                Exc_ArgumentError(
-                                    f'\'return\' takes 1 arguments, {len(i.argnodes)} given',
-                                    self.start, self.end,
-                                    self.context
-                                )
-                            )
-                        )
-
-                    value = res.register(
-                        interpreter.visit(
-                            i.argnodes[0],
-                            context
-                        )
-                    )
-
-                    if res.error:
-                        return(res)
-
-                    return(res.success(value))
 
             result = res.register(
                 interpreter.visit(

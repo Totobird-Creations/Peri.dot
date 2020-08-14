@@ -16,7 +16,11 @@ ALPHANUMERIC = ALPHABET + DIGITS
 BUILTINS = {
     'Null'      : NullType(),
     'True'      : BooleanType(True),
-    'False'     : BooleanType(False)
+    'False'     : BooleanType(False),
+}
+
+BUILTINFUNCS = {
+    'assert'    : 'assert'
 }
 
 KEYWORDS = {

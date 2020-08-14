@@ -17,8 +17,14 @@ raised:
 
 factor:
     - (PLUS|DASH) factor
+    - call
+
+call:
+    - IDENTIFIER LPAREN (expr (COMMA expr)*)? RPAREN
     - atom
 
 atom:
-    - INT|FLOAT|STRING|IDENTIFIER
+    - INT|FLOAT|STRING
     - LPAREN expr RPAREN
+    - IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr
+    - IDENTIFIER

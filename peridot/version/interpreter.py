@@ -3,8 +3,9 @@
 ##########################################
 
 from .constants  import * # type: ignore
-from .tokens import * # type: ignore
-from .types  import * # type: ignore
+from .exceptions import * # type: ignore
+from .tokens     import * # type: ignore
+from .types      import * # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -116,6 +117,24 @@ class Interpreter():
 
         for i in node.tokens:
             name = i.value
+
+            value = res.register(
+                self.visit(
+                    node.valnode,
+                    context
+                )
+            )
+
+            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {value.type} to \'{name}\' (reserved)',
+                            i.start, i.end
+                        )
+                    )
+                )
+
             prevvalue = context.symbols.access(name)
 
             if not prevvalue:
@@ -127,13 +146,6 @@ class Interpreter():
                         )
                     )
                 )
-
-            value = res.register(
-                self.visit(
-                    node.valnode,
-                    context
-                )
-            )
 
             if type(prevvalue) != type(value):
                 return(
@@ -160,13 +172,24 @@ class Interpreter():
     def visit_VarCreateNode(self, node, context):
         res = RTResult()
 
-        for name in [i.value for i in node.tokens]:
+        for i in node.tokens:
+            name = i.value
             value = res.register(
                 self.visit(
                     node.valnode,
                     context
                 )
             )
+
+            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {value.type} to \'{name}\' (reserved)',
+                            i.start, i.end
+                        )
+                    )
+                )
 
             if res.error:
                 return(res)
@@ -183,7 +206,19 @@ class Interpreter():
     def visit_VarNullNode(self, node, context):
         res = RTResult()
 
-        for name in [i.value for i in node.tokens]:
+        for i in node.tokens:
+            name = i.value
+
+            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {TYPES["nonetype"]} to \'{name}\' (reserved)',
+                            i.start, i.end
+                        )
+                    )
+                )
+
             context.symbols.assign(name, NullType())
 
         return(
@@ -191,6 +226,122 @@ class Interpreter():
                 NullType()
             )
         )
+
+
+    def visit_VarCallNode(self, node, context):
+        res = RTResult()
+
+        name = node.name
+        args = node.argnodes
+        options = node.optionnodes
+
+        if name == BUILTINFUNCS['assert']:
+            if len(args) != 1:
+                return(
+                    res.failure(
+                        Exc_ArgumentError(
+                            f'\'{name}\' takes 1 arguments, {len(args)} given',
+                            node.start, node.end
+                        )
+                    )
+                )
+
+            defoptions = {'msg': StringType('')}
+            for i in range(len(list(options.keys()))):
+                op = list(options.keys())[i]
+                options[op] = res.register(
+                    self.visit(
+                        options[op], context
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+                default = defoptions.get(
+                    op,
+                    None
+                )
+
+                if default:
+                    if type(options[op]) == type(default):
+                        defoptions[op] = options[op]
+                    else:
+                        return(
+                            res.failure(
+                                Exc_TypeError(
+                                    f'\'{op}\' is a {default.type} option',
+                                    node.start, node.end
+                                )
+                            )
+                        )
+                else:
+                    return(
+                        res.failure(
+                            Exc_ArgumentError(
+                                f'Invalid option \'{op}\' given',
+                                node.start, node.end
+                            )
+                        )
+                    )
+
+            for i in range(len(args)):
+                arg = args[i]
+                result = res.register(
+                    self.visit(
+                        arg, context
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+                args[i] = result
+
+            result, error = args[0].istrue()
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
+
+            if result:
+                return(
+                    res.success(
+                        NullType()
+                    )
+                )
+
+            else:
+                return(
+                    res.failure(
+                        Exc_AssertionError(
+                            defoptions['msg'].value,
+                            args[0].start, args[0].end
+                        )
+                    )
+                )
+
+        else:
+            result = res.register(
+                self.visit(
+                    node.token, context
+                )
+            )
+
+            if res.error:
+                return(res)
+
+            result, error = result.call()
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
 
 
 

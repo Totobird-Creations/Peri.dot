@@ -126,34 +126,15 @@ class Parser():
                     )
                 )
 
-            variables = [self.curtoken]
+            token = self.curtoken
             res.registeradvancement()
             self.advance()
-
-            while self.curtoken.type == TT_COMMA:
-                res.registeradvancement()
-                self.advance()
-
-                if self.curtoken.type != TT_IDENTIFIER:
-                    return(
-                        res.failure(
-                            Exc_SyntaxError(
-                                'Expected identifier not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-                variables.append(self.curtoken)
-
-                res.registeradvancement()
-                self.advance()
 
             if self.curtoken.type != TT_EQUALS:
                 return(
                     res.success(
                         VarNullNode(
-                            variables
+                            token
                         )
                     )
                 )
@@ -169,7 +150,7 @@ class Parser():
             return(
                 res.success(
                     VarCreateNode(
-                        variables, expr
+                        token, expr
                     )
                 )
             )
@@ -185,7 +166,8 @@ class Parser():
             return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected identifier, keyword, operator, type not found'
+                        'Expected identifier, keyword, operator, type not found',
+                        self.curtoken.start, self.curtoken.end
                     )
                 )
             )
@@ -227,7 +209,8 @@ class Parser():
             return(
                 res.failure(
                     Exc_SyntaxError(
-                        'Expected identifier, keyword, operator, type not found'
+                        'Expected identifier, keyword, operator, type not found',
+                        self.curtoken.start, self.curtoken.end
                     )
                 )
             )
@@ -288,7 +271,90 @@ class Parser():
                 )
             )
 
-        return(self.atom())
+        return(self.call())
+
+
+    def call(self):
+        res = ParseResult()
+        atom = res.register(self.atom())
+
+        if res.error:
+            return(res)
+
+        if self.curtoken.type == TT_LPAREN:
+            res.registeradvancement()
+            self.advance()
+
+            args = []
+            options = {}
+
+            if self.curtoken.type == TT_RPAREN:
+                res.registeradvancement()
+                self.advance()
+            else:
+                args.append(res.register(self.expr()))
+
+                if res.error:
+                    return(
+                        res.failure(
+                            Exc_SyntaxError(
+                                'Expected \')\', \'(\', identifier, keyword, operation, type not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+
+                while self.curtoken.type == TT_COMMA:
+                    res.registeradvancement()
+                    self.advance()
+
+                    if self.curtoken.type == TT_IDENTIFIER:
+                        token = self.curtoken
+                        res.registeradvancement()
+                        self.advance()
+
+                        if self.curtoken.type == TT_EQUALS:
+                            res.registeradvancement()
+                            self.advance()
+
+                            options[token.value] = res.register(self.expr())
+
+                        else:
+                            res.registerretreat()
+                            self.retreat()
+
+                            args.append(res.register(self.expr()))
+                    else:
+                        args.append(res.register(self.expr()))
+
+                    if res.error:
+                        return(res)
+
+
+                if self.curtoken.type != TT_RPAREN:
+                    return(
+                        res.failure(
+                            Exc_SyntaxError(
+                                f'Expected \',\', \')\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                res.registeradvancement()
+                self.advance()
+
+            return(
+                res.success(
+                    VarCallNode(
+                        atom,
+                        args, options
+                    )
+                )
+            )
+
+        return(res.success(atom))
 
 
     def atom(self):
@@ -352,48 +418,17 @@ class Parser():
 
 
         elif token.type == TT_IDENTIFIER:
-            variables = [token]
             res.registeradvancement()
             self.advance()
 
-            while self.curtoken.type == TT_COMMA:
-                res.registeradvancement()
-                self.advance()
-
-                if self.curtoken.type != TT_IDENTIFIER:
-                    return(
-                        res.failure(
-                            Exc_SyntaxError(
-                                'Expected identifier not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-                variables.append(self.curtoken)
-
-                res.registeradvancement()
-                self.advance()
-
             if self.curtoken.type == TT_EQUALS:
-                res.registeradvancement()
-                self.advance()
-
                 expr = res.register(self.expr())
 
                 return(
                     res.success(
                         VarAssignNode(
-                            variables, expr
-                        )
-                    )
-                )
-            elif len(variables) > 1:
-                return(
-                    res.failure(
-                        Exc_SyntaxError(
-                            'Expected \'=\' not found',
-                            self.curtoken.start, self.curtoken.end
+                            token,
+                            expr
                         )
                     )
                 )
@@ -403,7 +438,6 @@ class Parser():
                     VarAccessNode(token)
                 )
             )
-
 
         return(
                 res.failure(

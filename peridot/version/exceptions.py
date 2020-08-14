@@ -19,9 +19,12 @@ class Exc_Error():
 
     def asstring(self):
         result = self.traceback()
-        result += f'''   >{Fore.YELLOW}{self.start.lntext}{Style.RESET_ALL}
-    {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}
-{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
+        result += f'''   >{Fore.YELLOW}{self.start.lntext}{Style.RESET_ALL}\n'''
+        result += f'''    {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+        if self.msg:
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
+        else:
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}'''
         return(result)
 
     def traceback(self):
@@ -40,25 +43,33 @@ class Exc_Error():
 
 
 
+class Exc_ArgumentError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('ArgumentException', msg, start, end, context)
+
+class Exc_AssertionError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('AssertionException', msg, start, end, context)
+
 class Exc_EscapeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
-        super().__init__('EscapeError', msg, start, end, context)
+        super().__init__('EscapeException', msg, start, end, context)
 
 class Exc_IdentifierError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
-        super().__init__('IdentifierError', msg, start, end, context)
+        super().__init__('IdentifierException', msg, start, end, context)
+
+class Exc_OperationError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('OperationException', msg, start, end, context)
 
 class Exc_SyntaxError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
-        super().__init__('SyntaxError', msg, start, end, context)
+        super().__init__('SyntaxException', msg, start, end, context)
 
 class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
-        super().__init__('TypeError', msg, start, end, context)
-
-class Exc_ValueError(Exc_Error):
-    def __init__(self, msg, start, end, context=None):
-        super().__init__('ValueError', msg, start, end, context)
+        super().__init__('TypeException', msg, start, end, context)
 
 ##########################################
 # ARGUMENT ERRORS                        #

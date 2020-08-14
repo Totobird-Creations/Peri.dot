@@ -11,10 +11,11 @@ from .exceptions import Exc_ArgumentError, Exc_OperationError, Exc_TypeError, Ex
 from .nodes      import VarCallNode
 
 def uuid():
-    return(
-        str(uuid4())
-            .replace('-', '')
-    )
+    u = '00000000000000000000000000000000'
+    while u == '00000000000000000000000000000000':
+        u = str(uuid4()).replace('-', '')
+
+    return(u)
 
 def typesinit(interpreter):
     global Interpreter
@@ -81,15 +82,15 @@ class TypeObj():
 
 
     def add(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be added to', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be added to', self.start, self.end, self.context)))
     def subtract(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be subtracted from', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be subtracted from', self.start, self.end, self.context)))
     def multiply(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be multiplied', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be multiplied', self.start, self.end, self.context)))
     def divide(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be divided', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be divided', self.start, self.end, self.context)))
     def raised(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be raised', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be raised', self.start, self.end, self.context)))
     def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
@@ -129,17 +130,17 @@ class TypeObj():
                 None
             ))
     def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<\'', self.start, self.end, self.context)))
     def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<=\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<=\'', self.start, self.end, self.context)))
     def greaterthan(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>\'', self.start, self.end, self.context)))
     def gtequals(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>=\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>=\'', self.start, self.end, self.context)))
     def and_(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be combined with \'and\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be combined with \'and\'', self.start, self.end, self.context)))
     def or_(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be combined with \'or\'', self.start, other.end, self.context)))
+        return((None, Exc_OperationError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context)))
     def not_(self) -> Tuple[Any, Optional[Exc_OperationError]]:
         return((None, Exc_OperationError(f'{self.type} can not be inverted', self.start, self.end, self.context)))
     def call(self) -> Tuple[Any, Optional[Exc_TypeError]]:
@@ -229,7 +230,7 @@ class IntType(TypeObj):
                     None,
                     Exc_OperationError(
                         f'Division by zero',
-                        self.start, other.end,
+                        other.start, other.end,
                         self.context
                     )
                 ))
@@ -619,22 +620,24 @@ class FunctionType(TypeObj):
         self.bodynodes = bodynodes
         self.argnames = argnames
 
-    def call(self, args):
+    def call(self, name, args):
         res = RTResult()
 
         context = Context(
-            self.id,
+            (name, self.id),
             SymbolTable(self.context.symbols),
             self.context,
             self.start
         )
 
         if len(args) != len(self.argnames):
+            end = self.end
+            end.column -= 1
             return(
                 res.failure(
                     Exc_ArgumentError(
                         f'{TYPES["function"]} takes {len(self.argnames)} arguments, {len(args)} given',
-                        self.start, self.end,
+                        self.start, end,
                         self.context
                     )
                 )

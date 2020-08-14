@@ -2,11 +2,15 @@
 # DEPENDENCIES                           #
 ##########################################
 
+import os
 from .modules.colorama.colorama import init, Fore, Style # type: ignore
 init()
 
+_HEADER = '\n- RUNTIME ERROR '
+_FOOTER = f''
+
 ##########################################
-# LEX, PARSE, INTERPRET ERRORS           #
+# INTERPRETER ERRORS                     #
 ##########################################
 
 class Exc_Error():
@@ -18,13 +22,15 @@ class Exc_Error():
         self.context = context
 
     def asstring(self):
-        result = self.traceback()
-        result += f'''   >{Fore.YELLOW}{self.start.lntext}{Style.RESET_ALL}\n'''
-        result += f'''    {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+        size = os.get_terminal_size()
+        result = f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n'
+        result += self.traceback()
+        result += f'''      {Fore.YELLOW}{' ' * (self.start.column)}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
         if self.msg:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'''
         else:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}'''
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'''
+        result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
         return(result)
 
     def traceback(self):
@@ -33,7 +39,12 @@ class Exc_Error():
         context = self.context
 
         while context:
-            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}Line {Style.BRIGHT}{pos.line + 1}{Style.RESET_ALL}{Fore.GREEN}, Column {Style.BRIGHT}{pos.column + 1}{Style.RESET_ALL}{Fore.GREEN}, In {Style.BRIGHT}{context.display}{Style.RESET_ALL}\n''' + result
+            display = context.display
+            if isinstance(display, tuple):
+                display = f'{display[0]} <{display[1]}>'
+            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
+    {Fore.GREEN}Line {Style.BRIGHT}{pos.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{pos.column + 1}{Style.RESET_ALL}
+      {Fore.YELLOW}{Style.BRIGHT}{pos.lntext}{Style.RESET_ALL}\n{result}'''
 
             pos = context.parententry
             context = context.parent
@@ -51,10 +62,6 @@ class Exc_AssertionError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('AssertionException', msg, start, end, context)
 
-class Exc_EscapeError(Exc_Error):
-    def __init__(self, msg, start, end, context=None):
-        super().__init__('EscapeException', msg, start, end, context)
-
 class Exc_IdentifierError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('IdentifierException', msg, start, end, context)
@@ -63,13 +70,41 @@ class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('OperationException', msg, start, end, context)
 
-class Exc_SyntaxError(Exc_Error):
-    def __init__(self, msg, start, end, context=None):
-        super().__init__('SyntaxException', msg, start, end, context)
-
 class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('TypeException', msg, start, end, context)
+
+##########################################
+# LEXER, PARSER ERRORS                   #
+##########################################
+
+class Syn_Error():
+    def __init__(self, exc, msg, start=None, end=None):
+        self.exc = exc
+        self.msg = msg
+        self.start = start
+        self.end = end
+
+    def asstring(self):
+        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}An error occured while lexing and parsing:{Style.RESET_ALL}\n'
+        result += f'''  {Fore.GREEN}File{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.file}{Style.RESET_ALL}
+    {Fore.GREEN}Line{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.line}{Style.RESET_ALL}, {Fore.GREEN}Column{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.column}{Style.RESET_ALL}
+      {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}
+      {' ' * self.start.column + 1}{Fore.YELLOW}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+
+        if self.msg:
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
+        else:
+            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}'''
+        return(result)
+
+class Syn_EscapeError(Syn_Error):
+    def __init__(self, msg, start, end):
+        super().__init__('EscapeException', msg, start, end)
+
+class Syn_SyntaxError(Syn_Error):
+    def __init__(self, msg, start, end):
+        super().__init__('SyntaxException', msg, start, end)
 
 ##########################################
 # ARGUMENT ERRORS                        #
@@ -85,7 +120,7 @@ class Cmd_CmdError():
     def asstring(self):
         result = f'''{Fore.BLUE}{Style.BRIGHT}An error occured while reading arguments{Style.RESET_ALL}
   {Fore.GREEN}Argument{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.argnum}{Style.RESET_ALL}
-   >{Fore.YELLOW}{self.arg}{Style.RESET_ALL}
+    {Fore.YELLOW}{self.arg}{Style.RESET_ALL}
     {Fore.YELLOW}{'^' * len(self.arg)}{Style.RESET_ALL}
 {Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
         return(result)
@@ -97,3 +132,20 @@ class Cmd_CmdArgumentError(Cmd_CmdError):
 class Cmd_NotSupportedError(Cmd_CmdError):
     def __init__(self, msg, argnum, arg):
         super().__init__('NotSupportedError', msg, argnum, arg)
+
+##########################################
+# CMD WARNINGS                           #
+##########################################
+
+class Cmd_CmdWarning():
+    def __init__(self, exc, msg):
+        self.exc = exc
+        self.msg = msg
+
+    def asstring(self):
+        result = f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.YELLOW}{self.msg}{Style.RESET_ALL}'''
+        return(result)
+
+class Cmd_OutOfDateWarning(Cmd_CmdWarning):
+    def __init__(self, msg):
+        super().__init__('OutOfDateWarning', msg)

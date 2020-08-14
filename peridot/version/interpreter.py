@@ -82,7 +82,6 @@ class Interpreter():
         res = RTResult()
 
         name = node.token.value
-
         value = context.symbols.access(name)
 
         if not value:
@@ -90,10 +89,14 @@ class Interpreter():
                 res.failure(
                     Exc_IdentifierError(
                         f'\'{name}\' is not defined',
-                        node.token.start, node.token.end
+                        node.start, node.end,
+                        context
                     )
                 )
             )
+
+        value.start = node.start
+        value.end = node.end
 
         return(
             res.success(
@@ -119,7 +122,8 @@ class Interpreter():
                 res.failure(
                     Exc_TypeError(
                         f'Can not assign {value.type} to \'{name}\' (reserved)',
-                        node.start, node.end
+                        node.start, node.end,
+                        context
                     )
                 )
             )
@@ -131,7 +135,8 @@ class Interpreter():
                 res.failure(
                     Exc_IdentifierError(
                         f'\'{name}\' is not defined',
-                        node.start, node.end
+                        node.start, node.end,
+                        context
                     )
                 )
             )
@@ -141,7 +146,8 @@ class Interpreter():
                 res.failure(
                     Exc_TypeError(
                         f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
-                        node.valnode.token.start, node.valnode.token.end
+                        node.valnode.token.start, node.valnode.token.end,
+                        context
                     )
                 )
             )
@@ -169,18 +175,19 @@ class Interpreter():
             )
         )
 
+        if res.error:
+            return(res)
+
         if name in RESERVED:
             return(
                 res.failure(
                     Exc_TypeError(
                         f'Can not assign {value.type} to \'{name}\' (reserved)',
-                        node.token.start, node.token.end
+                        node.start, node.end,
+                        context
                     )
                 )
             )
-
-        if res.error:
-            return(res)
 
         context.symbols.assign(name, value)
 
@@ -202,7 +209,8 @@ class Interpreter():
                     res.failure(
                         Exc_TypeError(
                             f'Can not assign {TYPES["nonetype"]} to \'{name}\' (reserved)',
-                            i.start, i.end
+                            i.start, i.end,
+                            context
                         )
                     )
                 )
@@ -248,7 +256,7 @@ class Interpreter():
                 return(res)
 
         result = res.register(
-            callnode.call(args)
+            callnode.call(name, args)
         )
 
         if res.error:
@@ -283,7 +291,15 @@ class Interpreter():
 
             if bodyresult.error:
                 error = bodyresult.error
-                return(res.success(ExceptionType(error.exc, error.msg, error.start)))
+                return(
+                    res.success(
+                        ExceptionType(
+                            error.exc,
+                            error.msg,
+                            error.start
+                        )
+                    )
+                )
 
         return(res.success(NullType()))
 

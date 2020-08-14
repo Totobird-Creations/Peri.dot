@@ -12,7 +12,7 @@ def catch(func):
     except Exception as e:
         size = os.get_terminal_size()
         traceback = format_exc()
-        print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER), 0])}{Style.RESET_ALL}')
+        print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}')
 
         traceback = traceback.rstrip('\n').split('\n\n')
         traceback = [i.split('\n') for i in traceback]
@@ -25,7 +25,7 @@ def catch(func):
 
 
                 if ln == 'During handling of the above exception, another exception occurred:':
-                    print(f'{Fore.BLUE}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
+                    print(f'{Fore.RED}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
 
                 elif i == len(lines) - 1:
                     ln = ln.split(' ')
@@ -33,17 +33,17 @@ def catch(func):
                     print(f'{Fore.RED}{Style.BRIGHT}{ln[0]}{Style.RESET_ALL}: {Fore.RED}{ln[1]}{Style.RESET_ALL}')
 
                 elif ln == 'Traceback (most recent call last):':
-                    print(f'{Fore.BLUE}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
+                    print(f'{Fore.RED}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
 
                 elif ln.startswith('    '):
                     ln = ln.lstrip(' ')
-                    print(f'      {Fore.YELLOW}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
+                    print(f'      {Fore.RED}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
 
                 elif ln.startswith('  '):
                     ln = ln.lstrip(' ').split(' ')
                     ln = [ln[1][1:-2], ln[-3][:-1], ln[-1]]
-                    print(f'  {Fore.GREEN}File {Style.BRIGHT}\'{ln[0]}\'{Style.RESET_ALL}')
-                    print(f'    {Fore.GREEN}Line {Style.BRIGHT}{ln[1]}{Style.RESET_ALL} {Fore.GREEN}In {Style.BRIGHT}{ln[2]}{Fore.GREEN}{Style.RESET_ALL}')
+                    print(f'  {Fore.RED}File {Style.BRIGHT}\'{ln[0]}\'{Style.RESET_ALL}')
+                    print(f'    {Fore.RED}Line {Style.BRIGHT}{ln[1]}{Style.RESET_ALL} {Fore.RED}In {Style.BRIGHT}{ln[2]}{Fore.RED}{Style.RESET_ALL}')
 
                 else:
                     print(ln)

@@ -10,9 +10,9 @@ from typing import Any
 
 class Context():
     def __init__(self, display, symbols=None, parent=None, parententry=None):
-        self.display     = display
-        self.parent      = parent
-        self.parententry = parententry
+        self.display         = display
+        self.parent          = parent
+        self.parententry     = parententry
 
         self.symbols     = symbols
 

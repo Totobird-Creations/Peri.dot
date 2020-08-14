@@ -83,14 +83,17 @@ class VarNullNode():
 
 
 class VarCallNode():
-    def __init__(self, node, argnodes, optionnodes):
+    def __init__(self, node, argnodes, optionnodes, end=None):
         self.node = node
         self.name = self.node.token.value
         self.argnodes = argnodes
         self.optionnodes = optionnodes
 
         self.start = node.start
-        self.end = node.end
+        if end:
+            self.end = end
+        else:
+            self.end = node.end
 
     def __repr__(self):
         return(f'{self.node.token.value}()')

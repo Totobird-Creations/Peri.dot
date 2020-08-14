@@ -80,7 +80,7 @@ class Lexer():
                 self.advance()
 
 
-            elif self.char in DIGITS + '.':
+            elif self.char in DIGITS:
                 tokens.append(self.makenumber())
 
             elif self.char in '"\'':
@@ -190,7 +190,7 @@ class Lexer():
                 if self.char not in '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Exc_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
+                    return((None, Syn_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
 
                 self.advance()
 
@@ -206,7 +206,7 @@ class Lexer():
                 char = self.char
                 self.advance()
 
-                return(([], Exc_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
+                return(([], Syn_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
 
 
         tokens.append(Token(TT_EOL, start=self.pos))
@@ -257,7 +257,7 @@ class Lexer():
                 if not char:
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Exc_EscapeError(f'\'{self.char}\' can not be escaped', start=self.pos, end=end)))
+                    return((None, Syn_EscapeError(f'\'{self.char}\' can not be escaped', start=self.pos, end=end)))
                 string += char
 
                 escaped = False
@@ -267,7 +267,7 @@ class Lexer():
                 elif self.char == '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Exc_EscapeError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
+                    return((None, Syn_EscapeError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
                 else:
                     string += self.char
             self.advance()
@@ -275,7 +275,7 @@ class Lexer():
         if not self.char:
             end = self.pos.copy()
             end.advance()
-            return((None, Exc_EscapeError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
+            return((None, Syn_EscapeError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
 
         self.advance()
 
@@ -303,7 +303,7 @@ class Lexer():
             self.advance()
             return((Token(TT_BANGEQUALS, string, start=start, end=self.pos), None))
 
-        return((None, Exc_EscapeError(f'Expected \'=\' not found', start=self.pos, end=self.pos.copy())))
+        return((None, Syn_EscapeError(f'Expected \'=\' not found', start=self.pos, end=self.pos.copy())))
 
 
     def makelessthan(self):

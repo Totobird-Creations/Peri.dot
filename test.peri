@@ -1,9 +1,20 @@
-var div = func(a, b) {
-    a / b
+var add = func(a, b) {
+    var subtract = func(a, b) {
+        var multiply = func(a, b) {
+            var divide = func(a, b) {
+                a / b
+            }
+
+            divide(a, b)
+            a * b
+        }
+
+        multiply(a, b)
+        a - b
+    }
+
+    subtract(a, b)
+    a + b
 }
 
-var try = handler {
-    div(10, 0)
-}
-
-try
+add(1, 0)

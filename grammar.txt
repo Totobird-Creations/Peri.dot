@@ -1,5 +1,5 @@
 expr:
-    - KEYWORD:varcreate IDENTIFIER (COMMA IDENTIFIER)* EQ expr
+    - KEYWORD:varcreate IDENTIFIER EQ expr
     - compexpr ((KEYWORD:logicaland|KEYWORD:logicalor) compexpr)*
 
 compexpr:
@@ -26,7 +26,7 @@ call:
 atom:
     - INT|FLOAT|STRING
     - LPAREN expr RPAREN
-    - IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr
+    - IDENTIFIER EQUALS expr
     - IDENTIFIER
     - funcdef
     - handler

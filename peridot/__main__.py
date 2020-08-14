@@ -14,7 +14,7 @@ def improvederrormessage():
     init()
 
     from version.context            import Context, SymbolTable
-    from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError
+    from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError, Cmd_OutOfDateWarning
     from version.interpreter        import Interpreter
     from version.lexer              import Lexer
     from version.parser             import Parser
@@ -72,7 +72,7 @@ def improvederrormessage():
 {Fore.BLUE}{Style.BRIGHT}Options:{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-v{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--version{Style.RESET_ALL} - {Fore.GREEN}Display logo and version.{Style.RESET_ALL}
-  {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}''')
+  {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}\n''')
 
 
         if filename:
@@ -81,6 +81,11 @@ def improvederrormessage():
             try:
                 with open(filename, 'r') as f:
                     text = f.read()
+                    text = '\n'.join(
+                        [
+                            i.lstrip(' ').rstrip(' ').lstrip('\t').rstrip('\t') for i in text.split('\n')
+                        ]
+                    )
 
             except Exception as e:
                 exc = sys.exc_info()
@@ -105,7 +110,7 @@ def improvederrormessage():
                     print(ast.error.asstring())
                     exit(1)
 
-                context = Context('<module>', symbols=symbols)
+                context = Context(('<module>'), symbols=symbols)
 
                 for i in ast.node:
                     interpreter = Interpreter()
@@ -119,7 +124,9 @@ def improvederrormessage():
 
 
         elif not (version or help) or repl:
-            symbols = SymbolTable()
+            print(
+                Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
+            )
 
             Repl()
 

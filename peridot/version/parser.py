@@ -74,6 +74,7 @@ class Parser():
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
                 self.advance()
+
             token = res.register(
                 self.expr()
             )
@@ -88,7 +89,7 @@ class Parser():
             if self.curtoken.type != TT_EOL:
                 return(
                     res.failure(
-                        Exc_SyntaxError(
+                        Syn_SyntaxError(
                             'Invalid EOL',
                             self.curtoken.start, self.curtoken.end
                         )
@@ -144,7 +145,7 @@ class Parser():
             if self.curtoken.type != TT_IDENTIFIER:
                 return(
                     res.failure(
-                        Exc_SyntaxError(
+                        Syn_SyntaxError(
                             'Expected identifier not found',
                             self.curtoken.start, self.curtoken.end
                         )
@@ -190,7 +191,7 @@ class Parser():
         if res.error:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         'Expected identifier, keyword, operator, type not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -233,7 +234,7 @@ class Parser():
         if res.error:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         'Expected identifier, keyword, operator, type not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -322,7 +323,7 @@ class Parser():
                 if res.error:
                     return(
                         res.failure(
-                            Exc_SyntaxError(
+                            Syn_SyntaxError(
                                 'Expected \')\', \'(\', identifier, keyword, operation, type not found',
                                 self.curtoken.start, self.curtoken.end
                             )
@@ -360,7 +361,7 @@ class Parser():
                 if self.curtoken.type != TT_RPAREN:
                     return(
                         res.failure(
-                            Exc_SyntaxError(
+                            Syn_SyntaxError(
                                 f'Expected \',\', \')\' not found',
                                 self.curtoken.start, self.curtoken.end
                             )
@@ -374,7 +375,8 @@ class Parser():
                 res.success(
                     VarCallNode(
                         atom,
-                        args, options
+                        args, options,
+                        end=self.curtoken.end
                     )
                 )
             )
@@ -491,7 +493,7 @@ class Parser():
 
         return(
             res.failure(
-                Exc_SyntaxError(
+                Syn_SyntaxError(
                     'Expected identifier, keyword, operator, type not found',
                     token.start, token.end 
                 )
@@ -505,7 +507,7 @@ class Parser():
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['funccreate']):
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         f'Expected \'{KEYWORDS["funccreate"]}\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -520,7 +522,7 @@ class Parser():
         if self.curtoken.type != TT_LPAREN:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         f'Expected \'(\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -545,7 +547,7 @@ class Parser():
                 if self.curtoken.type != TT_IDENTIFIER:
                     return(
                         res.failure(
-                            Exc_SyntaxError(
+                            Syn_SyntaxError(
                                 f'Expected identifier not found',
                                 self.curtoken.start, self.curtoken.end
                             )
@@ -559,7 +561,7 @@ class Parser():
             if self.curtoken.type != TT_RPAREN:
                 return(
                     res.failure(
-                        Exc_SyntaxError(
+                        Syn_SyntaxError(
                             f'Expected \')\', \',\' not found',
                             self.curtoken.start, self.curtoken.end
                         )
@@ -569,7 +571,7 @@ class Parser():
         elif self.curtoken.type != TT_RPAREN:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         f'Expected \')\', identifier not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -603,7 +605,7 @@ class Parser():
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['handler']):
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         f'Expected \'{KEYWORDS["handler"]}\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -639,7 +641,7 @@ class Parser():
         if self.curtoken.type != TT_LCURLY:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         'Expected \'{\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
@@ -691,7 +693,7 @@ class Parser():
         if self.curtoken.type != TT_RCURLY:
             return(
                 res.failure(
-                    Exc_SyntaxError(
+                    Syn_SyntaxError(
                         'Expected \'}\' not found',
                         self.curtoken.start, self.curtoken.end
                     )

@@ -20,11 +20,11 @@ BUILTINS = {
 }
 
 BUILTINFUNCS = {
-    'assert'    : 'assert'
 }
 
 KEYWORDS = {
     'varcreate' : 'var',
+    'createfunc': 'func',
     'logicaland': 'and',
     'logicalor' : 'or',
     'logicalnot': 'not'

@@ -1,4 +1,5 @@
 from version.catch import *
+from version.types import *
 
 @catch
 def improvederrormessage():
@@ -89,25 +90,25 @@ def improvederrormessage():
 
             symbols = SymbolTable()
 
-            for ln in text.split('\n'):
-                lexer = Lexer(filename, ln)
-                tokens, error = lexer.maketokens()
+            lexer = Lexer(filename, text)
+            tokens, error = lexer.maketokens()
 
-                if error:
-                    print(error.asstring())
+            if error:
+                print(error.asstring())
+                exit(1)
+
+            if len(tokens) - 2:
+                parser = Parser(tokens)
+                ast = parser.parse()
+
+                if ast.error:
+                    print(ast.error.asstring())
                     exit(1)
 
-                if len(tokens) - 2:
-                    parser = Parser(tokens)
-                    ast = parser.parse()
-
-                    if ast.error:
-                        print(ast.error.asstring())
-                        exit(1)
-
+                for i in ast.node:
                     interpreter = Interpreter()
                     context = Context('<module>', symbols=symbols)
-                    result = interpreter.visit(ast.node, context)
+                    result = interpreter.visit(i, context)
 
                     if result.error:
                         print(result.error.asstring())

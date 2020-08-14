@@ -159,6 +159,14 @@ class Lexer():
                 tokens.append(Token(TT_RPAREN, start=self.pos))
                 self.advance()
 
+            elif self.char == '{':
+                tokens.append(Token(TT_LCURLY, start=self.pos))
+                self.advance()
+
+            elif self.char == '}':
+                tokens.append(Token(TT_RCURLY, start=self.pos))
+                self.advance()
+
 
             elif self.char in ALPHABET + '_':
                 token, error = self.makeidentifier()

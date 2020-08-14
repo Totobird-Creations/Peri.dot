@@ -172,29 +172,28 @@ class Interpreter():
     def visit_VarCreateNode(self, node, context):
         res = RTResult()
 
-        for i in node.tokens:
-            name = i.value
-            value = res.register(
-                self.visit(
-                    node.valnode,
-                    context
+        name = node.token.value
+        value = res.register(
+            self.visit(
+                node.valnode,
+                context
+            )
+        )
+
+        if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {value.type} to \'{name}\' (reserved)',
+                        node.token.start, node.token.end
+                    )
                 )
             )
 
-            if name in list(BUILTINS.keys()) or name in list(BUILTINFUNCS.keys()):
-                return(
-                    res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {value.type} to \'{name}\' (reserved)',
-                            i.start, i.end
-                        )
-                    )
-                )
+        if res.error:
+            return(res)
 
-            if res.error:
-                return(res)
-
-            context.symbols.assign(name, value)
+        context.symbols.assign(name, value)
 
         return(
             res.success(
@@ -235,113 +234,31 @@ class Interpreter():
         args = node.argnodes
         options = node.optionnodes
 
-        if name == BUILTINFUNCS['assert']:
-            if len(args) != 1:
-                return(
-                    res.failure(
-                        Exc_ArgumentError(
-                            f'\'{name}\' takes 1 arguments, {len(args)} given',
-                            node.start, node.end
-                        )
-                    )
-                )
+        result = res.register(
+            self.visit(
+                node.node, context
+            )
+        )
 
-            defoptions = {'msg': StringType('')}
-            for i in range(len(list(options.keys()))):
-                op = list(options.keys())[i]
-                options[op] = res.register(
-                    self.visit(
-                        options[op], context
-                    )
-                )
+        if res.error:
+            return(res)
 
-                if res.error:
-                    return(res)
+        result, error = result.call()
 
-                default = defoptions.get(
-                    op,
-                    None
-                )
-
-                if default:
-                    if type(options[op]) == type(default):
-                        defoptions[op] = options[op]
-                    else:
-                        return(
-                            res.failure(
-                                Exc_TypeError(
-                                    f'\'{op}\' is a {default.type} option',
-                                    node.start, node.end
-                                )
-                            )
-                        )
-                else:
-                    return(
-                        res.failure(
-                            Exc_ArgumentError(
-                                f'Invalid option \'{op}\' given',
-                                node.start, node.end
-                            )
-                        )
-                    )
-
-            for i in range(len(args)):
-                arg = args[i]
-                result = res.register(
-                    self.visit(
-                        arg, context
-                    )
-                )
-
-                if res.error:
-                    return(res)
-
-                args[i] = result
-
-            result, error = args[0].istrue()
-
-            if error:
-                return(
-                    res.failure(
-                        error
-                    )
-                )
-
-            if result:
-                return(
-                    res.success(
-                        NullType()
-                    )
-                )
-
-            else:
-                return(
-                    res.failure(
-                        Exc_AssertionError(
-                            defoptions['msg'].value,
-                            args[0].start, args[0].end
-                        )
-                    )
-                )
-
-        else:
-            result = res.register(
-                self.visit(
-                    node.token, context
+        if error:
+            return(
+                res.failure(
+                    error
                 )
             )
 
-            if res.error:
-                return(res)
-
-            result, error = result.call()
-
-            if error:
-                return(
-                    res.failure(
-                        error
-                    )
-                )
+        result = result.copy().setpos(node.start, node.end).setcontext(context)
+        
+        return(
+            res.success(
+                result
+            )
+        )
 
 
 

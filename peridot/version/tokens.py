@@ -14,6 +14,8 @@ TT_CARAT       = 'RAISED'
 
 TT_LPAREN      = 'LPAREN'
 TT_RPAREN      = 'RPAREN'
+TT_LCURLY      = 'LCURLY'
+TT_RCURLY      = 'RCURLY'
 
 TT_EQUALS      = 'EQUALS'
 TT_COMMA       = 'COMMA'

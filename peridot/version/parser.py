@@ -65,19 +65,41 @@ class Parser():
 
         return(self.curtoken)
 
+
     def parse(self):
-        res = self.expr()
-        if not res.error and self.curtoken.type != TT_EOL:
-            return(
-                res.failure(
-                    Exc_SyntaxError(
-                        'Expected operator not found',
-                        self.curtoken.start, self.curtoken.end
-                    )
-                )
+        res = ParseResult()
+        tokens = []
+
+        while self.curtoken.type != TT_EOF:
+            token = res.register(
+                self.expr()
             )
 
-        return(res)
+            tokens.append(token)
+
+            if res.error:
+                return(
+                    res
+                )
+
+            if self.curtoken.type != TT_EOL:
+                return(
+                    res.failure(
+                        Exc_SyntaxError(
+                            'Invalid EOL',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+        return(
+            res.success(
+                tokens
+            )
+        )
 
 
     def binaryop(self, funca, optypes, funcb=None):
@@ -447,3 +469,34 @@ class Parser():
                     )
                 )
             )
+
+
+    def codeblock(self):
+        res = ParseResult()
+        tokens = []
+
+        if self.curtoken.type != TT_LCURLY:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        'Expectted \'{\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        if self.curtoken.type != TT_RCURLY:
+            return(
+                res.failure(
+                    Exc_SyntaxError(
+                        'Expectted \'}\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        return(
+            res.success(
+                CodeBlockNode(tokens)
+            )
+        )

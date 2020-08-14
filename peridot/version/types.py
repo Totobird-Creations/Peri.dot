@@ -3,9 +3,11 @@
 ##########################################
 
 from __future__ import annotations
-from typing import Any,Optional,Tuple
+from typing import Any,Optional,Tuple, Type
 
-from .exceptions import  Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+from .context import Context, SymbolTable
+from .exceptions import Exc_ArgumentError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+
 
 ##########################################
 # CONSTANTS                              #
@@ -19,6 +21,27 @@ TYPES = {
     'string'       : 'Str',
     'boolean'      : 'Bool'
 }
+
+##########################################
+# RUNTIME RESULT                         #
+##########################################
+
+class RTResult():
+    def __init__(self):
+        self.value = None
+        self.error = None
+
+    def register(self, res):
+        self.error = res.error
+        return(res.value)
+
+    def success(self, value):
+        self.value = value
+        return(self)
+
+    def failure(self, error):
+        self.error = error
+        return(self)
 
 ##########################################
 # TYPES                                  #

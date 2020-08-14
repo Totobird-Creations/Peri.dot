@@ -1,12 +1,12 @@
 expr:
     - KEYWORD:varcreate IDENTIFIER (COMMA IDENTIFIER)* EQ expr
-    - comp-expr ((KEYWORD:logicaland|KEYWORD:logicalor) comp-expr)*
+    - compexpr ((KEYWORD:logicaland|KEYWORD:logicalor) compexpr)*
 
-comp-expr:
-    - KEYWORD:logicalnot comp-expr
-    - arith-expr ((EQEQUALS|BANGEQUALS|LESSTHAN|LTEQUALS|GREATERTHAN|GTEQUALS) arith-expr)*
+compexpr:
+    - KEYWORD:logicalnot compexpr
+    - arithexpr ((EQEQUALS|BANGEQUALS|LESSTHAN|LTEQUALS|GREATERTHAN|GTEQUALS) arithexpr)*
 
-arith-expr:
+arithexpr:
     - term ((PLUS|DASH) term)*
 
 term:
@@ -28,3 +28,10 @@ atom:
     - LPAREN expr RPAREN
     - IDENTIFIER (COMMA IDENTIFIER)* EQUALS expr
     - IDENTIFIER
+    - funcdef
+
+funcdef:
+    - KEYWORD:createfunc LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN codeblock
+
+codeblock:
+    - LCURLY (EOL* (expr (EOL expr))? EOL*) RCURLY

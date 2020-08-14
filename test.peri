@@ -1,5 +1,9 @@
-var try = handler{
-    10 / 0
+var div = func(a, b) {
+    a / b
+}
+
+var try = handler {
+    div(10, 0)
 }
 
 try

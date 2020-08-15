@@ -1,4 +1,1 @@
-var x = [20]
-var y = ['hello']
-
-[x, [x, [x, y]]]
+print(["hello"])

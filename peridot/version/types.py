@@ -3,6 +3,8 @@
 ##########################################
 
 from __future__ import annotations
+from sys import exec_prefix
+from types import BuiltinFunctionType
 from typing import Any,Optional,Tuple, Type
 from uuid import uuid4
 
@@ -34,6 +36,7 @@ TYPES = {
     'list'         : 'Array',
     'boolean'      : 'Bool',
     'function'     : 'Function',
+    'builtinfunc'  : 'Built-In Function',
     'exception'    : 'Exception'
 }
 
@@ -145,10 +148,13 @@ class TypeObj():
         return((None, Exc_OperationError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context)))
     def not_(self) -> Tuple[Any, Optional[Exc_OperationError]]:
         return((None, Exc_OperationError(f'{self.type} can not be inverted', self.start, self.end, self.context)))
-    def call(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def call(self, name, args) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be called', self.start, self.end, self.context)))
     def istrue(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context)))
+
+    def __clean__(self):
+        return(self.__repr__())
 
     def __repr__(self):
         return(f'{self.value}')
@@ -577,6 +583,9 @@ class StringType(TypeObj):
 
         return(copy)
 
+    def __clean__(self):
+        return(f'{self.value}')
+
     def __repr__(self):
         return(f'\'{self.value}\'')
 
@@ -670,7 +679,73 @@ class ArrayType(TypeObj):
 
 
 
-class FunctionType(TypeObj):
+class BaseFunction(TypeObj):
+    def __init__(self, name=None, type_=TYPES['builtinfunc']):
+        super().__init__(type_=type_)
+        self.name = name or self.id
+
+    def gencontext(self, display):
+        self.display = display
+        context = Context(
+            display,
+            SymbolTable(self.context.symbols),
+            self.context,
+            self.start
+        )
+
+        return(context)
+
+    def checkargs(self, argnames, args):
+        res = RTResult()
+
+        if len(args) != len(argnames):
+            end = self.end
+            end.column -= 1
+            return(
+                res.failure(
+                    Exc_ArgumentError(
+                        f'\'{self.display[0]}\' takes {len(argnames)} arguments, {len(args)} given',
+                        self.start, end,
+                        self.context
+                    )
+                )
+            )
+            
+        return(
+            res.success(
+                None
+            )
+        )
+
+    def popargs(self, argnames, args, exec_context):
+        for i in range(len(args)):
+            argname = argnames[i]
+            argvalue = args[i]
+
+            argvalue.setcontext(exec_context)
+            exec_context.symbols.assign(argname, argvalue)
+
+    def checkpopargs(self, argnames, args, exec_context):
+        res = RTResult()
+
+        res.register(
+            self.checkargs(
+                argnames,
+                args
+            )
+        )
+
+        if res.error:
+            return(res)
+
+        self.popargs(argnames, args, exec_context)
+
+        return(
+            res.success(None)
+        )
+
+
+class FunctionType(BaseFunction):
     def __init__(self, bodynodes, argnames):
         super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
@@ -679,40 +754,25 @@ class FunctionType(TypeObj):
     def call(self, name, args):
         res = RTResult()
 
-        context = Context(
-            (name, self.id),
-            SymbolTable(self.context.symbols),
-            self.context,
-            self.start
-        )
+        for i in self.bodynodes:
+            interpreter = Interpreter()
 
-        if len(args) != len(self.argnames):
-            end = self.end
-            end.column -= 1
-            return(
-                res.failure(
-                    Exc_ArgumentError(
-                        f'{TYPES["function"]} takes {len(self.argnames)} arguments, {len(args)} given',
-                        self.start, end,
-                        self.context
-                    )
+            exec_context = self.gencontext((name, self.id))
+
+            res.register(
+                self.checkpopargs(
+                    self.argnames, args,
+                    exec_context
                 )
             )
 
-        for i in range(len(args)):
-            argname = self.argnames[i]
-            argvalue = args[i]
-
-            argvalue.setcontext(context)
-            context.symbols.assign(argname, argvalue)
-
-        for i in self.bodynodes:
-            interpreter = Interpreter()
+            if res.error:
+                return(res)
 
             result = res.register(
                 interpreter.visit(
                     i,
-                    context
+                    exec_context
                 )
             )
 
@@ -731,6 +791,60 @@ class FunctionType(TypeObj):
     def __repr__(self):
         return(f'<{TYPES["function"]} {self.id}>')
 
+
+class BuiltInFunctionType(BaseFunction):
+    def __init__(self, name):
+        super().__init__(name, type_=TYPES['builtinfunc'])
+
+    def call(self, name, args):
+        res = RTResult()
+
+        exec_context = self.gencontext((name, self.id))
+
+        method = f'exec_{self.name}'
+        method = getattr(self, method)
+
+        res.register(
+            self.checkpopargs(
+                method.argnames, args,
+                exec_context
+            )
+        )
+
+        if res.error:
+            return(res)
+
+        result = res.register(
+            method(exec_context)
+        )
+        if res.error:
+            return(res)
+
+        return(
+            res.success(result)
+        )
+
+    def copy(self):
+        copy = BuiltInFunctionType(self.name)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'<{TYPES["builtinfunc"]} {self.name}>')
+
+
+    def exec_print(self, exec_context):
+        print(
+                exec_context.symbols.access('text').__clean__()
+        )
+        return(
+            RTResult().success(
+                NullType()
+            )
+        )
+    exec_print.argnames = ['text']
 
 
 class ExceptionType(TypeObj):

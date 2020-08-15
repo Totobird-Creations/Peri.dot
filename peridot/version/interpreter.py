@@ -17,10 +17,17 @@ class RTResult():
         self.error = None
 
     def register(self, res):
-        if res.error:
-            self.error = res.error
+        if isinstance(res, tuple):
+            if res[1]:
+                self.error = res[1]
 
-        return(res.value)
+            return(res[1])
+
+        else:
+            if res.error:
+                self.error = res.error
+
+            return(res.value)
 
     def success(self, value):
         self.value = value
@@ -135,7 +142,7 @@ class Interpreter():
                 )
             )
 
-        value = value.copy()
+        value = value.copy().setcontext(context)
 
         value.start = node.start
         value.end = node.end
@@ -303,6 +310,8 @@ class Interpreter():
 
         if res.error:
             return(res)
+
+        result = result.copy().setpos(node.start, node.end).setcontext(context)
 
         return(
             res.success(result)

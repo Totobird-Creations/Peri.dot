@@ -19,6 +19,7 @@ def improvederrormessage():
     from version.lexer              import Lexer
     from version.parser             import Parser
     from version.repl               import Repl
+    from version.types              import BooleanType, NullType
 
     ##########################################
     # LOGO                                   #
@@ -94,6 +95,9 @@ def improvederrormessage():
 
 
             symbols = SymbolTable()
+            symbols.assign('True',  BooleanType(True))
+            symbols.assign('False', BooleanType(False))
+            symbols.assign('Null',  NullType())
 
             lexer = Lexer(filename, text)
             tokens, error = lexer.maketokens()

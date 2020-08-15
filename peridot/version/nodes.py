@@ -35,6 +35,17 @@ class StringNode():
         return(f'"{self.token.value}"')
 
 
+class ArrayNode():
+    def __init__(self, elmnodes, start, end):
+        self.elmnodes = elmnodes
+
+        self.start = start
+        self.end   = end
+
+    def __repr__(self):
+        return(f'"{self.token.value}"')
+
+
 
 class VarAccessNode():
     def __init__(self, token):
@@ -97,6 +108,7 @@ class VarCallNode():
 
     def __repr__(self):
         return(f'{self.node.token.value}()')
+
 
 
 class FuncCreateNode():

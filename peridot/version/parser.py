@@ -324,7 +324,7 @@ class Parser():
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                'Expected \')\', \'(\', identifier, keyword, operation, type not found',
+                                'Expected \')\', identifier, keyword, operation, type not found',
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -443,6 +443,20 @@ class Parser():
                 )
             )
 
+        elif token.type == TT_LSQUARE:
+            listexpr = res.register(
+                self.listexpr()
+            )
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    listexpr
+                )
+            )
+
 
         elif token.type == TT_IDENTIFIER:
             res.registeradvancement()
@@ -496,6 +510,81 @@ class Parser():
                 Syn_SyntaxError(
                     'Expected identifier, keyword, operator, type not found',
                     token.start, token.end 
+                )
+            )
+        )
+
+
+    def listexpr(self):
+        res = ParseResult()
+        elmnodes = []
+        start = self.curtoken.start.copy()
+
+        if not self.curtoken.type == TT_LSQUARE:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'[\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        if self.curtoken.type == TT_RSQUARE:
+            res.registeradvancement()
+            self.advance()
+
+        else:
+            elmnodes.append(
+                res.register(
+                    self.expr()
+                )
+            )
+
+            if res.error:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \']\', identifier, keyword, operation, type not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            while self.curtoken.type == TT_COMMA:
+                res.registeradvancement()
+                self.advance()
+
+                elmnodes.append(
+                    res.register(
+                        self.expr()
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+            if self.curtoken.type != TT_RSQUARE:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \',\', \']\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+        return(
+            res.success(
+                ArrayNode(
+                    elmnodes,
+                    start, self.curtoken.end.copy()
                 )
             )
         )

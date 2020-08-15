@@ -26,10 +26,14 @@ call:
 atom:
     - INT|FLOAT|STRING
     - LPAREN expr RPAREN
+    - listexpr
     - IDENTIFIER EQUALS expr
     - IDENTIFIER
     - funcdef
     - handler
+
+listexpr:
+    - LSQUARE (expr (COMMA expr)*)? RSQUARE
 
 funcdef:
     - KEYWORD:createfunc LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN codeblock

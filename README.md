@@ -36,6 +36,7 @@ From the top level directory  `pytest`
     * Numbers: `Int`, `Float`
     * Strings: `Str`
     * Booleans: `Bool`
+    * Arrays: `Array`
     * Functions: `Function`
     * Exceptions: `Exception`
 * Types must be explicitely cast:
@@ -70,10 +71,20 @@ From the top level directory  `pytest`
 * Improved repl
 * Assert / in-peri.dot testing: `assert(x == 9, 'x is not equal to 9')`
 * More types:
-    * Arrays: `[1, 2, 3, 4]`
     * Dictionaries: `{'name': 'John', 'age': 47}`
+* Improved exception type
+* Importing other files: `include('./file.peri')`
+* Function arguments and return values have to have an explicit type: `var add = func(a: int, b:int) > int {`
+* Function default argument values: `var greet = func(name: str, emph=1) {print(name + ' ' + '!' * emph)}`
 * Returning values from functions: `return(True)`
 * If statement: `if x == 1 {var y = 3} elif x == 2 {var y = 2} else {var y = 1}`
 * For and while loops: `for i in [True, True, False] {print(i)}`
 * Built-in variables: `True`, `False`, `Null`
 * Built-in functions: `Str()`, `print('Hello World!')`
+
+## Possible Features
+* Formatted strings `'Hello World{suffix}'`
+* More operations:
+    * Add and assign `+=`
+    * Subtract and assign `-=`
+    etc.

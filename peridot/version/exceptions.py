@@ -25,18 +25,28 @@ class Exc_Error():
         size = os.get_terminal_size()
         result = f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n'
         result += self.traceback()
-        result += f'''      {Fore.YELLOW}{' ' * (self.start.column)}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+
+        display = self.context.display
+        if isinstance(display, tuple):
+            display = f'{display[0]} <{display[1]}>'
+
+        result += f'''  {Fore.GREEN}File {Style.BRIGHT}{self.start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
+    {Fore.GREEN}Line {Style.BRIGHT}{self.start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{self.start.column + 1}{Style.RESET_ALL}
+      {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}\n'''
+
+        result += f'''      {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
         if self.msg:
             result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'''
         else:
             result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'''
+
         result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
         return(result)
 
     def traceback(self):
         result = ''
-        pos = self.start
-        context = self.context
+        context = self.context.parent
+        pos = self.context.parententry
 
         while context:
             display = context.display
@@ -90,7 +100,7 @@ class Syn_Error():
         result += f'''  {Fore.GREEN}File{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.file}{Style.RESET_ALL}
     {Fore.GREEN}Line{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.line}{Style.RESET_ALL}, {Fore.GREEN}Column{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.column}{Style.RESET_ALL}
       {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}
-      {' ' * self.start.column + 1}{Fore.YELLOW}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+      {' ' * (self.start.column + 1)}{Fore.YELLOW}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
 
         if self.msg:
             result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''

@@ -5,7 +5,7 @@
 from .constants  import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
-from .types      import typesinit, NullType, ExceptionType, IntType, FloatType, StringType, BooleanType, FunctionType # type: ignore
+from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -77,6 +77,46 @@ class Interpreter():
         )
 
 
+    def visit_ArrayNode(self, node, context):
+        res = RTResult()
+        elements = []
+        type_ = None
+        for i in node.elmnodes:
+            elm = res.register(
+                self.visit(
+                    i,
+                    context
+                )
+            )
+
+            if res.error:
+                return(res)
+
+            if type_:
+                if type(elm) != type(type_):
+                    return(
+                        res.failure(
+                            Exc_TypeError(
+                                f'{TYPES["list"]} of type {type_.type} can not include {elm.type}',
+                                elm.start, elm.end,
+                                context
+                            )
+                        )
+                    )
+            else:
+                type_ = elm
+
+            elements.append(elm)
+
+        return(
+            res.success(
+                ArrayType(elements)
+                    .setcontext(context)
+                    .setpos(node.start, node.end)
+            )
+        )
+
+
 
     def visit_VarAccessNode(self, node, context):
         res = RTResult()
@@ -94,6 +134,8 @@ class Interpreter():
                     )
                 )
             )
+
+        value = value.copy()
 
         value.start = node.start
         value.end = node.end

@@ -31,8 +31,10 @@ TYPES = {
     'integer'      : 'Int',
     'floatingpoint': 'Float',
     'string'       : 'Str',
+    'list'         : 'Array',
     'boolean'      : 'Bool',
-    'function'     : 'Function'
+    'function'     : 'Function',
+    'exception'    : 'Exception'
 }
 
 ##########################################
@@ -156,6 +158,13 @@ class TypeObj():
 class NullType(TypeObj):
     def __init__(self):
         super().__init__(None, type_=TYPES['nonetype'])
+
+    def copy(self):
+        copy = NullType()
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
 
     def __repr__(self) -> str:
         return(f'Null')
@@ -325,6 +334,13 @@ class IntType(TypeObj):
             ))
         else:
             return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
+
+    def copy(self):
+        copy = IntType(self.value)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
 
 
 class FloatType(TypeObj):
@@ -519,6 +535,13 @@ class FloatType(TypeObj):
                 )
             ))
 
+    def copy(self):
+        copy = FloatType(self.value)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
 
 
 
@@ -546,6 +569,16 @@ class StringType(TypeObj):
                     self.context
                 )
             ))
+
+    def copy(self):
+        copy = StringType(self.value)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'\'{self.value}\'')
 
 
 
@@ -612,11 +645,34 @@ class BooleanType(TypeObj):
             None
         ))
 
+    def copy(self):
+        copy = BooleanType(self.value)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
+
+class ArrayType(TypeObj):
+    def __init__(self, elements):
+        super().__init__(type_=TYPES['list'])
+        self.elements = elements
+
+    def copy(self):
+        copy = ArrayType(self.elements.copy())
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'[{", ".join([str(i) for i in self.elements])}]')
+
 
 
 class FunctionType(TypeObj):
     def __init__(self, bodynodes, argnames):
-        super().__init__()
+        super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
         self.argnames = argnames
 
@@ -679,11 +735,19 @@ class FunctionType(TypeObj):
 
 class ExceptionType(TypeObj):
     def __init__(self, exc, msg, start):
-        super().__init__()
+        super().__init__(type_=TYPES['exception'])
         self.exc = exc
         self.msg = msg
+        self.exc_start = start
         self.line = start.line
         self.column = start.column
+
+    def copy(self):
+        copy = ExceptionType(self.exc, self.msg, self.exc_start)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end)
+
+        return(copy)
 
     def __repr__(self):
         return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')

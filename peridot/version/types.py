@@ -46,20 +46,40 @@ TYPES = {
 
 class RTResult():
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.value = None
+        self.funcvalue = None
         self.error = None
 
     def register(self, res):
-        self.error = res.error
+        self.error = res.shouldreturn()
+        self.funcvalue = res.funcvalue
+
         return(res.value)
 
     def success(self, value):
+        self.reset()
         self.value = value
+
+        return(self)
+
+    def successreturn(self, value):
+        self.reset()
+        self.funcvalue = value
+
         return(self)
 
     def failure(self, error):
         self.error = error
+
         return(self)
+
+    def shouldreturn(self):
+        return(
+            self.error or self.funcvalue
+        )
 
 ##########################################
 # TYPES                                  #
@@ -735,7 +755,7 @@ class BaseFunction(TypeObj):
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         self.popargs(argnames, args, exec_context)
@@ -767,7 +787,7 @@ class FunctionType(BaseFunction):
                 )
             )
 
-            if res.error:
+            if res.shouldreturn():
                 return(res)
 
             result = res.register(
@@ -777,16 +797,17 @@ class FunctionType(BaseFunction):
                 )
             )
 
-            if res.error and res.funcvalue == None:
+            if res.shouldreturn() and res.funcvalue == None:
                 return(res)
 
-        result = (value if self.shouldreturn else None) or res.funcvalue or NullType()
+        result = res.funcvalue or NullType()
         return(
             res.success(result)
         )
 
     def copy(self):
         copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)
+        copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end)
 
@@ -815,13 +836,13 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         result = res.register(
             method(exec_context)
         )
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         return(
@@ -830,6 +851,7 @@ class BuiltInFunctionType(BaseFunction):
 
     def copy(self):
         copy = BuiltInFunctionType(self.name)
+        copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end)
 
@@ -862,6 +884,7 @@ class ExceptionType(TypeObj):
 
     def copy(self):
         copy = ExceptionType(self.exc, self.msg, self.exc_start)
+        copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end)
 

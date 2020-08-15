@@ -1,2 +1,2 @@
-language = "sh"
+language = "bash"
 run = "sh ./main.sh"

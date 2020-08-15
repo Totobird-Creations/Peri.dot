@@ -2,8 +2,8 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import termios, fcntl, sys, os
 from .modules.colorama.colorama import init, Fore, Style
+import curses
 init()
 
 from .context     import *
@@ -13,43 +13,6 @@ from .lexer       import *
 from .parser      import *
 
 replname = '<repl>'
-
-##########################################
-# SINGLE KEYPRESS READER                 #
-##########################################
-
-def keypress() -> int:
-    fd = sys.stdin.fileno()
-    # save old state
-    flags_save = fcntl.fcntl(fd, fcntl.F_GETFL)
-    attrs_save = termios.tcgetattr(fd)
-    # make raw - the way to do this comes from the termios(3) man page.
-    attrs = list(attrs_save) # copy the stored version to update
-    # iflag
-    attrs[0] &= ~(termios.IGNBRK | termios.BRKINT | termios.PARMRK 
-                  | termios.ISTRIP | termios.INLCR | termios. IGNCR 
-                  | termios.ICRNL | termios.IXON )
-    # oflag
-    attrs[1] &= ~termios.OPOST
-    # cflag
-    attrs[2] &= ~(termios.CSIZE | termios. PARENB)
-    attrs[2] |= termios.CS8
-    # lflag
-    attrs[3] &= ~(termios.ECHONL | termios.ECHO | termios.ICANON
-                  | termios.ISIG | termios.IEXTEN)
-    termios.tcsetattr(fd, termios.TCSANOW, attrs)
-    # turn off non-blocking
-    fcntl.fcntl(fd, fcntl.F_SETFL, flags_save & ~os.O_NONBLOCK)
-    # read a single keystroke
-    try:
-        ret = sys.stdin.read(1) # returns a single character
-    except KeyboardInterrupt: 
-        ret = 0
-    finally:
-        # restore old state
-        termios.tcsetattr(fd, termios.TCSAFLUSH, attrs_save)
-        fcntl.fcntl(fd, fcntl.F_SETFL, flags_save)
-    return(ord(ret))
 
 ##########################################
 # REPL                                   #
@@ -127,3 +90,39 @@ class Repl():
 
                 sys.stdout.write(f'{Style.RESET_ALL}\x1b[1F\x1b[1E\x1b[2K{Fore.RED if failed else Fore.GREEN}{Style.BRIGHT}>>> {Style.RESET_ALL}{text}{Style.RESET_ALL}')
                 sys.stdout.flush()
+
+
+
+class CursesRepl():
+    def __init__(self):
+        curses.wrapper(self.main)
+
+    def main(self, stdscr):
+        if curses.can_change_color():
+            curses.init_color(0, 0, 0, 0)
+
+        curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)
+
+        stdscr.clear()
+
+        while True:
+            try:
+                size = stdscr.getmaxyx()
+                if size[0] >= 2:
+                    stdscr.addstr(
+                        0, 0,
+                        TITLE.center(size[1], ' '),
+                        curses.color_pair(1) | curses.A_REVERSE | curses.A_BOLD
+                    )
+                if size[0] >= 1:
+                    stdscr.insstr(
+                        size[0] - 1, 0,
+                        TITLE.center(size[1], ' '),
+                        curses.color_pair(2) | curses.A_REVERSE
+                    )
+
+                stdscr.refresh()
+
+            except KeyboardInterrupt as e:
+                raise KeyboardInterrupt(str(e))

@@ -13,24 +13,28 @@ from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType,
 
 class RTResult():
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.value = None
+        self.funcvalue = None
         self.error = None
 
     def register(self, res):
-        if isinstance(res, tuple):
-            if res[1]:
-                self.error = res[1]
+        self.error = res.error
+        self.funcvalue = res.funcvalue
 
-            return(res[1])
-
-        else:
-            if res.error:
-                self.error = res.error
-
-            return(res.value)
+        return(res.value)
 
     def success(self, value):
+        self.reset()
         self.value = value
+
+        return(self)
+
+    def successreturn(self, value):
+        self.reset()
+        self.funcvalue = value
 
         return(self)
 
@@ -38,6 +42,11 @@ class RTResult():
         self.error = error
 
         return(self)
+
+    def shouldreturn(self):
+        return(
+            self.error or self.funcvalue
+        )
 
 ##########################################
 # INTERPRETER                            #
@@ -96,7 +105,7 @@ class Interpreter():
                 )
             )
 
-            if res.error:
+            if res.shouldreturn():
                 return(res)
 
             if type_:
@@ -201,7 +210,7 @@ class Interpreter():
                 )
             )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         context.symbols.assign(name, value)
@@ -224,7 +233,7 @@ class Interpreter():
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         if name in RESERVED:
@@ -285,7 +294,7 @@ class Interpreter():
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         callnode = callnode.copy().setpos(node.start, node.end)
@@ -301,14 +310,14 @@ class Interpreter():
                 )
             )
 
-            if res.error:
+            if res.shouldreturn():
                 return(res)
 
         result = res.register(
             callnode.call(name, args)
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         result = result.copy().setpos(node.start, node.end).setcontext(context)
@@ -323,7 +332,7 @@ class Interpreter():
 
         bodynodes = node.bodynodes
         argnames = [i.value for i in node.argtokens]
-        funcvalue = FunctionType(bodynodes, argnames)
+        funcvalue = FunctionType(bodynodes, argnames, node.shouldreturn)
         funcvalue.setcontext(context).setpos(node.start, node.end)
 
         return(
@@ -365,7 +374,7 @@ class Interpreter():
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         error = None
@@ -401,7 +410,7 @@ class Interpreter():
                 context
             )
         )
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         right = res.register(
@@ -410,7 +419,7 @@ class Interpreter():
                 context
             )
         )
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         if node.optoken.type == TT_PLUS:
@@ -452,6 +461,28 @@ class Interpreter():
                     node.end
                 )
             )
+        )
+
+
+    def visit_ReturnNode(self, node, context):
+        res = RTResult()
+
+        if node.returnnode:
+            value = res.register(
+                self.visit(
+                    node.returnnode,
+                    context
+                )
+            )
+
+            if res.shouldreturn:
+                return(res)
+
+        else:
+            value = NullType()
+
+        return(
+            res.successreturn(value)
         )
 
 typesinit(Interpreter)

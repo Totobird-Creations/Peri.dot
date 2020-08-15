@@ -30,6 +30,12 @@ class ParseResult():
 
         return(res.node)
 
+    def tryregister(self, res):
+        if res.error:
+            return(None)
+
+        return(res.node)
+
     def success(self, node):
         self.node = node
 
@@ -75,8 +81,11 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
+            if self.curtoken.type == TT_EOF:
+                break
+
             token = res.register(
-                self.expr()
+                self.statement()
             )
 
             tokens.append(token)
@@ -135,6 +144,67 @@ class Parser():
         )
 
 
+    def statement(self):
+        res = ParseResult()
+        start = self.curtoken.start.copy()
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['return']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            expr = res.tryregister(
+                self.expr()
+            )
+
+            if not expr:
+                for i in range(2):
+                    res.registerretreat()
+                    self.retreat()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \')\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            return(
+                res.success(
+                    ReturnNode(expr, start, self.curtoken.start.copy())
+                )
+            )
+
+        expr = res.register(
+            self.expr()
+        )
+
+        if res.error:
+            return(res)
+
+        return(
+            res.success(expr)
+        )
+
+
     def expr(self):
         res = ParseResult()
 
@@ -168,7 +238,7 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-            expr = res.register(self.expr())
+            expr = res.register(self.statement())
 
             if res.error:
                 return(res)
@@ -318,7 +388,11 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
             else:
-                args.append(res.register(self.expr()))
+                args.append(
+                    res.register(
+                        self.statement()
+                    )
+                )
 
                 if res.error:
                     return(
@@ -344,15 +418,25 @@ class Parser():
                             res.registeradvancement()
                             self.advance()
 
-                            options[token.value] = res.register(self.expr())
+                            options[token.value] = res.register(
+                                self.statement()
+                            )
 
                         else:
                             res.registerretreat()
                             self.retreat()
 
-                            args.append(res.register(self.expr()))
+                            args.append(
+                                res.register(
+                                    self.statement()
+                                )
+                            )
                     else:
-                        args.append(res.register(self.expr()))
+                        args.append(
+                            res.register(
+                                self.statement()
+                            )
+                        )
 
                     if res.error:
                         return(res)
@@ -421,7 +505,9 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-            expr = res.register(self.expr())
+            expr = res.register(
+                self.statement()
+            )
 
             if res.error:
                 return(res)
@@ -466,7 +552,9 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-                expr = res.register(self.expr())
+                expr = res.register(
+                    self.statement()
+                )
 
                 return(
                     res.success(
@@ -540,7 +628,7 @@ class Parser():
         else:
             elmnodes.append(
                 res.register(
-                    self.expr()
+                    self.statement()
                 )
             )
 
@@ -560,7 +648,7 @@ class Parser():
 
                 elmnodes.append(
                     res.register(
-                        self.expr()
+                        self.statement()
                     )
                 )
 
@@ -682,7 +770,8 @@ class Parser():
                 FuncCreateNode(
                     token,
                     argtokens,
-                    codeblock
+                    codeblock,
+                    False
                 )
             )
         )
@@ -747,7 +836,7 @@ class Parser():
 
             if self.curtoken.type != TT_RCURLY:
                 expr = res.register(
-                    self.expr()
+                    self.statement()
                 )
 
                 if res.error:
@@ -763,7 +852,7 @@ class Parser():
                         break
 
                     expr = res.register(
-                        self.expr()
+                        self.statement()
                     )
 
                     if res.error:
@@ -772,7 +861,7 @@ class Parser():
 
         elif self.curtoken.type != TT_RCURLY:
             expr = res.register(
-                self.expr()
+                self.statement()
             )
 
             if res.error:

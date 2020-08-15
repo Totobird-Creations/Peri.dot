@@ -1,1 +1,3 @@
-print(["hello"])
+var add = func(a, b) {
+    a + b
+}

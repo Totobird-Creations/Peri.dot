@@ -112,10 +112,11 @@ class VarCallNode():
 
 
 class FuncCreateNode():
-    def __init__(self, token, argtokens, bodynodes):
+    def __init__(self, token, argtokens, bodynodes, shouldreturn):
         self.token = token
         self.argtokens = argtokens
         self.bodynodes = bodynodes
+        self.shouldreturn = shouldreturn
 
         self.start = self.token.start
         self.end = self.token.end
@@ -125,6 +126,15 @@ class FuncCreateNode():
 
     def __repr__(self):
         return(f'<Function>')
+
+
+class ReturnNode():
+    def __init__(self, returnnode, start, end):
+        self.returnnode = returnnode
+
+        self.start = start
+        self.end = end
+
 
 
 class HandlerNode():

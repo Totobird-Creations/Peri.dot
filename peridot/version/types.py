@@ -746,10 +746,11 @@ class BaseFunction(TypeObj):
 
 
 class FunctionType(BaseFunction):
-    def __init__(self, bodynodes, argnames):
+    def __init__(self, bodynodes, argnames, shouldreturn):
         super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
         self.argnames = argnames
+        self.shouldreturn = shouldreturn
 
     def call(self, name, args):
         res = RTResult()
@@ -776,13 +777,16 @@ class FunctionType(BaseFunction):
                 )
             )
 
-            if res.error:
+            if res.error and res.funcvalue == None:
                 return(res)
 
-        return(res.success(NullType()))
+        result = (value if self.shouldreturn else None) or res.funcvalue or NullType()
+        return(
+            res.success(result)
+        )
 
     def copy(self):
-        copy = FunctionType(self.bodynodes, self.argnames)
+        copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end)
 

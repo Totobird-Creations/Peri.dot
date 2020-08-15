@@ -1,3 +1,6 @@
+statement:
+    - KEYWORD:return LPAREN expr? RPAREN
+
 expr:
     - KEYWORD:varcreate IDENTIFIER EQ expr
     - compexpr ((KEYWORD:logicaland|KEYWORD:logicalor) compexpr)*

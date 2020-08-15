@@ -14,6 +14,7 @@ def improvederrormessage():
     init()
 
     from version.context            import Context, SymbolTable
+    from version.default            import defaultvariables
     from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError, Cmd_OutOfDateWarning
     from version.interpreter        import Interpreter
     from version.lexer              import Lexer
@@ -94,10 +95,7 @@ def improvederrormessage():
                 exit(1)
 
 
-            symbols = SymbolTable()
-            symbols.assign('True',  BooleanType(True))
-            symbols.assign('False', BooleanType(False))
-            symbols.assign('Null',  NullType())
+            symbols = defaultvariables(SymbolTable())
 
             lexer = Lexer(filename, text)
             tokens, error = lexer.maketokens()
@@ -114,7 +112,7 @@ def improvederrormessage():
                     print(ast.error.asstring())
                     exit(1)
 
-                context = Context(('<module>'), symbols=symbols)
+                context = Context('<file>', symbols=symbols)
 
                 for i in ast.node:
                     interpreter = Interpreter()
@@ -128,9 +126,9 @@ def improvederrormessage():
 
 
         elif not (version or help) or repl:
-            print(
-                Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
-            )
+            #print(
+            #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
+            #)
 
             Repl()
 

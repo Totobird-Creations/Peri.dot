@@ -7,6 +7,7 @@ from .modules.colorama.colorama import init, Fore, Style
 init()
 
 from .context     import *
+from .default     import *
 from .interpreter import *
 from .lexer       import *
 from .parser      import *
@@ -57,12 +58,13 @@ def keypress() -> int:
 class Repl():
     def __init__(self):
         end = False
-        symbols = SymbolTable()
+        symbols = defaultvariables(SymbolTable())
+        failed = False
 
         while not end:
             text = ''
             pos = 0
-            sys.stdout.write(f'{Style.RESET_ALL}{Fore.WHITE}{Style.BRIGHT}>>> {Style.RESET_ALL}')
+            sys.stdout.write(f'{Style.RESET_ALL}{Fore.RED if failed else Fore.GREEN}{Style.BRIGHT}>>> {Style.RESET_ALL}')
             sys.stdout.flush()
 
             while True:
@@ -86,32 +88,35 @@ class Repl():
 
                 elif key == 13:
                     print('')
+                    failed = True
 
-                    for ln in text.split('\n'):
-                        lexer = Lexer(replname, ln)
-                        tokens, error = lexer.maketokens()
+                    lexer = Lexer('<repl>', text)
+                    tokens, error = lexer.maketokens()
 
-                        if error:
-                            print(error.asstring())
-                            break
+                    if error:
+                        print(error.asstring)
 
+                    else:
                         if len(tokens) - 2:
                             parser = Parser(tokens)
                             ast = parser.parse()
 
                             if ast.error:
                                 print(ast.error.asstring())
-                                break
 
-                            interpreter = Interpreter()
-                            context = Context('<module>', symbols=symbols)
-                            result = interpreter.visit(ast.node, context)
+                            else:
+                                context = Context('<file>', symbols=symbols)
 
-                            if result.error:
-                                print(result.error.asstring())
-                                break
+                                for i in ast.node:
+                                    interpreter = Interpreter()
+                                    result = interpreter.visit(i, context)
 
-                            print(result.value)
+                                    if result.error:
+                                        print(result.error.asstring())
+
+                                    else:
+                                        print(result.value)
+                                        failed = False
 
                     print('')
                     break
@@ -120,5 +125,5 @@ class Repl():
                     text = text[:pos:] + chr(key) + text[pos:]
                     pos += 1
 
-                sys.stdout.write(f'{Style.RESET_ALL}\x1b[1F\x1b[1E\x1b[2K{Fore.WHITE}{Style.BRIGHT}>>> {Style.RESET_ALL}{text}{Style.RESET_ALL}')
+                sys.stdout.write(f'{Style.RESET_ALL}\x1b[1F\x1b[1E\x1b[2K{Fore.RED if failed else Fore.GREEN}{Style.BRIGHT}>>> {Style.RESET_ALL}{text}{Style.RESET_ALL}')
                 sys.stdout.flush()

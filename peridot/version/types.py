@@ -774,22 +774,20 @@ class FunctionType(BaseFunction):
 
     def call(self, name, args):
         res = RTResult()
+        interpreter = Interpreter()
+
+        exec_context = self.gencontext((name, self.id))
+        res.register(
+            self.checkpopargs(
+                self.argnames, args,
+                exec_context
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
 
         for i in self.bodynodes:
-            interpreter = Interpreter()
-
-            exec_context = self.gencontext((name, self.id))
-
-            res.register(
-                self.checkpopargs(
-                    self.argnames, args,
-                    exec_context
-                )
-            )
-
-            if res.shouldreturn():
-                return(res)
-
             result = res.register(
                 interpreter.visit(
                     i,
@@ -797,7 +795,10 @@ class FunctionType(BaseFunction):
                 )
             )
 
-            if res.shouldreturn() and not res.funcvalue:
+            if res.funcvalue:
+                break
+
+            if res.shouldreturn():
                 return(res)
 
         result = res.funcvalue or NullType()

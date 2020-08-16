@@ -1,5 +1,9 @@
-var try = handler {
-    return(a / b)
+var div = func(a, b) {
+    var try = handler {
+        return(a / b)
+    }
+
+    return(try)
 }
 
-print(try)
+print(div(10, 10))

@@ -361,6 +361,9 @@ class Interpreter():
                     )
                 )
 
+            if result.shouldreturn():
+                return(result)
+
         return(
             res.success(
                 NullType()

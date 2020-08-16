@@ -2,9 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .modules.colorama.colorama import init, Fore, Style
-import curses
-init()
+import sys
 
 from .context     import *
 from .default     import *
@@ -25,71 +23,37 @@ class Repl():
         failed = False
 
         while not end:
-            text = ''
-            pos = 0
-            sys.stdout.write(f'{Style.RESET_ALL}{Fore.RED if failed else Fore.GREEN}{Style.BRIGHT}>>> {Style.RESET_ALL}')
-            sys.stdout.flush()
+            text = input('>>> ')
 
-            while True:
-                key = keypress()
+            lexer = Lexer('<repl>', text)
+            tokens, error = lexer.maketokens()
 
-                if key == 4:
-                    print(f'{Style.RESET_ALL}\n{Fore.RED}Signal: {Style.BRIGHT}SIGQUIT{Style.RESET_ALL}')
-                    end = True
-                    break
-                elif key == 3:
-                    print(f'{Style.RESET_ALL}\n{Fore.RED}Signal: {Style.BRIGHT}SIGINT{Style.RESET_ALL}')
-                    break
+            if error:
+                print(error.asstring)
 
-                elif key == 27: pass
-                elif key == 91: pass
+            else:
+                if len(tokens) - 2:
+                    parser = Parser(tokens)
+                    ast = parser.parse()
 
-                elif key == 8 or key == 127:
-                    if pos > 0:
-                        text = text[:pos - 1:] + text[pos:]
-                        pos -= 1
-
-                elif key == 13:
-                    print('')
-                    failed = True
-
-                    lexer = Lexer('<repl>', text)
-                    tokens, error = lexer.maketokens()
-
-                    if error:
-                        print(error.asstring)
+                    if ast.error:
+                        print(ast.error.asstring())
 
                     else:
-                        if len(tokens) - 2:
-                            parser = Parser(tokens)
-                            ast = parser.parse()
+                        context = Context('<file>', symbols=symbols)
 
-                            if ast.error:
-                                print(ast.error.asstring())
+                        for i in ast.node:
+                            interpreter = Interpreter()
+                            result = interpreter.visit(i, context)
+
+                            if result.error:
+                                print(result.error.asstring())
 
                             else:
-                                context = Context('<file>', symbols=symbols)
+                                print(result.value)
 
-                                for i in ast.node:
-                                    interpreter = Interpreter()
-                                    result = interpreter.visit(i, context)
-
-                                    if result.error:
-                                        print(result.error.asstring())
-
-                                    else:
-                                        print(result.value)
-                                        failed = False
-
-                    print('')
-                    break
-
-                else:
-                    text = text[:pos:] + chr(key) + text[pos:]
-                    pos += 1
-
-                sys.stdout.write(f'{Style.RESET_ALL}\x1b[1F\x1b[1E\x1b[2K{Fore.RED if failed else Fore.GREEN}{Style.BRIGHT}>>> {Style.RESET_ALL}{text}{Style.RESET_ALL}')
-                sys.stdout.flush()
+            print('')
+            break
 
 
 

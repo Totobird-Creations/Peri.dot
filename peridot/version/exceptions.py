@@ -100,7 +100,7 @@ class Syn_Error():
         result += f'''  {Fore.GREEN}File{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.file}{Style.RESET_ALL}
     {Fore.GREEN}Line{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.line}{Style.RESET_ALL}, {Fore.GREEN}Column{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.column}{Style.RESET_ALL}
       {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}
-      {' ' * (self.start.column + 1)}{Fore.YELLOW}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
+      {' ' * self.start.column}{Fore.YELLOW}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
 
         if self.msg:
             result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''

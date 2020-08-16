@@ -1,5 +1,5 @@
-var add = func(a, b) {
-    return(a + b)
+var try = handler {
+    return(a / b)
 }
 
-add(1, 2)
+print(try)

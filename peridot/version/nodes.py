@@ -135,6 +135,9 @@ class ReturnNode():
         self.start = start
         self.end = end
 
+    def __repr__(self):
+        return(f'<Return {self.returnnode}>')
+
 
 
 class HandlerNode():

@@ -122,8 +122,6 @@ def improvederrormessage():
                         print(result.error.asstring())
                         exit(1)
 
-                    print(result.value)
-
 
         elif not (version or help) or repl:
             #print(

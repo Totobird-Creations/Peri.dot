@@ -57,9 +57,9 @@ class Interpreter():
         method = f'visit_{type(node).__name__}'
         method = getattr(self, method)
 
-        return(
-            method(node, context)
-        )
+        result = method(node, context)
+
+        return(result)
 
 
 
@@ -233,7 +233,7 @@ class Interpreter():
             )
         )
 
-        if res.shouldreturn():
+        if res.error:
             return(res)
 
         if name in RESERVED:
@@ -345,12 +345,12 @@ class Interpreter():
         res = RTResult()
 
         for i in node.bodynodes:
-            bodyresult = self.visit(
+            result = self.visit(
                 i, context
             )
 
-            if bodyresult.error:
-                error = bodyresult.error
+            if result.error:
+                error = result.error
                 return(
                     res.success(
                         ExceptionType(
@@ -361,7 +361,11 @@ class Interpreter():
                     )
                 )
 
-        return(res.success(NullType()))
+        return(
+            res.success(
+                NullType()
+            )
+        )
 
 
 
@@ -468,7 +472,7 @@ class Interpreter():
         res = RTResult()
 
         if node.returnnode:
-            value = res.register(
+            res.funcvalue = res.register(
                 self.visit(
                     node.returnnode,
                     context
@@ -483,6 +487,6 @@ class Interpreter():
 
         return(
             res.successreturn(value)
-        )
+        )   
 
 typesinit(Interpreter)

@@ -797,7 +797,7 @@ class FunctionType(BaseFunction):
                 )
             )
 
-            if res.shouldreturn() and res.funcvalue == None:
+            if res.shouldreturn() and not res.funcvalue:
                 return(res)
 
         result = res.funcvalue or NullType()

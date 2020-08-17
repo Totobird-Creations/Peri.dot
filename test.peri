@@ -1,7 +1,1 @@
-var x = 10
-assert(x == 10, 'x is not 10')
-print('Passed')
-
-var x = 9
-assert(x == 10, 'x is not 10')
-print('Passed')
+panic('Hello')

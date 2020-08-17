@@ -8,6 +8,7 @@ from types import BuiltinFunctionType
 from typing import Any,Optional,Tuple, Type
 from uuid import uuid4
 
+from .catch      import PeridotPanic
 from .context    import Context, SymbolTable
 from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
 from .nodes      import VarCallNode
@@ -862,17 +863,6 @@ class BuiltInFunctionType(BaseFunction):
         return(f'<{TYPES["builtinfunc"]} {self.name}>')
 
 
-    def exec_print(self, exec_context):
-        print(
-            exec_context.symbols.access('text').__clean__()
-        )
-        return(
-            RTResult().success(
-                NullType()
-            )
-        )
-    exec_print.argnames = ['text']
-
     def exec_assert(self, exec_context):
         res = RTResult()
 
@@ -919,8 +909,35 @@ class BuiltInFunctionType(BaseFunction):
             )
     exec_assert.argnames = ['condition', 'message']
 
-    def __repr__(self):
-        return(f'<Built-In Function {self.name}>')
+    def exec_panic(self, exec_context):
+        res = RTResult()
+
+        message   = exec_context.symbols.access('message')
+
+        if not isinstance(message, StringType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'message\' must be of type {TYPES["string"]}',
+                        message.start, message.end,
+                        exec_context
+                    )
+                )
+            )
+
+        raise PeridotPanic(message)
+    exec_panic.argnames = ['message']
+
+    def exec_print(self, exec_context):
+        print(
+            exec_context.symbols.access('text').__clean__()
+        )
+        return(
+            RTResult().success(
+                NullType()
+            )
+        )
+    exec_print.argnames = ['text']
 
 
 class ExceptionType(TypeObj):

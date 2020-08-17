@@ -198,8 +198,21 @@ class Lexer():
             elif self.char == '#':
                 self.advance()
 
-                while self.char not in ['\n', None]:
-                    self.advance()
+                if self.char == '=':
+                    while True:
+                        self.advance()
+
+                        if self.char == None:
+                            break
+
+                        if self.char == '=':
+                            self.advance()
+                            if self.char == '#':
+                                self.advance()
+                                break
+                else:
+                    while self.char not in ['\n', None]:
+                        self.advance()
 
             else:
                 start = self.pos.copy()
@@ -267,7 +280,7 @@ class Lexer():
                 elif self.char == '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Syn_EscapeError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
+                    return((None, Syn_SyntaxError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
                 else:
                     string += self.char
             self.advance()
@@ -275,7 +288,7 @@ class Lexer():
         if not self.char:
             end = self.pos.copy()
             end.advance()
-            return((None, Syn_EscapeError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
+            return((None, Syn_SyntaxError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
 
         self.advance()
 

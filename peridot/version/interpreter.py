@@ -233,7 +233,7 @@ class Interpreter():
             )
         )
 
-        if res.error:
+        if res.shouldreturn():
             return(res)
 
         if name in RESERVED:
@@ -345,12 +345,12 @@ class Interpreter():
         res = RTResult()
 
         for i in node.bodynodes:
-            result = self.visit(
-                i, context
+            res.register(
+                self.visit(i, context)
             )
 
-            if result.error:
-                error = result.error
+            if res.error:
+                error = res.error
                 return(
                     res.success(
                         ExceptionType(
@@ -361,8 +361,8 @@ class Interpreter():
                     )
                 )
 
-            if result.shouldreturn():
-                return(result)
+            if res.shouldreturn():
+                return(res)
 
         return(
             res.success(
@@ -475,16 +475,15 @@ class Interpreter():
         res = RTResult()
 
         if node.returnnode:
-            res.funcvalue = res.register(
+            value = res.register(
                 self.visit(
                     node.returnnode,
                     context
                 )
             )
 
-            if res.shouldreturn:
+            if res.shouldreturn():
                 return(res)
-
         else:
             value = NullType()
 

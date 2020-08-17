@@ -7,3 +7,4 @@ var div = func(a, b) {
 }
 
 print(div(10, 10))
+print(div(10, 0))

@@ -1,10 +1,13 @@
 var div = func(a, b) {
-    var try = handler {
-        return(a / b)
-    }
-
-    return(try)
+    return(a / b)
 }
 
-print(div(10, 10))
-print(div(10, 0))
+var mul = div
+
+var sub = func(a, b) {
+    return(a - b)
+}
+
+print(div)
+print(mul)
+print(sub)

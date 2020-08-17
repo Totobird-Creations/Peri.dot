@@ -9,6 +9,7 @@ from .default     import *
 from .interpreter import *
 from .lexer       import *
 from .parser      import *
+from .run         import *
 
 replname = '<repl>'
 
@@ -23,37 +24,17 @@ class Repl():
         failed = False
 
         while not end:
-            text = input('>>> ')
+            script = input('>>> ')
 
-            lexer = Lexer('<repl>', text)
-            tokens, error = lexer.maketokens()
+            result, error = run(replname, script, symbols)
 
             if error:
-                print(error.asstring)
+                print(error.asstring())
 
-            else:
-                if len(tokens) - 2:
-                    parser = Parser(tokens)
-                    ast = parser.parse()
-
-                    if ast.error:
-                        print(ast.error.asstring())
-
-                    else:
-                        context = Context('<file>', symbols=symbols)
-
-                        for i in ast.node:
-                            interpreter = Interpreter()
-                            result = interpreter.visit(i, context)
-
-                            if result.error:
-                                print(result.error.asstring())
-
-                            else:
-                                print(result.value)
+            if result:
+                print('\n'.join(str(i) for i in result))
 
             print('')
-            break
 
 
 

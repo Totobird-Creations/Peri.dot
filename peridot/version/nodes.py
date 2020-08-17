@@ -67,7 +67,7 @@ class VarAssignNode():
         self.end = token.end
 
     def __repr__(self):
-        return(f'{self.token.value}:{self.valnode}')
+        return(f'VarAssign:{self.token.value}={self.valnode}')
 
 
 class VarCreateNode():
@@ -90,7 +90,7 @@ class VarNullNode():
         self.end = token.end
 
     def __repr__(self):
-        return(f'{self.token.value}=Null')
+        return(f'VarNull:{self.token.value}')
 
 
 class VarCallNode():
@@ -107,7 +107,7 @@ class VarCallNode():
             self.end = node.end
 
     def __repr__(self):
-        return(f'{self.node.token.value}()')
+        return(f'VarCall:{self.node.token.value}')
 
 
 
@@ -125,7 +125,7 @@ class FuncCreateNode():
             self.end = self.bodynodes[-1].end
 
     def __repr__(self):
-        return(f'<Function>')
+        return(f'Function')
 
 
 class ReturnNode():
@@ -136,7 +136,7 @@ class ReturnNode():
         self.end = end
 
     def __repr__(self):
-        return(f'<Return {self.returnnode}>')
+        return(f'Return:{self.returnnode}')
 
 
 
@@ -152,7 +152,7 @@ class HandlerNode():
             self.end = self.bodynodes[-1].end
 
     def __repr__(self):
-        return(f'<Function>')
+        return(f'Handler')
 
 
 

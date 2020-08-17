@@ -156,6 +156,8 @@ class Interpreter():
         value.start = node.start
         value.end = node.end
 
+        value.name = name
+
         return(
             res.success(
                 value
@@ -213,6 +215,9 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
+        if isinstance(value, FunctionType):
+            value.name = name
+
         context.symbols.assign(name, value)
 
         return(
@@ -246,6 +251,9 @@ class Interpreter():
                     )
                 )
             )
+
+        if isinstance(value, FunctionType):
+            value.name = name
 
         context.symbols.assign(name, value)
 

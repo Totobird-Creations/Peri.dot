@@ -68,9 +68,17 @@ class Exc_ArgumentError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('ArgumentException', msg, start, end, context)
 
+class Exc_ArgumentTypeError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('ArgTypeException', msg, start, end, context)
+
 class Exc_AssertionError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('AssertionException', msg, start, end, context)
+
+class Exc_FileAccessError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('FileAccessException', msg, start, end, context)
 
 class Exc_IdentifierError(Exc_Error):
     def __init__(self, msg, start, end, context=None):

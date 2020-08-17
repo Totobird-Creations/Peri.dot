@@ -10,7 +10,7 @@ def improvederrormessage():
     import sys
 
     import version.modules.click.src.click    as click
-    from   version.modules.colorama.colorama import init, Fore, Style
+    from   version.modules.colorama.colorama  import init, Fore, Style
     init()
 
     from version.context            import Context, SymbolTable
@@ -20,6 +20,7 @@ def improvederrormessage():
     from version.lexer              import Lexer
     from version.parser             import Parser
     from version.repl               import Repl
+    from version.run                import run
     from version.types              import BooleanType, NullType
 
     ##########################################
@@ -78,14 +79,14 @@ def improvederrormessage():
 
 
         if filename:
-            text = ''
+            script = ''
 
             try:
                 with open(filename, 'r') as f:
-                    text = f.read()
-                    text = '\n'.join(
+                    script = f.read()
+                    script = '\n'.join(
                         [
-                            i.lstrip(' ').rstrip(' ').lstrip('\t').rstrip('\t') for i in text.split('\n')
+                            i.lstrip(' ').rstrip(' ').lstrip('\t').rstrip('\t') for i in script.split('\n')
                         ]
                     )
 
@@ -94,33 +95,12 @@ def improvederrormessage():
                 print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
                 exit(1)
 
-
             symbols = defaultvariables(SymbolTable())
-
-            lexer = Lexer(filename, text)
-            tokens, error = lexer.maketokens()
+            result, error = run(filename, script, symbols)
 
             if error:
                 print(error.asstring())
                 exit(1)
-
-            if len(tokens) - 2:
-                parser = Parser(tokens)
-                ast = parser.parse()
-
-                if ast.error:
-                    print(ast.error.asstring())
-                    exit(1)
-
-                context = Context('<file>', symbols=symbols)
-
-                for i in ast.node:
-                    interpreter = Interpreter()
-                    result = interpreter.visit(i, context)
-
-                    if result.error:
-                        print(result.error.asstring())
-                        exit(1)
 
 
         elif not (version or help) or repl:

@@ -9,7 +9,7 @@ from typing import Any,Optional,Tuple, Type
 from uuid import uuid4
 
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -815,7 +815,7 @@ class FunctionType(BaseFunction):
         return(copy)
 
     def __repr__(self):
-        return(f'<{TYPES["function"]} {self.id}>')
+        return(f'<{TYPES["function"]} {self.name} <{self.id}>>')
 
 
 class BuiltInFunctionType(BaseFunction):
@@ -864,7 +864,7 @@ class BuiltInFunctionType(BaseFunction):
 
     def exec_print(self, exec_context):
         print(
-                exec_context.symbols.access('text').__clean__()
+            exec_context.symbols.access('text').__clean__()
         )
         return(
             RTResult().success(

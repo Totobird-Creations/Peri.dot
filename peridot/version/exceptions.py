@@ -92,6 +92,10 @@ class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('TypeException', msg, start, end, context)
 
+class Exc_ValueError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('ValueException', msg, start, end, context)
+
 ##########################################
 # LEXER, PARSER ERRORS                   #
 ##########################################

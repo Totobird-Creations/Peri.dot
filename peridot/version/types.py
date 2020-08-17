@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from .catch      import PeridotPanic
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -38,7 +38,8 @@ TYPES = {
     'boolean'      : 'Bool',
     'function'     : 'Function',
     'builtinfunc'  : 'Built-In Function',
-    'exception'    : 'Exception'
+    'exception'    : 'Exception',
+    'id'           : 'Id'
 }
 
 ##########################################
@@ -173,6 +174,12 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be called', self.start, self.end, self.context)))
     def istrue(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context)))
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["string"]}', self.start, self.end, self.context)))
+    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["integer"]}', self.start, self.end, self.context)))
+    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -192,6 +199,9 @@ class NullType(TypeObj):
         copy.setpos(self.start, self.end)
 
         return(copy)
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
 
     def __repr__(self) -> str:
         return(f'Null')
@@ -361,6 +371,15 @@ class IntType(TypeObj):
             ))
         else:
             return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context)))
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((self.copy(), None))
+
+    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((FloatType(float(self.value)).setcontext(self.context).setpos(self.start, self.end), None))
 
     def copy(self):
         copy = IntType(self.value)
@@ -562,6 +581,23 @@ class FloatType(TypeObj):
                 )
             ))
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        if int(self.value) != self.value:
+            return((None,
+                    Exc_ValueError(
+                        f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
+                        self.start, self.end,
+                        self.context
+                    )
+                ))
+        return((IntType(int(self.value)).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((self.copy(), None))
+
     def copy(self):
         copy = FloatType(self.value)
         copy.setcontext(self.context)
@@ -596,6 +632,35 @@ class StringType(TypeObj):
                     self.context
                 )
             ))
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        try:
+            value = int(self.value)
+        except:
+            return((None,
+                    Exc_ValueError(
+                        f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
+                        self.start, self.end,
+                        self.context
+                    )
+                ))
+        return((IntType(value).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        try:
+            value = float(self.value)
+        except:
+            return((None,
+                    Exc_ValueError(
+                        f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["floatingpoint"]}',
+                        self.start, self.end,
+                        self.context
+                    )
+                ))
+        return((FloatType(value).setcontext(self.context).setpos(self.start, self.end), None))
 
     def copy(self):
         copy = StringType(self.value)
@@ -675,6 +740,15 @@ class BooleanType(TypeObj):
             None
         ))
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((IntType(int(self.value)).setcontext(self.context).setpos(self.start, self.end), None))
+
+    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((IntType(float(self.value)).setcontext(self.context).setpos(self.start, self.end), None))
+
     def copy(self):
         copy = BooleanType(self.value)
         copy.setcontext(self.context)
@@ -694,6 +768,9 @@ class ArrayType(TypeObj):
         copy.setpos(self.start, self.end)
 
         return(copy)
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
 
     def __repr__(self):
         return(f'[{", ".join([str(i) for i in self.elements])}]')
@@ -725,7 +802,7 @@ class BaseFunction(TypeObj):
             return(
                 res.failure(
                     Exc_ArgumentError(
-                        f'\'{self.display[0]}\' takes {len(argnames)} arguments, {len(args)} given',
+                        f'\'{self.name}\' takes {len(argnames)} arguments, {len(args)} given',
                         self.start, end,
                         self.context
                     )
@@ -764,6 +841,9 @@ class BaseFunction(TypeObj):
         return(
             res.success(None)
         )
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
 
 
 class FunctionType(BaseFunction):
@@ -815,6 +895,9 @@ class FunctionType(BaseFunction):
 
         return(copy)
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
     def __repr__(self):
         return(f'<{TYPES["function"]} {self.name} <{self.id}>>')
 
@@ -851,6 +934,9 @@ class BuiltInFunctionType(BaseFunction):
             res.success(result)
         )
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
     def copy(self):
         copy = BuiltInFunctionType(self.name)
         copy.id = self.id
@@ -873,7 +959,7 @@ class BuiltInFunctionType(BaseFunction):
             return(
                 res.failure(
                     Exc_ArgumentTypeError(
-                        f'\'condition\' must be of type {TYPES["boolean"]}',
+                        f'\'condition\' must be of type {TYPES["boolean"]}, {condition.type} given',
                         condition.start, condition.end,
                         exec_context
                     )
@@ -884,7 +970,7 @@ class BuiltInFunctionType(BaseFunction):
             return(
                 res.failure(
                     Exc_ArgumentTypeError(
-                        f'\'message\' must be of type {TYPES["string"]}',
+                        f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
                         message.start, message.end,
                         exec_context
                     )
@@ -909,16 +995,17 @@ class BuiltInFunctionType(BaseFunction):
             )
     exec_assert.argnames = ['condition', 'message']
 
+
     def exec_panic(self, exec_context):
         res = RTResult()
 
-        message   = exec_context.symbols.access('message')
+        message = exec_context.symbols.access('message')
 
         if not isinstance(message, StringType):
             return(
                 res.failure(
                     Exc_ArgumentTypeError(
-                        f'\'message\' must be of type {TYPES["string"]}',
+                        f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
                         message.start, message.end,
                         exec_context
                     )
@@ -928,16 +1015,106 @@ class BuiltInFunctionType(BaseFunction):
         raise PeridotPanic(message)
     exec_panic.argnames = ['message']
 
+
     def exec_print(self, exec_context):
-        print(
-            exec_context.symbols.access('text').__clean__()
-        )
+        res = RTResult()
+
+        text = exec_context.symbols.access('text')
+
+        if not isinstance(text, StringType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'message\' must be of type {TYPES["string"]}, {text.type} given',
+                        text.start, text.end,
+                        exec_context
+                    )
+                )
+            )
+
+        print(text.__clean__())
+
         return(
             RTResult().success(
                 NullType()
             )
         )
     exec_print.argnames = ['text']
+
+
+    def exec_str(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('value')
+        result, error = value.tostr()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_str.argnames = ['value']
+
+
+    def exec_int(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('value')
+        result, error = value.toint()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_int.argnames = ['value']
+
+
+    def exec_float(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('value')
+        result, error = value.tofloat()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_float.argnames = ['value']
+
+
+    def exec_id(self, exec_context):
+        res = RTResult()
+
+        obj = exec_context.symbols.access('obj')
+        return(
+            RTResult().success(
+                IdType(obj.id)
+            )
+        )
+    exec_id.argnames = ['obj']
 
 
 class ExceptionType(TypeObj):
@@ -957,5 +1134,30 @@ class ExceptionType(TypeObj):
 
         return(copy)
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end), None))
+
     def __repr__(self):
         return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')
+
+
+class IdType(TypeObj):
+    def __init__(self, value):
+        super().__init__(value, type_=TYPES['id'])
+
+    def copy(self):
+        copy = IdType(self.value)
+        copy.id = self.id
+        copy.setcontext(self.context)
+        self.setpos(self.start, self.end)
+
+        return(copy)
+
+    def tostr(self):
+        return((StringType(self.value).setcontext(self.context).setpos(self.start, self.end)), None)
+
+    def toint(self):
+        return((IntType(int(self.value, 16)).setcontext(self.context).setpos(self.start, self.end)), None)
+
+    def __repr__(self):
+        return(f'<Id {self.value}>')

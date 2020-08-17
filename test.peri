@@ -1,1 +1,19 @@
-panic('Hello')
+# Convert To Str (Str, Int Float)
+print(       str('hello')    )
+print(       str(10)         )
+print(       str(10.0)       )
+
+# Convert To Int (Str?, Int Float?)
+print(str(   int('10')       ))
+print(str(   int(10)         ))
+print(str(   int(10.0)       ))
+
+# Convert To Float (Str?, Int Float)
+print(str(   float('10.0')   ))
+print(str(   float(10)       ))
+print(str(   float(10.0)     ))
+
+var x = 10
+# Get Id (Any)
+print(       str(id(x))      )
+print(str(   int(id(x))      ))

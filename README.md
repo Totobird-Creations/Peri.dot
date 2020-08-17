@@ -61,26 +61,27 @@ From the top level directory  `pytest`
     * Greater than or equal to: `>=`
     * Less than or equal to `<=`
 * Boolean operations: `and`, `or` and `not`
-* Functions
+* Functions:
     * Creation: `var add = func(a, b) {a + b}`
     * Calling: `add(2, 6)`
+* Built-In Functions:
+    * Printing to console: `print('Hello World!')`
+    * Testing: `assert(x == 10, 'x is not 10')`
 * Exception handler `var x = handler {10 / 0}`
+* Assert / in-peri.dot testing: `assert(x == 9, 'x is not equal to 9')`
 
 ## Coming Soon
 
 * Improved repl
-* Assert / in-peri.dot testing: `assert(x == 9, 'x is not equal to 9')`
 * More types:
     * Dictionaries: `{'name': 'John', 'age': 47}`
 * Improved exception type
-* Importing other files: `include('./file.peri')`
-* Function arguments and return values have to have an explicit type: `var add = func(a: int, b:int) > int {`
-* Function default argument values: `var greet = func(name: str, emph=1) {print(name + ' ' + '!' * emph)}`
+* Importing other files: `incl('./file.peri')`
+* Function arguments and return values have to have an explicit type: `var add = func(a: Int, b:Int) -> Int {return(a + b)}`
+* Function default argument values: `var greet = func(name: Str, emph=1) {print(name + ' ' + '!' * emph)}`
 * Returning values from functions: `return(True)`
 * If statement: `if x == 1 {var y = 3} elif x == 2 {var y = 2} else {var y = 1}`
 * For and while loops: `for i in [True, True, False] {print(i)}`
-* Built-in variables: `True`, `False`, `Null`
-* Built-in functions: `Str()`, `print('Hello World!')`
 
 ## Possible Features
 * Formatted strings `'Hello World{suffix}'`

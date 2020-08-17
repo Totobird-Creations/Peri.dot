@@ -9,7 +9,7 @@ from typing import Any,Optional,Tuple, Type
 from uuid import uuid4
 
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -825,7 +825,7 @@ class BuiltInFunctionType(BaseFunction):
     def call(self, name, args):
         res = RTResult()
 
-        exec_context = self.gencontext((name, self.id))
+        exec_context = self.gencontext(('Built-In Function', name))
 
         method = f'exec_{self.name}'
         method = getattr(self, method)
@@ -872,6 +872,55 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_print.argnames = ['text']
+
+    def exec_assert(self, exec_context):
+        res = RTResult()
+
+        condition = exec_context.symbols.access('condition')
+        message   = exec_context.symbols.access('message')
+
+        if not isinstance(condition, BooleanType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'condition\' must be of type {TYPES["boolean"]}',
+                        condition.start, condition.end,
+                        exec_context
+                    )
+                )
+            )
+
+        if not isinstance(message, StringType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'message\' must be of type {TYPES["string"]}',
+                        message.start, message.end,
+                        exec_context
+                    )
+                )
+            )
+
+        if condition.istrue()[0]:
+            return(
+                res.success(
+                    NullType()
+                )
+            )
+        else:
+            return(
+                res.failure(
+                    Exc_AssertionError(
+                        f'{message}',
+                        condition.start, condition.end,
+                        exec_context
+                    )
+                )
+            )
+    exec_assert.argnames = ['condition', 'message']
+
+    def __repr__(self):
+        return(f'<Built-In Function {self.name}>')
 
 
 class ExceptionType(TypeObj):

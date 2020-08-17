@@ -1,13 +1,7 @@
-var div = func(a, b) {
-    return(a / b)
-}
+var x = 10
+assert(x == 10, 'x is not 10')
+print('Passed')
 
-var mul = div
-
-var sub = func(a, b) {
-    return(a - b)
-}
-
-print(div)
-print(mul)
-print(sub)
+var x = 9
+assert(x == 10, 'x is not 10')
+print('Passed')

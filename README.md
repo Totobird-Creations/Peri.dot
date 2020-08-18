@@ -5,7 +5,7 @@
 Peri.dot is a strongly typed interpreted language, with type inference, implemented in Python. The file extension is ".peri"
 
 
-## "Installation"
+## Setup
 
 This project uses submodules for known version of the python [click](https://click.palletsprojects.com/en/7.x/) and [colorama](https://pypi.org/project/colorama/) packages.
 
@@ -22,6 +22,10 @@ git submodule update
 ```bash
 python peridot file.peri`
 ```
+
+## Documentation
+
+[Peri.dot Language Docs](https://toto-bird.github.io/Peri.dot-lang/)
 
 ## Running Unit Tests
 

@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from .catch      import PeridotPanic
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -788,8 +788,9 @@ class BaseFunction(TypeObj):
             display,
             SymbolTable(self.context.symbols),
             self.context,
-            self.start
+            [self.start, self.end]
         )
+        context.caughterrors = self.context.caughterrors
 
         return(context)
 
@@ -947,6 +948,35 @@ class BuiltInFunctionType(BaseFunction):
 
     def __repr__(self):
         return(f'<{TYPES["builtinfunc"]} {self.name}>')
+
+
+    def exec_throw(self, exec_context):
+        res = RTResult()
+
+        exc = exec_context.symbols.access('exception')
+
+        if not isinstance(exc, ExceptionType):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'\'exception\' must be of type {TYPES["exception"]}, {exc.type} given',
+                        exc.start, exc.end,
+                        exec_context
+                    )
+                )
+            )
+        
+        return(
+            res.failure(
+                Exc_ThrowError(
+                    exc.exc,
+                    exc.msg,
+                    self.start, self.end,
+                    exec_context
+                )
+            )
+        )
+    exec_throw.argnames = ['exception']
 
 
     def exec_assert(self, exec_context):

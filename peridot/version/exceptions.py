@@ -20,10 +20,30 @@ class Exc_Error():
         self.start = start
         self.end = end
         self.context = context
+        self.caughterrors = self.context.caughterrors
 
     def asstring(self):
         size = os.get_terminal_size()
-        result = f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n'
+        result = f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n\n'
+        if len(self.caughterrors) >= 1:
+            result += f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Caught Errors (Most recent catch last):{Style.RESET_ALL}\n'
+            for i in range(len(self.caughterrors)):
+                if not i % 2:
+                    continue
+                error = self.caughterrors[i]
+                display = error.context.display
+                if isinstance(display, tuple):
+                    display = f'{display[0]} <{display[1]}>'
+
+                result += f'''  {Fore.GREEN}File {Style.BRIGHT}{error.start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
+    {Fore.GREEN}Line {Style.BRIGHT}{error.start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{error.start.column + 1}{Style.RESET_ALL}
+      {Fore.YELLOW}{Style.BRIGHT}{error.start.lntext}{Style.RESET_ALL}\n'''
+                if error.msg:
+                    result += f'''  {Fore.RED}{Style.BRIGHT}{error.exc}{Style.RESET_ALL}: {Fore.RED}{error.msg}{Style.RESET_ALL}\n'''
+                else:
+                    result += f'''  {Fore.RED}{Style.BRIGHT}{error.exc}{Style.RESET_ALL}\n'''
+                result += '\n'
+            result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}\n\n'
         result += self.traceback()
 
         display = self.context.display
@@ -36,11 +56,11 @@ class Exc_Error():
 
         result += f'''      {Fore.YELLOW}{' ' * self.start.column}{'^' * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'''
         if self.msg:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'''
+            result += f'''  {Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'''
         else:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'''
+            result += f'''  {Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'''
 
-        result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
+        result += f'\n{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
         return(result)
 
     def traceback(self):
@@ -49,17 +69,20 @@ class Exc_Error():
         pos = self.context.parententry
 
         while context:
+            start = pos[0]
+            end   = pos[1]
             display = context.display
             if isinstance(display, tuple):
                 display = f'{display[0]} <{display[1]}>'
-            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{pos.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
-    {Fore.GREEN}Line {Style.BRIGHT}{pos.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{pos.column + 1}{Style.RESET_ALL}
-      {Fore.YELLOW}{Style.BRIGHT}{pos.lntext}{Style.RESET_ALL}\n{result}'''
+            result = f'''  {Fore.GREEN}File {Style.BRIGHT}{start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
+    {Fore.GREEN}Line {Style.BRIGHT}{start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{start.column + 1}{Style.RESET_ALL}
+      {Fore.YELLOW}{Style.BRIGHT}{start.lntext}{Style.RESET_ALL}\n{result}'''
+            result += f'''      {Fore.YELLOW}{' ' * start.column}{'^' * (end.column - start.column)}{Style.RESET_ALL}\n'''
 
             pos = context.parententry
             context = context.parent
 
-        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Traceback (most recent call last):{Style.RESET_ALL}\n' + result
+        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Traceback (Most recent call last):{Style.RESET_ALL}\n' + result
         return(result)
 
 
@@ -91,6 +114,10 @@ class Exc_OperationError(Exc_Error):
 class Exc_PanicError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('PanicException', msg, start, end, context)
+
+class Exc_ThrowError(Exc_Error):
+    def __init__(self, name, msg, start, end, context=None):
+        super().__init__(name, msg, start, end, context)
 
 class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):

@@ -55,6 +55,7 @@ class RTResult():
 class Interpreter():
     def visit(self, node, context):
         method = f'visit_{type(node).__name__}'
+        meth = method
         method = getattr(self, method)
 
         result = method(node, context)
@@ -354,19 +355,22 @@ class Interpreter():
 
         for i in node.bodynodes:
             res.register(
-                self.visit(i, context)
+                self.visit(
+                    i,
+                    context
+                )
             )
 
             if res.error:
                 error = res.error
+                context.caughterror(error)
+                exc = ExceptionType(
+                    error.exc,
+                    error.msg,
+                    error.start
+                ).setcontext(context).setpos(error.start, error.end)
                 return(
-                    res.success(
-                        ExceptionType(
-                            error.exc,
-                            error.msg,
-                            error.start
-                        )
-                    )
+                    res.success(exc)
                 )
 
             if res.shouldreturn():

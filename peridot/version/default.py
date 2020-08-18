@@ -5,6 +5,8 @@ def defaultvariables(symbols):
     symbols.assign('False' , BooleanType(False))
     symbols.assign('Null'  , NullType())
 
+    symbols.assign('throw' , BuiltInFunctionType('throw'))
+
     symbols.assign('assert', BuiltInFunctionType('assert'))
     symbols.assign('panic' , BuiltInFunctionType('panic'))
     symbols.assign('print' , BuiltInFunctionType('print'))

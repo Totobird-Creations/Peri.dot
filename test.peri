@@ -1,9 +1,14 @@
 var div = func(a, b) {
     var try = handler {
-        return(a / b)
+        var try = handler {
+            return(a / b)
+        }
+        return(1 + 1.0)
     }
     return(try)
 }
 
 print(str(div(10, 5)))
-print(str(div(10, 0)))
+var m = div(10, 0)
+print(str(m))
+throw(m)

@@ -385,6 +385,7 @@ class Parser():
             options = {}
 
             if self.curtoken.type == TT_RPAREN:
+                end = self.curtoken.end
                 res.registeradvancement()
                 self.advance()
             else:
@@ -452,6 +453,7 @@ class Parser():
                         )
                     )
 
+                end = self.curtoken.end
                 res.registeradvancement()
                 self.advance()
 
@@ -460,7 +462,7 @@ class Parser():
                     VarCallNode(
                         atom,
                         args, options,
-                        end=self.curtoken.end
+                        end=end
                     )
                 )
             )

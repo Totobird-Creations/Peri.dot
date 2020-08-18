@@ -780,7 +780,7 @@ class ArrayType(TypeObj):
 class BaseFunction(TypeObj):
     def __init__(self, name=None, type_=TYPES['builtinfunc']):
         super().__init__(type_=type_)
-        self.name = name or self.id
+        self.name = name or '<Anonymous>'
 
     def gencontext(self, display):
         self.display = display
@@ -1045,7 +1045,7 @@ class BuiltInFunctionType(BaseFunction):
     def exec_str(self, exec_context):
         res = RTResult()
 
-        value = exec_context.symbols.access('value')
+        value = exec_context.symbols.access('obj')
         result, error = value.tostr()
 
         if error:
@@ -1060,13 +1060,13 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_str.argnames = ['value']
+    exec_str.argnames = ['obj']
 
 
     def exec_int(self, exec_context):
         res = RTResult()
 
-        value = exec_context.symbols.access('value')
+        value = exec_context.symbols.access('obj')
         result, error = value.toint()
 
         if error:
@@ -1081,13 +1081,13 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_int.argnames = ['value']
+    exec_int.argnames = ['obj']
 
 
     def exec_float(self, exec_context):
         res = RTResult()
 
-        value = exec_context.symbols.access('value')
+        value = exec_context.symbols.access('obj')
         result, error = value.tofloat()
 
         if error:
@@ -1102,7 +1102,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_float.argnames = ['value']
+    exec_float.argnames = ['obj']
 
 
     def exec_id(self, exec_context):

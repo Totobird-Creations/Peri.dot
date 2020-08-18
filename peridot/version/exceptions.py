@@ -88,6 +88,10 @@ class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('OperationException', msg, start, end, context)
 
+class Exc_PanicError(Exc_Error):
+    def __init__(self, msg, start, end, context=None):
+        super().__init__('PanicException', msg, start, end, context)
+
 class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context=None):
         super().__init__('TypeException', msg, start, end, context)

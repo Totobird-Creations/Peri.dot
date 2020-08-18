@@ -1,12 +1,9 @@
-# Single Line Comment
+var div = func(a, b) {
+    var try = handler {
+        return(a / b)
+    }
+    return(try)
+}
 
-print('Hello World!') # Can be placed at EOL
-
-#=
-Multiline comment
-=#
-
-print(#= Can be inline =# 'hello')
-
-print(#=
-=# 'Wierd stuff')
+print(str(div(10, 5)))
+print(str(div(10, 0)))

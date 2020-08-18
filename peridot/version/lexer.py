@@ -184,17 +184,6 @@ class Lexer():
                 tokens.append(token)
 
 
-            elif self.char == '\\':
-                self.advance()
-
-                if self.char not in '\n':
-                    end = self.pos.copy()
-                    end.advance()
-                    return((None, Syn_EscapeError(f'Invalid EOL, expected "\\n"', start=self.pos, end=end)))
-
-                self.advance()
-
-
             elif self.char == '#':
                 self.advance()
 

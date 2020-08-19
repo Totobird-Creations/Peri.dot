@@ -385,7 +385,7 @@ class Parser():
             options = {}
 
             if self.curtoken.type == TT_RPAREN:
-                end = self.curtoken.end
+                end = self.curtoken.end.copy()
                 res.registeradvancement()
                 self.advance()
             else:
@@ -453,7 +453,7 @@ class Parser():
                         )
                     )
 
-                end = self.curtoken.end
+                end = self.curtoken.end.copy()
                 res.registeradvancement()
                 self.advance()
 
@@ -624,6 +624,7 @@ class Parser():
         self.advance()
 
         if self.curtoken.type == TT_RSQUARE:
+            end = self.curtoken.end.copy()
             res.registeradvancement()
             self.advance()
 
@@ -667,6 +668,7 @@ class Parser():
                     )
                 )
 
+            end = self.curtoken.end.copy()
             res.registeradvancement()
             self.advance()
 
@@ -674,7 +676,7 @@ class Parser():
             res.success(
                 ArrayNode(
                     elmnodes,
-                    start, self.curtoken.end.copy()
+                    start, end
                 )
             )
         )

@@ -116,7 +116,8 @@ class Interpreter():
                             Exc_TypeError(
                                 f'{TYPES["list"]} of type {type_.type} can not include {elm.type}',
                                 elm.start, elm.end,
-                                context
+                                context,
+                                elm.originstart, elm.originend
                             )
                         )
                     )
@@ -129,7 +130,7 @@ class Interpreter():
             res.success(
                 ArrayType(elements)
                     .setcontext(context)
-                    .setpos(node.start, node.end)
+                    .setpos(node.start, node.end, node.start, node.end)
             )
         )
 
@@ -153,6 +154,9 @@ class Interpreter():
             )
 
         value = value.copy().setcontext(context)
+
+        value.originstart.append(value.start)
+        value.originend.append(value.end)
 
         value.start = node.start
         value.end = node.end
@@ -208,7 +212,8 @@ class Interpreter():
                     Exc_TypeError(
                         f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
                         node.valnode.token.start, node.valnode.token.end,
-                        context
+                        context,
+                        value.originstart, value.originend
                     )
                 )
             )
@@ -268,21 +273,19 @@ class Interpreter():
     def visit_VarNullNode(self, node, context):
         res = RTResult()
 
-        for i in node.tokens:
-            name = i.value
-
-            if name in RESERVED:
-                return(
-                    res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {TYPES["nonetype"]} to \'{name}\' (reserved)',
-                            i.start, i.end,
-                            context
-                        )
+        name = node.token
+        if name.value in RESERVED:
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {TYPES["nonetype"]} to \'{name.value}\' (reserved)',
+                        name.start, name.end,
+                        context
                     )
                 )
+            )
 
-            context.symbols.assign(name, NullType())
+        context.symbols.assign(name, NullType())
 
         return(
             res.success(
@@ -323,7 +326,9 @@ class Interpreter():
                 return(res)
 
         result = res.register(
-            callnode.call(name, args)
+            callnode.call(
+                name, args
+            )
         )
 
         if res.shouldreturn():

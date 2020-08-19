@@ -22,4 +22,16 @@ KEYWORDS = {
     'logicalnot': 'not'
 }
 
-RESERVED = []
+RESERVED = [
+    'True',
+    'False',
+    'Null',
+    'throw',
+    'assert',
+    'panic',
+    'print',
+    'id',
+    'str',
+    'int',
+    'float'
+]

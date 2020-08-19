@@ -1,4 +1,5 @@
-if [ ! -f poetry.lock ]; then
+click=`pip show click | grep 'Name: click'`
+if [ "$click" != "Name: click" ]; then
     poetry install
 fi
 

@@ -1,4 +1,19 @@
+[tool.poetry]
+name = "peridot"
+version = "04-pre"
+description = "A strongly typed interpreted language, with type inference, implemented in Python."
+authors = ["Totobird", "Snowkeep"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+click = "7.1.2"
+colorama = "0.4.3"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.0"
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra"
 testpaths = "tests"
+

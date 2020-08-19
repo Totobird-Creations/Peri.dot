@@ -7,20 +7,18 @@ Peri.dot is a strongly typed interpreted language, with type inference, implemen
 
 ## Setup
 
-This project uses submodules for known version of the python [click](https://click.palletsprojects.com/en/7.x/) and [colorama](https://pypi.org/project/colorama/) packages.
+This project uses [poetry](https://python-poetry.org/) for dependency management.
 
 
 ```bash
 git clone https://github.com/toto-bird/Peri.dot.git
-cd Peri.dot
-git submodule init
-git submodule update
+poetry install
 ```
 
 ## Usage 
 
 ```bash
-python peridot file.peri`
+python peridot file.peri
 ```
 
 ## Documentation

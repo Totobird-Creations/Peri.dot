@@ -1,8 +1,5 @@
-#!/usr/bin/env python3.8
+if [ ! -f poetry.lock ]; then
+    poetry install
+fi
 
-poetry install
-
-echo
-echo 'Running "python peridot test.peri"'
-echo
 python peridot test.peri

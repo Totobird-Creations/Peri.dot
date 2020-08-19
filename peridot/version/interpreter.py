@@ -117,7 +117,7 @@ class Interpreter():
                                 f'{TYPES["list"]} of type {type_.type} can not include {elm.type}',
                                 elm.start, elm.end,
                                 context,
-                                elm.originstart, elm.originend
+                                elm.originstart, elm.originend, elm.origindisplay
                             )
                         )
                     )
@@ -157,6 +157,7 @@ class Interpreter():
 
         value.originstart.append(value.start)
         value.originend.append(value.end)
+        value.origindisplay.append(context.display)
 
         value.start = node.start
         value.end = node.end
@@ -213,7 +214,7 @@ class Interpreter():
                         f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
                         node.valnode.token.start, node.valnode.token.end,
                         context,
-                        value.originstart, value.originend
+                        value.originstart, value.originend, value.origindisplay
                     )
                 )
             )
@@ -311,6 +312,9 @@ class Interpreter():
 
         callnode = callnode.copy().setpos(node.start, node.end)
 
+        if isinstance(callnode, FunctionType):
+            callnode.name = name
+
         args = []
         for argnode in argnodes:
             args.append(
@@ -325,9 +329,11 @@ class Interpreter():
             if res.shouldreturn():
                 return(res)
 
+        callvalue = callnode.value
+
         result = res.register(
             callnode.call(
-                name, args
+                callvalue, args
             )
         )
 

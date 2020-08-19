@@ -1,4 +1,59 @@
-var a = 0
-var b = a
-var c = 0.0
-c - b
+#var a = Null
+#var b = str(Null)
+
+#int(b)
+
+
+
+#var a = Null
+#var b = a
+#int(b)
+
+
+
+#var a = Null
+#var b = a
+#float(b)
+
+
+
+#var a = 'hello'
+#var b = a
+
+#var c = 1
+#var d = c
+
+#b + d
+
+
+
+#var a = '10.0'
+#var b = a
+
+#int(b)
+
+
+
+#var a = 'hello'
+#var b = a
+
+#float(b)
+
+
+
+#var add = func(a, b) {
+#    return(a + b)
+#}
+
+#add(1)
+
+
+
+#var a = 0
+#var b = a
+
+#var try = handler {
+#    10 / b
+#}
+
+#throw(try)

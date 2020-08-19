@@ -1,11 +1,4 @@
 var a = 0
 var b = a
-var c = b
-var d = c
-var e = d
-var f = e
-var g = f
-var h = g
-var i = h
-var j = i
-10 / j
+var c = 0.0
+c - b

@@ -25,15 +25,29 @@ class Exc_Error():
         self.originend = originend
 
 
-    def fixorigin(self, origin):
+    def fixorigin(self, originstart, originend, indent=-1):
+        result = ''
         current = []
-        for i in origin:
-            if isinstance(i, list):
-                current += self.fixorigin(i)
-            elif i == None: pass
+        first = True
+        originstart = [i for i in originstart if i not in (None, [])] 
+        originend   = [i for i in originend   if i not in (None, [])] 
+        for i in range(len(originstart)):
+            if isinstance(originstart[i], list):
+                result += self.fixorigin(originstart[i], originend[i], indent=indent + 1)
+                first = False
+
             else:
+                result += f'{Fore.MAGENTA} {" ║" * indent} ╠═{Fore.GREEN}File {Style.BRIGHT}{originstart[i].file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}UNKNOWN{Style.RESET_ALL}\n'
+                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}   {Fore.GREEN}Line {Style.BRIGHT}{originstart[i].line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{originstart[i].column + 1}{Style.RESET_ALL}\n'
+                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}      {Fore.YELLOW}{Style.BRIGHT}{originstart[i].lntext}{Style.RESET_ALL}\n'
+                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}      {Fore.YELLOW}{" " * originstart[i].column}{"^" * (originend[i].column - originstart[i].column)}{Style.RESET_ALL}\n'
                 current.append(i)
-        return(current)
+                first = False
+
+        if indent == 0:
+            return(result)
+        else:
+            return(result)
 
 
     def asstring(self):
@@ -70,14 +84,7 @@ class Exc_Error():
 
         result += self.traceback()
 
-        self.originstart = self.fixorigin(self.originstart)
-        self.originend = self.fixorigin(self.originend)
-        for i in range(len(self.originstart)):
-            display = self.context.display
-            result += f'  {Fore.GREEN}File {Style.BRIGHT}{self.originstart[i].file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}UNKNOWN{Style.RESET_ALL}\n'
-            result += f'    {Fore.GREEN}Line {Style.BRIGHT}{self.originstart[i].line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{self.originstart[i].column + 1}{Style.RESET_ALL}\n'
-            result += f'      {Fore.YELLOW}{Style.BRIGHT}{self.originstart[i].lntext}{Style.RESET_ALL}\n'
-            result += f'      {Fore.YELLOW}{" " * self.originstart[i].column}{"^" * (self.originend[i].column - self.originstart[i].column)}{Style.RESET_ALL}\n'
+        result += self.fixorigin(self.originstart, self.originend)
 
         display = self.context.display
         if isinstance(display, tuple):
@@ -105,14 +112,7 @@ class Exc_Error():
         while context:
             start       = pos[0]
             end         = pos[1]
-            originstart = self.fixorigin(pos[2])
-            originend   = self.fixorigin(pos[3])
-
-            for i in range(len(originstart)):
-                result += f'  {Fore.GREEN}File {Style.BRIGHT}{originstart.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}UNKNOWN{Style.RESET_ALL}\n'
-                result += f'    {Fore.GREEN}Line {Style.BRIGHT}{originstart.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{originstart.column + 1}{Style.RESET_ALL}\n'''
-                result += f'      {Fore.YELLOW}{Style.BRIGHT}{originstart[i].lntext}{Style.RESET_ALL}\n'
-                result += f'      {Fore.YELLOW}{" " * originstart[i].column}{"^" * (originend[i].column - originstart[i].column)}{Style.RESET_ALL}\n'
+            result     += self.fixorigin(pos[2], pos[3])
 
             display = context.display
             if isinstance(display, tuple):

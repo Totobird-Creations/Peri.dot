@@ -1,1 +1,0 @@
-python ./peridot test.peri

@@ -12,6 +12,7 @@ This project uses [poetry](https://python-poetry.org/) for dependency management
 
 ```bash
 git clone https://github.com/toto-bird/Peri.dot.git
+cd Peri.dot
 poetry install
 ```
 

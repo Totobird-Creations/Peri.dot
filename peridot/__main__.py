@@ -9,8 +9,8 @@ def improvederrormessage():
 
     import sys
 
-    import version.modules.click.src.click    as click
-    from   version.modules.colorama.colorama  import init, Fore, Style
+    import click
+    from   colorama  import init, Fore, Style
     init()
 
     from version.context            import Context, SymbolTable

@@ -3,7 +3,7 @@
 ##########################################
 
 import os
-from .modules.colorama.colorama import init, Fore, Style # type: ignore
+from colorama import init, Fore, Style
 init()
 
 _HEADER = '\n- RUNTIME ERROR '

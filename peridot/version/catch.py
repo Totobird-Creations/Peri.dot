@@ -1,6 +1,6 @@
 import os
 from traceback import format_exc
-from .modules.colorama.colorama import init, Fore, Style # type: ignore
+from colorama import init, Fore, Style
 init()
 
 class PeridotPanic(BaseException): pass

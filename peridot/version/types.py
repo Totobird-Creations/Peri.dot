@@ -793,13 +793,13 @@ class BooleanType(TypeObj):
 
 class ArrayType(TypeObj):
     def __init__(self, elements):
-        super().__init__(type_=TYPES['list'])
-        self.elements = elements
+        super().__init__(elements, type_=TYPES['list'])
 
     def copy(self):
-        copy = ArrayType(self.elements.copy())
+        copy = ArrayType(self.value.copy())
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.id = self.id
 
         return(copy)
 

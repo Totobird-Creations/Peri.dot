@@ -2,3 +2,6 @@ var a = 0
 var b = a
 var c = 0.0
 c - b
+
+var x = [1, 2, 3]
+

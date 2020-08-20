@@ -976,6 +976,9 @@ class BooleanType(TypeObj):
 
 class ArrayType(TypeObj):
     def __init__(self, elements):
+        if not all(type(x) == type(elements[0]) for x in elements):
+            raise TypeError(f'Internal Error: Array elements differ in type')
+
         super().__init__(elements, type_=TYPES['list'])
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
@@ -995,7 +998,7 @@ class ArrayType(TypeObj):
         return(copy)
 
     def __repr__(self):
-        return(f'[{", ".join([str(i) for i in self.elements])}]')
+        return(f'[{", ".join([str(i) for i in self.value])}]')
 
 
 

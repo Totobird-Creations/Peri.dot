@@ -14,7 +14,7 @@ _FOOTER = f''
 ##########################################
 
 class Exc_Error():
-    def __init__(self, exc, msg, start, end, context, originstart=[], originend=[]):
+    def __init__(self, exc, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         self.exc = exc
         self.msg = msg
         self.start = start
@@ -23,31 +23,83 @@ class Exc_Error():
         self.caughterrors = self.context.caughterrors
         self.originstart = originstart
         self.originend = originend
+        self.origindisplay = origindisplay
 
 
-    def fixorigin(self, originstart, originend, indent=-1):
-        result = ''
-        current = []
-        first = True
-        originstart = [i for i in originstart if i not in (None, [])] 
-        originend   = [i for i in originend   if i not in (None, [])] 
-        for i in range(len(originstart)):
-            if isinstance(originstart[i], list):
-                result += self.fixorigin(originstart[i], originend[i], indent=indent + 1)
-                first = False
+    def fixorigin(self, origin, first=True):
+        if len(origin) == 0:
+            return(None)
 
+        for i in range(len(origin)):
+            
+            org = origin[i]
+
+            if isinstance(org, list):
+                if len(org) == 1:
+                    origin[i] = self.fixorigin(org, first)
             else:
-                result += f'{Fore.MAGENTA} {" ║" * indent} ╠═{Fore.GREEN}File {Style.BRIGHT}{originstart[i].file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}UNKNOWN{Style.RESET_ALL}\n'
-                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}   {Fore.GREEN}Line {Style.BRIGHT}{originstart[i].line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{originstart[i].column + 1}{Style.RESET_ALL}\n'
-                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}      {Fore.YELLOW}{Style.BRIGHT}{originstart[i].lntext}{Style.RESET_ALL}\n'
-                result += f'{Fore.MAGENTA} {" ║" * (indent + 1)}      {Fore.YELLOW}{" " * originstart[i].column}{"^" * (originend[i].column - originstart[i].column)}{Style.RESET_ALL}\n'
-                current.append(i)
-                first = False
+                if not first:
+                    if len(origin) == 1:
+                        return(org)
+
+
+        return(origin)
+
+
+
+    def formatorigin(self, originstart, originend, origindisplay, indent=0, ignore=[]):
+        originstart   = [i for i in originstart   if i not in (None, [])] 
+        originend     = [i for i in originend     if i not in (None, [])] 
+        origindisplay = [i for i in origindisplay if i not in (None, [])]
 
         if indent == 0:
-            return(result)
-        else:
-            return(result)
+            print(originstart)
+
+        result = []
+        originstart.reverse()
+        originend.reverse()
+        origindisplay.reverse()
+
+        print(ignore)
+        prefix = ''
+        for i in ignore:
+            if i:
+                prefix += '  '
+            else:
+                prefix += '║ '
+
+        index = 0
+        for i in range(len(originstart)):
+            orgstart   = originstart[i]
+            orgend     = originend[i]
+            orgdisplay = origindisplay[i]
+            l = [i for i in originstart if not isinstance(i, list)]
+
+            if isinstance(orgstart, list):
+                if index > len(l) - 1:
+                    ig = ignore + [True]
+                else:
+                    ig = ignore + [False]
+                result += self.formatorigin(orgstart, orgend, orgdisplay, indent + 1, ig)
+
+            else:
+                if index >= len(l) - 1:
+                    cornertype = '╔'
+                else:
+                    cornertype = '╠'
+                display = self.context.display
+                if isinstance(display, tuple):
+                    display = f'{display[0]} <{display[1]}>'
+                result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{" " * (orgstart.column)}{"^" * (orgend.column - orgstart.column)}{Style.RESET_ALL}')
+                result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{Style.BRIGHT}{orgstart.lntext}{Style.RESET_ALL}')
+                result.append(f'  {Fore.MAGENTA}{prefix}║   {Fore.GREEN}Line {Style.BRIGHT}{orgstart.line}{Style.RESET_ALL} {Fore.GREEN}Column {Style.BRIGHT}{orgstart.column}{Style.RESET_ALL}')
+                result.append(f'  {Fore.MAGENTA}{prefix}{cornertype}═{Fore.GREEN}File {Style.BRIGHT}{orgstart.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}')
+                index += 1
+        
+        if indent == 0:
+            result.reverse()
+            result = '\n'.join(result) + '\n'
+        return(result)
 
 
     def asstring(self):
@@ -84,7 +136,15 @@ class Exc_Error():
 
         result += self.traceback()
 
-        result += self.fixorigin(self.originstart, self.originend)
+        self.originstart = self.fixorigin(self.originstart)
+        if not self.originstart:
+            self.originstart = []
+            self.originend = []
+            self.origindisplay = []
+        else:
+            self.originend = self.fixorigin(self.originend)
+            self.origindisplay = self.fixorigin(self.origindisplay)
+        result += self.formatorigin(self.originstart, self.originend, self.origindisplay)
 
         display = self.context.display
         if isinstance(display, tuple):
@@ -112,7 +172,10 @@ class Exc_Error():
         while context:
             start       = pos[0]
             end         = pos[1]
-            result     += self.fixorigin(pos[2], pos[3])
+            pos[2] = self.fixorigin(pos[2])
+            pos[3] = self.fixorigin(pos[3])
+            pos[4] = self.fixorigin(pos[4])
+            result     += self.formatorigin(pos[2], pos[3], pos[4])
 
             display = context.display
             if isinstance(display, tuple):
@@ -132,44 +195,44 @@ class Exc_Error():
 
 
 class Exc_ArgumentError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('ArgumentException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('ArgumentException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ArgumentTypeError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('ArgTypeException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('ArgTypeException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_AssertionError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('AssertionException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('AssertionException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_FileAccessError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('FileAccessException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('FileAccessException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_IdentifierError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('IdentifierException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('IdentifierException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_OperationError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('OperationException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('OperationException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_PanicError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('PanicException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('PanicException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ThrowError(Exc_Error):
-    def __init__(self, name, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__(name, msg, start, end, context, originstart, originend)
+    def __init__(self, name, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__(name, msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_TypeError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('TypeException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('TypeException', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ValueError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[]):
-        super().__init__('ValueException', msg, start, end, context, originstart, originend)
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('ValueException', msg, start, end, context, originstart, originend, origindisplay)
 
 ##########################################
 # LEXER, PARSER ERRORS                   #

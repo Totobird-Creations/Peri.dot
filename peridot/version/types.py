@@ -93,14 +93,27 @@ class TypeObj():
         self.type  = type_
         self.id = uuid()
 
+        self.originstart = []
+        self.originend = []
+        self.origindisplay = []
+
         self.setpos()
         self.setcontext()
 
-    def setpos(self, start=None, end=None, originstart=[], originend=[]):
-        self.originstart = originstart
-        self.originend   = originend
-        self.start       = start
-        self.end         = end
+    def setpos(self, start=None, end=None, originstart=None, originend=None, origindisplay=None):
+        if originstart:
+            self.originstart.append(originstart)
+            self.originend.append(originend)
+            self.origindisplay.append(origindisplay)
+        self.start         = start
+        self.end           = end
+
+        return(self)
+
+    def setorigin(self, originstart=None, originend=None, origindisplay=None):
+        self.originstart   = originstart
+        self.originend     = originend
+        self.origindisplay = origindisplay
 
         return(self)
 
@@ -110,23 +123,23 @@ class TypeObj():
         return(self)
 
 
-    def add(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be added to', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def subtract(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be subtracted from', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def multiply(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be multiplied', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def divide(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be divided', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def raised(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be raised', self.start, self.end, self.context, [self.originstart], [self.originend])))
+    def add(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be added to', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def subtract(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be subtracted from', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def multiply(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be multiplied', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def divide(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def raised(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value == other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
@@ -135,7 +148,7 @@ class TypeObj():
                 BooleanType(
                     False
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
@@ -145,7 +158,7 @@ class TypeObj():
                 BooleanType(
                     True
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
@@ -154,44 +167,49 @@ class TypeObj():
                 BooleanType(
                     self.value != other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
-    def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'<=\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def greaterthan(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def gtequals(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be compared with \'>=\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def and_(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be combined with \'and\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def or_(self, other: Any) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context, [self.originstart], [self.originend])))
-    def not_(self) -> Tuple[Any, Optional[Exc_OperationError]]:
-        return((None, Exc_OperationError(f'{self.type} can not be inverted', self.start, self.end, self.context, [self.originstart], [self.originend])))
+    def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def greaterthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'>\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def gtequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be compared with \'>=\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def and_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def or_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def not_(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def call(self, name, args) -> Tuple[Any, Optional[Exc_TypeError]]:
         res = RTResult()
+        try:
+            self.originstart = self.originstart[0]
+            self.originend = self.originend[0]
+            self.origindisplay = self.origindisplay[0]
+        except IndexError: pass
         return(
             res.failure(
                 Exc_TypeError(
                     f'{self.type} can not be called',
                     self.start, self.end,
                     self.context,
-                    [self.originstart], [self.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             )
         )
     def istrue(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context, [self.originstart], [self.originend])))
+        return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["string"]}', self.start, self.end, self.context, [self.originstart], [self.originend])))
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["string"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["integer"]}', self.start, self.end, self.context, [self.originstart], [self.originend])))
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["integer"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context, [self.originstart], [self.originend])))
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -208,12 +226,19 @@ class NullType(TypeObj):
     def copy(self):
         copy = NullType()
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end)
+        copy.setorigin(self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
 
         return(copy)
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def __repr__(self) -> str:
         return(f'Null')
@@ -231,18 +256,21 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -250,18 +278,21 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{other.type} can not be subtracted from {self.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -269,18 +300,21 @@ class IntType(TypeObj):
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be multiplied by {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -293,24 +327,27 @@ class IntType(TypeObj):
                         f'Division by zero',
                         other.start, other.end,
                         self.context,
-                        [other.originstart], [other.originend]
+                        other.originstart, other.originend, other.origindisplay
                     )
                 ))
 
             return((
                 IntType(int(self.value / other.value))
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be divided by {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -323,18 +360,21 @@ class IntType(TypeObj):
                         other.value
                     )
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be raised to {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -344,12 +384,23 @@ class IntType(TypeObj):
                 BooleanType(
                     self.value < other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
-            return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context, [self.originstart, other.originstart], [self.originend, other.originend])))
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None,
+                Exc_OperationError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
 
     def ltequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
         if type(self) == type(other):
@@ -357,12 +408,23 @@ class IntType(TypeObj):
                 BooleanType(
                     self.value <= other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
-            return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context, [self.originstart, other.originstart], [self.originend, other.originend])))
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None,
+                Exc_OperationError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
 
     def greaterthan(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
         if type(self) == type(other):
@@ -370,12 +432,23 @@ class IntType(TypeObj):
                 BooleanType(
                     self.value > other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
-            return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context, [self.originstart, other.originstart], [self.originend, other.originend])))
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None,
+                Exc_OperationError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
 
     def gtequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
         if type(self) == type(other):
@@ -383,26 +456,51 @@ class IntType(TypeObj):
                 BooleanType(
                     self.value >= other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
-            return((None, Exc_OperationError(f'{self.type} can not be compared with {other.type}', self.start, other.end, self.context, [self.originstart, other.originstart], [self.originend, other.originend])))
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None,
+                Exc_OperationError(
+                    f'{self.type} can not be compared with {other.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((self.copy(), None))
 
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((FloatType(float(self.value)).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            FloatType(float(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def copy(self):
         copy = IntType(self.value)
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(
+            self.start, self.end,
+            self.originstart, self.originend, self.origindisplay
+        )
+        copy.id = self.id
 
         return(copy)
 
@@ -418,18 +516,21 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value + other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -437,18 +538,21 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{other.type} can not be subtracted from {self.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -456,18 +560,21 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be multiplied by {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -480,24 +587,27 @@ class FloatType(TypeObj):
                         f'Division by zero',
                         self.start, other.end,
                         self.context,
-                        [other.originstart], [other.originend]
+                        other.originstart, other.originend, other.origindisplay
                     )
                 ))
 
             return((
                 FloatType(self.value / other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be divided by {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -510,18 +620,21 @@ class FloatType(TypeObj):
                         other.value
                     )
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be raised to {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -531,18 +644,21 @@ class FloatType(TypeObj):
                 BooleanType(
                     self.value < other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end, 
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -552,18 +668,21 @@ class FloatType(TypeObj):
                 BooleanType(
                     self.value <= other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -573,18 +692,21 @@ class FloatType(TypeObj):
                 BooleanType(
                     self.value > other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -594,23 +716,31 @@ class FloatType(TypeObj):
                 BooleanType(
                     self.value >= other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None, 
                 Exc_OperationError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         if int(self.value) != self.value:
@@ -619,18 +749,29 @@ class FloatType(TypeObj):
                         f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
                         self.start, self.end,
                         self.context,
-                        [self.originstart], [self.originend]
+                        self.originstart, self.originend, self.origindisplay
                     )
                 ))
-        return((IntType(int(self.value)).setcontext(self.context).setpos(self.start, self.end, self.originstart, self.originend), None))
+        return((
+            IntType(int(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((self.copy(), None))
+        return((
+            FloatType(self.value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def copy(self):
         copy = FloatType(self.value)
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
 
         return(copy)
 
@@ -648,37 +789,51 @@ class StringType(TypeObj):
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None,
                 Exc_OperationError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         try:
             value = int(self.value)
         except:
-            return((None,
-                    Exc_ValueError(
-                        f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
-                        self.start, self.end,
-                        self.context,
-                        [self.originstart], [self.originend]
-                    )
-                ))
-        return((IntType(value).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+            return((
+                None,
+                Exc_ValueError(
+                    f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+        return((
+            IntType(value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         try:
@@ -689,15 +844,21 @@ class StringType(TypeObj):
                         f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["floatingpoint"]}',
                         self.start, self.end,
                         self.context,
-                        [self.originstart], [self.originend]
+                        self.originstart, self.originend, self.origindisplay
                     )
                 ))
-        return((FloatType(value).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            FloatType(value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def copy(self):
         copy = StringType(self.value)
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend), self.origindisplay
+        copy.id = self.id
 
         return(copy)
 
@@ -722,18 +883,21 @@ class BooleanType(TypeObj):
                 BooleanType(
                     self.value and other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None, 
                 Exc_OperationError(
                     f'{self.type} can not be combined with {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originstart]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -743,18 +907,21 @@ class BooleanType(TypeObj):
                 BooleanType(
                     self.value or other.value
                 )
-                    .setpos(self.start, self.end, [self.originstart], [self.originend])
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                     .setcontext(self.context),
                 None
             ))
         else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
             return((
                 None, 
                 Exc_OperationError(
                     f'{self.type} can not be combined with {other.type}',
                     self.start, other.end,
                     self.context,
-                    [self.originstart, other.originstart], [self.originend, other.originend]
+                    self.originstart, self.originend, self.origindisplay
                 )
             ))
 
@@ -763,7 +930,7 @@ class BooleanType(TypeObj):
             BooleanType(
                 not self.value
             )
-                .setpos(self.start, self.end, [self.originstart], [self.originend])
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                 .setcontext(self.context),
             None
         ))
@@ -775,18 +942,34 @@ class BooleanType(TypeObj):
         ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((IntType(int(self.value)).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            IntType(int(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((IntType(float(self.value)).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            FloatType(float(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def copy(self):
         copy = BooleanType(self.value)
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
 
         return(copy)
 
@@ -795,16 +978,21 @@ class ArrayType(TypeObj):
     def __init__(self, elements):
         super().__init__(elements, type_=TYPES['list'])
 
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
+
     def copy(self):
         copy = ArrayType(self.value.copy())
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
         copy.id = self.id
 
         return(copy)
-
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
 
     def __repr__(self):
         return(f'[{", ".join([str(i) for i in self.elements])}]')
@@ -822,7 +1010,7 @@ class BaseFunction(TypeObj):
             display,
             SymbolTable(self.context.symbols),
             self.context,
-            [self.start, self.end, [self.originstart], [self.originend]]
+            [self.start, self.end, self.originstart, self.originend, self.origindisplay]
         )
         context.caughterrors = self.context.caughterrors
 
@@ -832,19 +1020,17 @@ class BaseFunction(TypeObj):
         res = RTResult()
 
         if len(args) != len(argnames):
-            end = self.end
-            end.column -= 1
             return(
                 res.failure(
                     Exc_ArgumentError(
                         f'\'{self.name}\' takes {len(argnames)} arguments, {len(args)} given',
-                        self.start, end,
+                        self.start, self.end,
                         self.context,
-                        [self.originstart], [self.originend]
+                        self.originstart[0], self.originend[0], self.origindisplay[0]
                     )
                 )
             )
-            
+
         return(
             res.success(
                 None
@@ -879,7 +1065,12 @@ class BaseFunction(TypeObj):
         )
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
 
 class FunctionType(BaseFunction):
@@ -927,20 +1118,29 @@ class FunctionType(BaseFunction):
         copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)
         copy.id = self.id
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
         return(copy)
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def __repr__(self):
         return(f'<{TYPES["function"]} {self.name} <{self.id}>>')
 
 
 class BuiltInFunctionType(BaseFunction):
-    def __init__(self, name):
+    def __init__(self, name, value=None):
         super().__init__(name, type_=TYPES['builtinfunc'])
+        if value:
+            self.value = value
+        else:
+            self.value = name
 
     def call(self, name, args):
         res = RTResult()
@@ -948,7 +1148,7 @@ class BuiltInFunctionType(BaseFunction):
         #exec_context = self.gencontext(('Built-In Function', name))
         exec_context = self.context
 
-        method = f'exec_{self.name}'
+        method = f'exec_{self.value}'
         method = getattr(self, method)
 
         res.register(
@@ -972,13 +1172,18 @@ class BuiltInFunctionType(BaseFunction):
         )
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart],[self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def copy(self):
-        copy = BuiltInFunctionType(self.name)
+        copy = BuiltInFunctionType(self.name, self.value)
         copy.id = self.id
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
         return(copy)
 
@@ -998,7 +1203,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'\'exception\' must be of type {TYPES["exception"]}, {exc.type} given',
                         exc.start, exc.end,
                         exec_context,
-                        exc.originstart, exc.originend
+                        exc.originstart, exc.originend, exc.origindisplay
                     )
                 )
             )
@@ -1010,7 +1215,7 @@ class BuiltInFunctionType(BaseFunction):
                     exc.msg,
                     self.start, self.end,
                     exec_context,
-                    exc.originstart, exc.originend
+                    exc.originstart, exc.originend, exc.origindisplay
                 )
             )
         )
@@ -1030,7 +1235,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'\'condition\' must be of type {TYPES["boolean"]}, {condition.type} given',
                         condition.start, condition.end,
                         exec_context,
-                        condition.originstart, condition.originend
+                        condition.originstart, condition.originend, condition.origindisplay
                     )
                 )
             )
@@ -1042,7 +1247,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
                         message.start, message.end,
                         exec_context,
-                        message.originstart, message.originend
+                        message.originstart, message.originend, message.origindisplay
                     )
                 )
             )
@@ -1060,7 +1265,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'{message}',
                         condition.start, condition.end,
                         exec_context,
-                        condition.originstart, condition.originend
+                        condition.originstart, condition.originend, condition.origindisplay
                     )
                 )
             )
@@ -1079,7 +1284,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
                         message.start, message.end,
                         exec_context,
-                        message.originstart, message.originend
+                        message.originstart, message.originend, message.origindisplay
                     )
                 )
             )
@@ -1100,7 +1305,7 @@ class BuiltInFunctionType(BaseFunction):
                         f'\'message\' must be of type {TYPES["string"]}, {text.type} given',
                         text.start, text.end,
                         exec_context,
-                        text.originstart, text.originend
+                        text.originstart, text.originend, text.origindisplay
                     )
                 )
             )
@@ -1203,12 +1408,17 @@ class ExceptionType(TypeObj):
         copy = ExceptionType(self.exc, self.msg, self.exc_start)
         copy.id = self.id
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, [self.originstart], [self.originend])
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
         return(copy)
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((StringType(self.__clean__()).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend]), None))
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def __repr__(self):
         return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')
@@ -1222,15 +1432,25 @@ class IdType(TypeObj):
         copy = IdType(self.value)
         copy.id = self.id
         copy.setcontext(self.context)
-        self.setpos(self.start, self.end, [self.originstart], [self.originend])
+        self.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
         return(copy)
 
     def tostr(self):
-        return((StringType(self.value).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend])), None)
+        return((
+            StringType(self.value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def toint(self):
-        return((IntType(int(self.value, 16)).setcontext(self.context).setpos(self.start, self.end, [self.originstart], [self.originend])), None)
+        return((
+            IntType(int(self.value, 16))
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def __repr__(self):
         return(f'<Id {self.value}>')

@@ -499,6 +499,17 @@ class Interpreter():
     def visit_ReturnNode(self, node, context):
         res = RTResult()
 
+        if not context.parent:
+            return(
+                res.failure(
+                    Exc_ReturnError(
+                        'Can not return from outside function',
+                        node.start, node.end,
+                        context
+                    )
+                )
+            )
+
         if node.returnnode:
             value = res.register(
                 self.visit(

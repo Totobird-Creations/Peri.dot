@@ -165,6 +165,10 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
             expr = res.tryregister(
                 self.expr()
             )
@@ -173,6 +177,10 @@ class Parser():
                 for i in range(2):
                     res.registerretreat()
                     self.retreat()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
 
             if self.curtoken.type != TT_RPAREN:
                 return(
@@ -189,7 +197,7 @@ class Parser():
 
             return(
                 res.success(
-                    ReturnNode(expr, start, self.curtoken.start.copy())
+                    ReturnNode(expr, start, self.curtoken.end.copy())
                 )
             )
 
@@ -381,6 +389,10 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
             args = []
             options = {}
 
@@ -409,6 +421,10 @@ class Parser():
                 while self.curtoken.type == TT_COMMA:
                     res.registeradvancement()
                     self.advance()
+
+                    while self.curtoken.type == TT_EOL:
+                        res.registeradvancement()
+                        self.advance()
 
                     if self.curtoken.type == TT_IDENTIFIER:
                         token = self.curtoken
@@ -441,6 +457,10 @@ class Parser():
 
                     if res.error:
                         return(res)
+
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
 
 
                 if self.curtoken.type != TT_RPAREN:
@@ -526,8 +546,10 @@ class Parser():
 
             return(
                 res.failure(
-                    'Expected \')\' not found',
-                    token.start, token.end
+                    Syn_SyntaxError(
+                        'Expected \')\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
                 )
             )
 
@@ -623,6 +645,10 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         if self.curtoken.type == TT_RSQUARE:
             end = self.curtoken.end.copy()
             res.registeradvancement()
@@ -649,6 +675,10 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
                 elmnodes.append(
                     res.register(
                         self.statement()
@@ -657,6 +687,10 @@ class Parser():
 
                 if res.error:
                     return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
 
             if self.curtoken.type != TT_RSQUARE:
                 return(
@@ -713,6 +747,10 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         argtokens = []
 
         if self.curtoken.type == TT_IDENTIFIER:
@@ -725,6 +763,10 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
                 if self.curtoken.type != TT_IDENTIFIER:
                     return(
                         res.failure(
@@ -736,6 +778,10 @@ class Parser():
                     )
 
                 argtokens.append(self.curtoken)
+                res.registeradvancement()
+                self.advance()
+
+            while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
                 self.advance()
 
@@ -761,6 +807,10 @@ class Parser():
 
         res.registeradvancement()
         self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
 
         codeblock = res.register(
             self.codeblock()

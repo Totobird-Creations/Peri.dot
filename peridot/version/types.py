@@ -1521,6 +1521,70 @@ class BuiltInFunctionType(BaseFunction):
     exec_print.argnames = ['text']
 
 
+    def exec_range(self, exec_context):
+        res = RTResult()
+
+        start = exec_context.symbols.access('start')
+        stop = exec_context.symbols.access('stop')
+        step = exec_context.symbols.access('step')
+
+        if not isinstance(start, IntType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'start\' must be of type {TYPES["int"]}, {start.type} given',
+                        start.start, start.end,
+                        exec_context,
+                        start.originstart, start.originend, start.origindisplay
+                    )
+                )
+            )
+
+        if not isinstance(stop, IntType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'start\' must be of type {TYPES["int"]}, {stop.type} given',
+                        stop.start, stop.end,
+                        exec_context,
+                        stop.originstart, stop.originend, stop.origindisplay
+                    )
+                )
+            )
+
+        if not isinstance(step, IntType):
+            return(
+                res.failure(
+                    Exc_ArgumentTypeError(
+                        f'\'start\' must be of type {TYPES["int"]}, {step.type} given',
+                        step.start, step.end,
+                        exec_context,
+                        step.originstart, step.originend, step.origindisplay
+                    )
+                )
+            )
+
+        returnlist = []
+
+        i = start.value
+
+        while i < stop.value:
+            returnlist.append(
+                IntType(i)
+            )
+
+            i += step.value
+
+
+
+        return(
+            RTResult().success(
+                ArrayType(returnlist)
+            )
+        )
+    exec_range.argnames = ['start', 'stop', 'step']
+
+
     def exec_str(self, exec_context):
         res = RTResult()
 

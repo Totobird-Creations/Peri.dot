@@ -530,6 +530,9 @@ class Interpreter():
                 )
             )
 
+        if not node.varoverwrite:
+            context.symbols.assign(varname, prevvalue)
+
         return(
             res.success(
                 NullType()
@@ -537,6 +540,12 @@ class Interpreter():
                     .setcontext(context)
             )
         )
+
+
+    def visit_WhileNode(self, node, context):
+        res = RTResult()
+
+        
 
 
 

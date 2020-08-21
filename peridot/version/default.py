@@ -9,6 +9,7 @@ def defaultvariables(symbols):
     symbols.assign('assert', BuiltInFunctionType('assert'))
     symbols.assign('panic' , BuiltInFunctionType('panic'))
     symbols.assign('print' , BuiltInFunctionType('print'))
+    symbols.assign('range' , BuiltInFunctionType('range'))
 
     symbols.assign('id'    , BuiltInFunctionType('id'))
     symbols.assign('str'   , BuiltInFunctionType('str'))

@@ -387,35 +387,40 @@ class Parser():
             return(res)
         
         if self.curtoken.type == TT_LSQUARE:
-            res.registeradvancement()
-            self.advance()
+            indicies = []
 
-            indicie = res.register(
-                self.expr()
-            )
+            while self.curtoken.type == TT_LSQUARE:
+                res.registeradvancement()
+                self.advance()
 
-            if res.error:
-                return(res)
-
-            if self.curtoken.type != TT_RSQUARE:
-                return(
-                    res.failure(
-                        Syn_SyntaxError(
-                            f'Expected \']\' not found',
-                            self.curtoken.start, self.curtoken.end
-                        )
+                indicies.append(
+                    res.register(
+                        self.expr()
                     )
                 )
 
-            end = self.curtoken.end.copy()
-            res.registeradvancement()
-            self.advance()
+                if res.error:
+                    return(res)
+
+                if self.curtoken.type != TT_RSQUARE:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                f'Expected \']\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                end = self.curtoken.end.copy()
+                res.registeradvancement()
+                self.advance()
 
             return(
                 res.success(
                     IndicieNode(
                         call,
-                        indicie,
+                        indicies,
                         end=end
                     )
                 )

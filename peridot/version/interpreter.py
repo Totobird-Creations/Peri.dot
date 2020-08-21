@@ -747,20 +747,21 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
-        indicie = res.register(
-            self.visit(
-                node.indicie, context
-            )
-        )
-
-        value, error = value.indicie(indicie)
-
-        if error:
-            return(
-                res.failure(
-                    error
+        for i in node.indicies:
+            i = res.register(
+                self.visit(
+                    i, context
                 )
             )
+
+            value, error = value.indicie(i)
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
 
         return(
             res.success(value)

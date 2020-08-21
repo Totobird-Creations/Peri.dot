@@ -229,9 +229,9 @@ class BinaryOpNode():
 
 ### MISCELLANIOUS
 class IndicieNode():
-    def __init__(self, node, indicie, end=None):
+    def __init__(self, node, indicies, end=None):
         self.node = node
-        self.indicie = indicie
+        self.indicies = indicies
         
         self.start = self.node.start
         if end:

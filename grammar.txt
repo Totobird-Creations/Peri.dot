@@ -1,60 +1,87 @@
 statement:
     - KEYWORD:return LPAREN EOL* expr? EOL* RPAREN
+        -> Return
+    - expr LSQUARE expr RSQUARE
 
 expr:
     - KEYWORD:varcreate IDENTIFIER EQ expr
+        -> VarCreate
     - compexpr ((KEYWORD:logicaland|KEYWORD:logicalor) compexpr)*
+        -> BinaryOp
 
 compexpr:
     - KEYWORD:logicalnot compexpr
+        -> UnaryOp
     - arithexpr ((EQEQUALS|BANGEQUALS|LESSTHAN|LTEQUALS|GREATERTHAN|GTEQUALS) arithexpr)*
+        -> BinaryOp
 
 arithexpr:
     - term ((PLUS|DASH) term)*
+        -> BinaryOp
 
 term:
     - raised ((ASTRISK|FSLASH) raised)*
+        -> BinaryOp
 
 raised:
     - factor (CARAT factor)*
+        -> BinaryOp
 
 factor:
     - (PLUS|DASH) factor
-    - indicies
+        -> UnaryOp
+    - indicie
 
-indicies:
-    - IDENTIFIER LSQUARE expr RSQUARE
+indicie:
+    - call LSQUARE expr RSQUARE
+        -> Index
     - call
 
 call:
-    - IDENTIFIER LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN
+    - atom LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN
+        -> VarCall
     - atom
 
 atom:
-    - INT|FLOAT|STRING
+    - INT
+        -> Int
+    - FLOAT
+        -> Float
+    - STRING
+        -> String
     - LPAREN expr RPAREN
-    - listexpr
     - IDENTIFIER EQUALS expr
+        -> VarAssign
     - IDENTIFIER
+        -> VarAccess
+    - arrayexpr
+        -> Array
     - funcdef
+        -> FuncCreate
     - handler
+        -> Handler
     - ifexpr
+        -> If
 
-ifexpr:
-    - KEYWORD:if LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*
-      (KEYWORD:elif LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*)*
-      (KEYWORD:else EOL* codeblock)?
-
-listexpr:
+arrayexpr:
     - LSQUARE EOL* (expr (COMMA EOL* expr)*)? EOL* RSQUARE
+        -> Array
 
 funcdef:
     - KEYWORD:createfunc LPAREN EOL*
       (IDENTIFIER (COMMA EOL* IDENTIFIER)*)? EOL*
       RPAREN EOL* codeblock
+        -> FuncCreate
 
 handler:
     - KEYWORD:handler EOL* codeblock
+        -> Handler
+
+ifexpr:
+    - KEYWORD:if LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*
+      (KEYWORD:elif LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*)*
+      (KEYWORD:else EOL* codeblock)?
+        -> If
 
 codeblock:
     - LCURLY EOL* (expr (EOL expr))? EOL* RCURLY

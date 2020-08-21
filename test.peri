@@ -1,47 +1,49 @@
 ##########################################
+# COMMIT INFO                           #
+##########################################
+
+# Rewrote indicies system
+
+##########################################
 # NEW FEATURES                           #
 ##########################################
 
 var try = handler {
     10 / 0
 }
-var try = tuple(try)
-var try = try[0]
+if ( try == Null ) {
+    print('Passed')
 
-assert(try == 'OperationException', 'OperationException not raised.')
+} else {
+    var try = tuple(try)
 
 
+    if (try[0] == 'OperationException') {
+        print('Failed: OperationException')
+
+    } elif (try[0] == 'TypeException') {
+        print('Failed: TypeException')
+
+    } else {
+        print('Failed: UnknownException')
+
+    }
+
+
+    assert(
+        try[0] == 'OperationException',
+        'OperationException not raised.'
+    )
+}
 
 ##########################################
 # KNOWN BUGS                             #
 ##########################################
 
-#var try = handler {
-#    10 / 0.0
-#}
-#var try = tuple(try)
-#var try = try[0]
-
-#assert(try == 'OperationException', 'OperationException not raised.')
-
-
-
-#10[10]
-
-
-
 #int([1, 2, 3])
 #float([1, 2, 3])
 #array([1, 2, 3])
 #tuple([1, 2, 3])
-
-
-
-#var add = func(a, b) {
-#    return(a + b)
-#}
-
-#add(1)
 
 
 

@@ -150,9 +150,9 @@ class Exc_Error():
         result += f'      {Fore.YELLOW}{" " * self.start.column}{"^" * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'
 
         if self.msg:
-            result += f'{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'
+            result += f'\n{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'
         else:
-            result += f'{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'
+            result += f'\n{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'
 
         result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
         return(result)

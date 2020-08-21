@@ -44,7 +44,7 @@ class ArrayNode():
         self.end   = end
 
     def __repr__(self):
-        return(f'"{self.token.value}"')
+        return(f'{self.elmnodes}')
 
 
 
@@ -110,18 +110,6 @@ class VarCallNode():
 
     def __repr__(self):
         return(f'VarCall:{self.node.token.value}')
-
-
-class VarIndicieNode():
-    def __init__(self, token, indicie):
-        self.token = token
-        self.indicie = indicie
-
-        self.start = indicie.start
-        self.end = indicie.end
-
-    def __repr__(self):
-        return(f'{self.token.value}[{self.indicie.value}]')
 
 
 
@@ -209,3 +197,20 @@ class BinaryOpNode():
 
     def __repr__(self):
         return(f'({self.lnode} {self.optoken.type} {self.rnode})')
+
+
+
+### MISCELLANIOUS
+class IndicieNode():
+    def __init__(self, node, indicie, end=None):
+        self.node = node
+        self.indicie = indicie
+        
+        self.start = self.node.start
+        if end:
+            self.end = end
+        else:
+            self.end = self.node.end
+
+    def __repr__(self):
+        return(f'{self.node}[{self.indicie}]')

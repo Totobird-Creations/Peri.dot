@@ -375,52 +375,55 @@ class Parser():
                 )
             )
 
-        return(self.indicies())
+        return(self.indicie())
 
 
-    def indicies(self):
+
+    def indicie(self):
         res = ParseResult()
-        
-        if self.curtoken.type == TT_IDENTIFIER:
-            token = self.curtoken
+        call = res.register(self.call())
 
+        if res.error:
+            return(res)
+        
+        if self.curtoken.type == TT_LSQUARE:
             res.registeradvancement()
             self.advance()
 
-            if self.curtoken.type == TT_LSQUARE:
-                res.registeradvancement()
-                self.advance()
+            indicie = res.register(
+                self.expr()
+            )
 
-                expr = res.register(
-                    self.expr()
-                )
+            if res.error:
+                return(res)
 
-                if self.curtoken.type != TT_RSQUARE:
-                    return(
-                        res.failure(
-                            Syn_SyntaxError(
-                                'Expected \']\' not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-                res.registeradvancement()
-                self.advance()
-
+            if self.curtoken.type != TT_RSQUARE:
                 return(
-                    res.success(
-                        VarIndicieNode(
-                            token, expr
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \']\' not found',
+                            self.curtoken.start, self.curtoken.end
                         )
                     )
                 )
 
-            else:
-                res.registerretreat()
-                self.retreat()
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
 
-        return(self.call())
+            return(
+                res.success(
+                    IndicieNode(
+                        call,
+                        indicie,
+                        end=end
+                    )
+                )
+            )
+
+        return(
+            res.success(call)
+        )
 
 
 
@@ -533,7 +536,9 @@ class Parser():
                 )
             )
 
-        return(res.success(atom))
+        return(
+            res.success(atom)
+        )
 
 
     def atom(self):
@@ -599,20 +604,6 @@ class Parser():
                 )
             )
 
-        elif token.type == TT_LSQUARE:
-            listexpr = res.register(
-                self.listexpr()
-            )
-
-            if res.error:
-                return(res)
-
-            return(
-                res.success(
-                    listexpr
-                )
-            )
-
 
         elif token.type == TT_IDENTIFIER:
             res.registeradvancement()
@@ -638,6 +629,20 @@ class Parser():
             return(
                 res.success(
                     VarAccessNode(token)
+                )
+            )
+
+        elif token.type == TT_LSQUARE:
+            arrayexpr = res.register(
+                self.arrayexpr()
+            )
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    arrayexpr
                 )
             )
 
@@ -684,7 +689,7 @@ class Parser():
         )
 
 
-    def listexpr(self):
+    def arrayexpr(self):
         res = ParseResult()
         elmnodes = []
         start = self.curtoken.start.copy()

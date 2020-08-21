@@ -891,6 +891,39 @@ class StringType(TypeObj):
             None
         ))
 
+    def indicie(self, indicie):
+        if not isinstance(indicie, IntType):
+            return((
+                None,
+                Exc_TypeError(
+                    f'{self.type} index must be of type {TYPES["integer"]}',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+        
+        try:
+            value = self.value[indicie.value]
+
+        except IndexError:
+            return((
+                None,
+                Exc_IndexError(
+                    f'{self.type} index out of range',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+
+        value = StringType(value).setpos(self.start, self.end).setcontext(self.context)
+
+        return((
+            value,
+            None
+        ))
+
     def copy(self):
         copy = StringType(self.value)
         copy.setcontext(self.context)
@@ -1035,7 +1068,7 @@ class ArrayType(TypeObj):
             return((
                 None,
                 Exc_TypeError(
-                    f'{TYPES["list"]} index must be of type {TYPES["integer"]}',
+                    f'{self.type} index must be of type {TYPES["integer"]}',
                     self.start, self.end,
                     self.context,
                     self.originstart, self.originend, self.origindisplay
@@ -1049,12 +1082,14 @@ class ArrayType(TypeObj):
             return((
                 None,
                 Exc_IndexError(
-                    f'{TYPES["list"]} index out of range',
+                    f'{self.type} index out of range',
                     self.start, self.end,
                     self.context,
                     self.originstart, self.originend, self.origindisplay
                 )
             ))
+
+        value = value.setpos(self.start, self.end).setcontext(self.context)
 
         return((
             value,
@@ -1093,7 +1128,7 @@ class TupleType(TypeObj):
             return((
                 None,
                 Exc_TypeError(
-                    f'{TYPES["list"]} index must be of type {TYPES["integer"]}',
+                    f'{self.type} index must be of type {TYPES["integer"]}',
                     self.start, self.end,
                     self.context,
                     self.originstart, self.originend, self.origindisplay
@@ -1107,12 +1142,14 @@ class TupleType(TypeObj):
             return((
                 None,
                 Exc_IndexError(
-                    f'{TYPES["list"]} index out of range',
+                    f'{self.type} index out of range',
                     self.start, self.end,
                     self.context,
                     self.originstart, self.originend, self.origindisplay
                 )
             ))
+
+        value = value.setpos(self.start, self.end).setcontext(self.context)
 
         return((
             value,
@@ -1408,6 +1445,12 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
         else:
+            try:
+                condition.originstart = condition.originstart[0]
+                condition.originend = condition.originend[0]
+                condition.origindisplay = condition.origindisplay[0]
+            except IndexError: pass
+
             return(
                 res.failure(
                     Exc_AssertionError(

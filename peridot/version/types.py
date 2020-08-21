@@ -37,6 +37,7 @@ TYPES = {
     'floatingpoint': 'Float',
     'string'       : 'Str',
     'list'         : 'Array',
+    'tuple'        : 'Tuple',
     'boolean'      : 'Bool',
     'function'     : 'Function',
     'builtinfunc'  : 'Built-In Function',
@@ -224,6 +225,10 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def tobool(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def toarray(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["list"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def totuple(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["tuple"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -1031,6 +1036,33 @@ class ArrayType(TypeObj):
         return(f'[{", ".join([str(i) for i in self.value])}]')
 
 
+class TupleType(TypeObj):
+    def __init__(self, elements):
+        if not isinstance(elements, tuple):
+            raise InternalPeridotError(f'Non tuple value received')
+
+        super().__init__(elements, type_=TYPES['tuple'])
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def copy(self):
+        copy = TupleType(self.value)
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'({", ".join([str(i) for i in self.value])})')
+
+
 
 class BaseFunction(TypeObj):
     def __init__(self, name=None, type_=TYPES['builtinfunc']):
@@ -1212,6 +1244,7 @@ class BuiltInFunctionType(BaseFunction):
         result = res.register(
             method(exec_context)
         )
+
         if res.shouldreturn():
             return(res)
 
@@ -1461,6 +1494,48 @@ class BuiltInFunctionType(BaseFunction):
     exec_bool.argnames = ['obj']
 
 
+    def exec_array(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('obj')
+        result, error = value.toarray()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_array.argnames = ['obj']
+
+
+    def exec_tuple(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('obj')
+        result, error = value.totuple()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_tuple.argnames = ['obj']
+
+
     def exec_id(self, exec_context):
         res = RTResult()
 
@@ -1497,6 +1572,24 @@ class ExceptionType(TypeObj):
                 .setpos(self.start, self.end),
             None
         ))
+
+    def totuple(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            TupleType((
+                StringType(self.exc)
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                StringType(self.msg)
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                IntType(self.line)
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                IntType(self.column)
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+            ))
+        ), None)
 
     def __repr__(self):
         return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')

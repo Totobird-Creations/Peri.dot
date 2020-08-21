@@ -14,7 +14,9 @@ def defaultvariables(symbols):
     symbols.assign('id'    , BuiltInFunctionType('id'))
     symbols.assign('str'   , BuiltInFunctionType('str'))
     symbols.assign('int'   , BuiltInFunctionType('int'))
-    symbols.assign('bool'  , BuiltInFunctionType('bool'))
     symbols.assign('float' , BuiltInFunctionType('float'))
+    symbols.assign('bool'  , BuiltInFunctionType('bool'))
+    symbols.assign('array' , BuiltInFunctionType('array'))
+    symbols.assign('tuple' , BuiltInFunctionType('tuple'))
 
     return(symbols)

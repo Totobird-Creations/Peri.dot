@@ -617,6 +617,17 @@ class Parser():
                 )
             )
 
+        elif token.matches(TT_KEYWORD, KEYWORDS['if']):
+            ifexpr = res.register(self.ifexpr())
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    ifexpr
+                )
+            )
+
         return(
             res.failure(
                 Syn_SyntaxError(
@@ -849,6 +860,10 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         codeblock = res.register(
             self.codeblock()
         )
@@ -864,6 +879,147 @@ class Parser():
                 )
             )
         )
+
+
+    def ifexpr(self):
+        res = ParseResult()
+        cases = []
+        elsecase = None
+
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['if']):
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'{KEYWORDS["if"]}\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        if self.curtoken.type != TT_LPAREN:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        'Expected \'(\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+        
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        condition = res.register(self.expr())
+        if res.error: return(res)
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        if self.curtoken.type != TT_RPAREN:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        'Expected \')\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+        
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        codeblock = res.register(self.codeblock())
+
+        if res.error:
+            return(res)
+        cases.append((condition, codeblock))
+
+        while self.curtoken.matches(TT_KEYWORD, KEYWORDS['elif']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+        
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            condition = res.register(self.expr())
+            if res.error: return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \')\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+        
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            codeblock = res.register(self.codeblock())
+
+            if res.error:
+                return(res)
+            cases.append((condition, codeblock))
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['else']):
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+            
+            elsecase = res.register(self.codeblock())
+            if res.error:
+                return(res)
+
+        return(
+            res.success(
+                IfNode(
+                    cases, elsecase
+                )
+            )
+        )
+
+            
+
+
 
 
     def codeblock(self):

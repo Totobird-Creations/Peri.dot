@@ -1,5 +1,5 @@
 statement:
-    - KEYWORD:return LPAREN expr? RPAREN
+    - KEYWORD:return LPAREN EOL* expr? EOL* RPAREN
 
 expr:
     - KEYWORD:varcreate IDENTIFIER EQ expr
@@ -23,7 +23,7 @@ factor:
     - call
 
 call:
-    - IDENTIFIER LPAREN (expr (COMMA expr)*)? RPAREN
+    - IDENTIFIER LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN
     - atom
 
 atom:
@@ -34,15 +34,23 @@ atom:
     - IDENTIFIER
     - funcdef
     - handler
+    - ifexpr
+
+ifexpr:
+    - KEYWORD:if LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*
+      (KEYWORD:elif LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*)*
+      (KEYWORD:else EOL* codeblock)?
 
 listexpr:
-    - LSQUARE (expr (COMMA expr)*)? RSQUARE
+    - LSQUARE EOL* (expr (COMMA EOL* expr)*)? EOL* RSQUARE
 
 funcdef:
-    - KEYWORD:createfunc LPAREN (IDENTIFIER (COMMA IDENTIFIER)*)? RPAREN codeblock
+    - KEYWORD:createfunc LPAREN EOL*
+      (IDENTIFIER (COMMA EOL* IDENTIFIER)*)? EOL*
+      RPAREN EOL* codeblock
 
 handler:
-    - KEYWORD:handler codeblock
+    - KEYWORD:handler EOL* codeblock
 
 codeblock:
-    - LCURLY (EOL* (expr (EOL expr))? EOL*) RCURLY
+    - LCURLY EOL* (expr (EOL expr))? EOL* RCURLY

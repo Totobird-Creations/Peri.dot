@@ -2,6 +2,7 @@
 # NODES                                  #
 ##########################################
 
+### TYPES
 class IntNode():
     def __init__(self, token):
         self.token = token
@@ -47,6 +48,7 @@ class ArrayNode():
 
 
 
+### VARIABLE CONTROL
 class VarAccessNode():
     def __init__(self, token):
         self.token = token
@@ -111,6 +113,7 @@ class VarCallNode():
 
 
 
+### FUNCTIONS
 class FuncCreateNode():
     def __init__(self, token, argtokens, bodynodes, shouldreturn):
         self.token = token
@@ -140,6 +143,7 @@ class ReturnNode():
 
 
 
+### HANDLER
 class HandlerNode():
     def __init__(self, token, bodynodes):
         self.token = token
@@ -155,7 +159,21 @@ class HandlerNode():
         return(f'Handler')
 
 
+### FLOW CONTROL
+class IfNode():
+    def __init__(self, cases, elsecase):
+        self.cases = cases
+        self.elsecase = elsecase
 
+        self.start = self.cases[0][0].start
+        if self.elsecase:
+            self.end = self.elsecase[-1].end
+        else:
+            self.end = self.cases[-1][0].end
+
+
+
+### OPERATIONS
 class UnaryOpNode():
     def __init__(self, optoken, node):
         self.optoken = optoken

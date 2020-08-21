@@ -64,6 +64,7 @@ class Interpreter():
 
 
 
+    ### TYPES
     def visit_IntNode(self, node, context):
         return(
             RTResult().success(
@@ -136,6 +137,7 @@ class Interpreter():
 
 
 
+    ### VARIABLE CONTROL
     def visit_VarAccessNode(self, node, context):
         res = RTResult()
 
@@ -212,7 +214,7 @@ class Interpreter():
                 res.failure(
                     Exc_TypeError(
                         f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
-                        node.valnode.token.start, node.valnode.token.end,
+                        node.valnode.start, node.valnode.end,
                         context,
                         value.originstart, value.originend, value.origindisplay
                     )
@@ -352,6 +354,8 @@ class Interpreter():
         )
 
 
+
+    ### FUNCTIONS
     def visit_FuncCreateNode(self, node, context):
         res = RTResult()
 
@@ -365,7 +369,108 @@ class Interpreter():
         )
 
 
+    def visit_ReturnNode(self, node, context):
+        res = RTResult()
 
+        if not context.parent:
+            return(
+                res.failure(
+                    Exc_ReturnError(
+                        'Can not return from outside function',
+                        node.start, node.end,
+                        context
+                    )
+                )
+            )
+
+        if node.returnnode:
+            value = res.register(
+                self.visit(
+                    node.returnnode,
+                    context
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+        else:
+            value = NullType()
+
+        return(
+            res.successreturn(value)
+        )
+    
+
+
+    ### FLOW CONTROL
+    def visit_IfNode(self, node, context):
+        res = RTResult()
+        #returnval = NullType().setpos(node.start, node.end).setcontext(context)
+
+        for condition, codeblock in node.cases:
+            condvalue = res.register(
+                self.visit(
+                    condition, context
+                )
+            )
+            if res.shouldreturn():
+                return(res)
+
+            istrue, error = condvalue.istrue()
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
+
+            if istrue:
+                for j in codeblock:
+                    res.register(
+                        self.visit(
+                            j,
+                            context
+                        )
+                    )
+
+                    if res.shouldreturn():
+                        return(res)
+
+                return(
+                    res.success(
+                        NullType()
+                            .setpos(node.start, node.end)
+                            .setcontext(context)
+                    )
+                )
+
+        if node.elsecase:
+            for i in node.elsecase:
+                res.register(
+                    self.visit(
+                        i,
+                        context
+                    )
+                )
+
+                if res.shouldreturn():
+                    return(res)
+            
+        return(
+            res.success(
+                NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
+            )
+        )
+            
+            
+
+
+
+
+    ### HANDLER
     def visit_HandlerNode(self, node, context):
         res = RTResult()
 
@@ -379,7 +484,8 @@ class Interpreter():
 
             if res.error:
                 error = res.error
-                if isinstance(error, Exc_PanicError): return(res)
+                if isinstance(error, Exc_PanicError):
+                    return(res)
 
                 context.caughterror(error)
                 exc = ExceptionType(
@@ -402,6 +508,7 @@ class Interpreter():
 
 
 
+    ### OPERATIONS
     def visit_UnaryOpNode(self, node, context):
         res = RTResult()
         result = res.register(
@@ -499,37 +606,5 @@ class Interpreter():
                 )
             )
         )
-
-
-    def visit_ReturnNode(self, node, context):
-        res = RTResult()
-
-        if not context.parent:
-            return(
-                res.failure(
-                    Exc_ReturnError(
-                        'Can not return from outside function',
-                        node.start, node.end,
-                        context
-                    )
-                )
-            )
-
-        if node.returnnode:
-            value = res.register(
-                self.visit(
-                    node.returnnode,
-                    context
-                )
-            )
-
-            if res.shouldreturn():
-                return(res)
-        else:
-            value = NullType()
-
-        return(
-            res.successreturn(value)
-        )   
 
 typesinit(Interpreter)

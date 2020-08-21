@@ -2,16 +2,26 @@
 # NEW FEATURES                           #
 ##########################################
 
-var x = 9
-x = 10.0
+var try = handler {
+    10 / 0
+}
 
-print(str(
-    x
-))
+var try = tuple(try)
+
+print(str(try))
+
+
 
 ##########################################
 # KNOWN BUGS                             #
 ##########################################
+
+#int([1, 2, 3])
+#float([1, 2, 3])
+#array([1, 2, 3])
+#tuple([1, 2, 3])
+
+
 
 #var add = func(a, b) {
 #    return(a + b)

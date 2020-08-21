@@ -1,52 +1,18 @@
-var a = 0
-var b = a
-var c = 0.0
-c - b
+##########################################
+# NEW FEATURES                           #
+##########################################
 
-var x = [1, 2, 3]
+#print(str(bool(Null)))
 
-#var a = Null
-#var b = str(Null)
-
-#int(b)
+##########################################
+# CHANGED FEATURES                       #
+##########################################
 
 
 
-#var a = Null
-#var b = a
-#int(b)
-
-
-
-#var a = Null
-#var b = a
-#float(b)
-
-
-
-#var a = 'hello'
-#var b = a
-
-#var c = 1
-#var d = c
-
-#b + d
-
-
-
-#var a = '10.0'
-#var b = a
-
-#int(b)
-
-
-
-#var a = 'hello'
-#var b = a
-
-#float(b)
-
-
+##########################################
+# KNOWN BUGS                             #
+##########################################
 
 #var add = func(a, b) {
 #    return(a + b)

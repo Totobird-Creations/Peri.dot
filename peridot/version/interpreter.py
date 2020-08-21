@@ -130,7 +130,7 @@ class Interpreter():
             res.success(
                 ArrayType(elements)
                     .setcontext(context)
-                    .setpos(node.start, node.end, node.start, node.end)
+                    .setpos(node.start, node.end, node.start, node.end, context.display)
             )
         )
 
@@ -374,6 +374,8 @@ class Interpreter():
 
             if res.error:
                 error = res.error
+                if isinstance(error, Exc_PanicError): return(res)
+
                 context.caughterror(error)
                 exc = ExceptionType(
                     error.exc,

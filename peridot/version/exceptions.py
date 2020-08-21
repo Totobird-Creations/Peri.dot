@@ -27,40 +27,34 @@ class Exc_Error():
 
 
     def fixorigin(self, origin, first=True):
-        if len(origin) == 0:
+        origin = [i for i in origin if i not in (None, [])] 
+        result = []
+
+        if not first and len(origin) == 0:
             return(None)
 
         for i in range(len(origin)):
-            
             org = origin[i]
 
             if isinstance(org, list):
-                if len(org) == 1:
-                    origin[i] = self.fixorigin(org, first)
+                f = self.fixorigin(org, first)
+                if f:
+                    result.append(f)
             else:
-                if not first:
-                    if len(origin) == 1:
-                        return(org)
+                if not first and len(origin) == 1:
+                    return(org)
+                result.append(org)
 
-
-        return(origin)
+        return(result)
 
 
 
     def formatorigin(self, originstart, originend, origindisplay, indent=0, ignore=[]):
-        originstart   = [i for i in originstart   if i not in (None, [])] 
-        originend     = [i for i in originend     if i not in (None, [])] 
-        origindisplay = [i for i in origindisplay if i not in (None, [])]
-
-        if indent == 0:
-            print(originstart)
-
         result = []
         originstart.reverse()
         originend.reverse()
         origindisplay.reverse()
 
-        print(ignore)
         prefix = ''
         for i in ignore:
             if i:
@@ -233,6 +227,8 @@ class Exc_TypeError(Exc_Error):
 class Exc_ValueError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('ValueException', msg, start, end, context, originstart, originend, origindisplay)
+
+
 
 ##########################################
 # LEXER, PARSER ERRORS                   #

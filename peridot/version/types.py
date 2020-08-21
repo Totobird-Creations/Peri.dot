@@ -7,10 +7,12 @@ from sys import exec_prefix
 from types import BuiltinFunctionType
 from typing import Any,Optional,Tuple, Type
 from uuid import uuid4
+from colorama import init, Fore, Style
+init()
 
-from .catch      import PeridotPanic
+from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_PanicError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -102,18 +104,28 @@ class TypeObj():
 
     def setpos(self, start=None, end=None, originstart=None, originend=None, origindisplay=None):
         if originstart:
+            if not originend:
+                raise InternalPeridotError('OriginEnd not passed.')
+            elif not origindisplay:
+                raise InternalPeridotError('OriginDisplay not passed.')
             self.originstart.append(originstart)
             self.originend.append(originend)
             self.origindisplay.append(origindisplay)
+
         self.start         = start
         self.end           = end
 
         return(self)
 
     def setorigin(self, originstart=None, originend=None, origindisplay=None):
-        self.originstart   = originstart
-        self.originend     = originend
-        self.origindisplay = origindisplay
+        if originstart:
+            if not originend:
+                raise InternalPeridotError('OriginEnd not passed.')
+            elif not origindisplay:
+                raise InternalPeridotError('OriginDisplay not passed.')
+            self.originstart   = originstart
+            self.originend     = originend
+            self.origindisplay = origindisplay
 
         return(self)
 
@@ -210,6 +222,8 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["integer"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def tobool(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -221,16 +235,7 @@ class TypeObj():
 
 class NullType(TypeObj):
     def __init__(self):
-        super().__init__(None, type_=TYPES['nonetype'])
-
-    def copy(self):
-        copy = NullType()
-        copy.setcontext(self.context)
-        copy.setpos(self.start, self.end)
-        copy.setorigin(self.originstart, self.originend, self.origindisplay)
-        copy.id = self.id
-
-        return(copy)
+        super().__init__(type_=TYPES['nonetype'])
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -240,7 +245,23 @@ class NullType(TypeObj):
             None
         ))
 
-    def __repr__(self) -> str:
+    def tobool(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BooleanType(False)
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
+
+    def copy(self):
+        copy = NullType()
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
+
+        return(copy)
+
+    def __repr__(self):
         return(f'Null')
 
 
@@ -248,15 +269,15 @@ class NullType(TypeObj):
 class IntType(TypeObj):
     def __init__(self, value):
         if isinstance(value, bool) or not isinstance(value, int):
-            raise TypeError(f'Internal Error: Non integer value receievd ({type(value).__name__})')
+            raise InternalPeridotError(f'Non int value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['integer'])
 
 
-    def add(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_OperationError]]:
+    def add(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -266,7 +287,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
@@ -274,11 +295,11 @@ class IntType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_OperationError]]:
+    def subtract(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -288,7 +309,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{other.type} can not be subtracted from {self.type}',
                     self.start, other.end,
                     self.context,
@@ -296,11 +317,11 @@ class IntType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_OperationError]]:
+    def multiply(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -310,7 +331,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be multiplied by {other.type}',
                     self.start, other.end,
                     self.context,
@@ -318,7 +339,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def divide(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_OperationError]]:
+    def divide(self, other: Any) -> Tuple[Optional[IntType], Any]:
         if isinstance(other, IntType):
             if other.value == 0:
                 return((
@@ -333,7 +354,7 @@ class IntType(TypeObj):
 
             return((
                 IntType(int(self.value / other.value))
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -343,7 +364,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be divided by {other.type}',
                     self.start, other.end,
                     self.context,
@@ -351,7 +372,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def raised(self, other: IntType) -> Tuple[Optional[IntType], Optional[Exc_OperationError]]:
+    def raised(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(
@@ -360,7 +381,7 @@ class IntType(TypeObj):
                         other.value
                     )
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -370,7 +391,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
                     self.start, other.end,
                     self.context,
@@ -378,13 +399,13 @@ class IntType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def lessthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value < other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -394,7 +415,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -402,13 +423,13 @@ class IntType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def ltequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value <= other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -418,7 +439,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -426,13 +447,13 @@ class IntType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def greaterthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value > other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -442,7 +463,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -450,13 +471,13 @@ class IntType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other: IntType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def gtequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value >= other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -466,7 +487,7 @@ class IntType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -478,18 +499,23 @@ class IntType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((self.copy(), None))
+        return((
+            IntType(self.value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
 
     def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             FloatType(float(self.value))
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -508,15 +534,15 @@ class IntType(TypeObj):
 class FloatType(TypeObj):
     def __init__(self, value):
         if not isinstance(value, float):
-            raise TypeError(f'Internal Error: Non floating point value receievd ({type(value).__name__})')
+            raise InternalPeridotError(f'Non float value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 
-    def add(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_OperationError]]:
+    def add(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value + other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -526,7 +552,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
@@ -534,11 +560,11 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_OperationError]]:
+    def subtract(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.en)
                     .setcontext(self.context),
                 None
             ))
@@ -548,7 +574,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{other.type} can not be subtracted from {self.type}',
                     self.start, other.end,
                     self.context,
@@ -556,11 +582,11 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_OperationError]]:
+    def multiply(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -570,7 +596,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be multiplied by {other.type}',
                     self.start, other.end,
                     self.context,
@@ -578,7 +604,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def divide(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_OperationError]]:
+    def divide(self, other: Any) -> Tuple[Optional[FloatType], Any]:
         if isinstance(other, FloatType):
             if other.value == 0:
                 return((
@@ -593,7 +619,7 @@ class FloatType(TypeObj):
 
             return((
                 FloatType(self.value / other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -603,7 +629,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be divided by {other.type}',
                     self.start, other.end,
                     self.context,
@@ -611,7 +637,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def raised(self, other: FloatType) -> Tuple[Optional[FloatType], Optional[Exc_OperationError]]:
+    def raised(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(
@@ -620,7 +646,7 @@ class FloatType(TypeObj):
                         other.value
                     )
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -630,7 +656,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be raised to {other.type}',
                     self.start, other.end,
                     self.context,
@@ -638,13 +664,13 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def lessthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value < other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -654,7 +680,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end, 
                     self.context,
@@ -662,13 +688,13 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def ltequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value <= other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -678,7 +704,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -686,13 +712,13 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def greaterthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value > other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -702,7 +728,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -710,13 +736,13 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other: FloatType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def gtequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value >= other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -726,7 +752,7 @@ class FloatType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None, 
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be compared with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -738,24 +764,24 @@ class FloatType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         if int(self.value) != self.value:
             return((None,
-                    Exc_ValueError(
-                        f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
-                        self.start, self.end,
-                        self.context,
-                        self.originstart, self.originend, self.origindisplay
-                    )
-                ))
+                Exc_ValueError(
+                    f'{self.__repr__()} ({self.type}) can not be converted to {TYPES["integer"]}',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
         return((
             IntType(int(self.value))
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -763,7 +789,7 @@ class FloatType(TypeObj):
         return((
             FloatType(self.value)
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -781,15 +807,15 @@ class FloatType(TypeObj):
 class StringType(TypeObj):
     def __init__(self, value):
         if not isinstance(value, str):
-            raise TypeError(f'Internal Error: Non string value receievd ({type(value).__name__})')
+            raise InternalPeridotError(f'Non str value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['string'])
 
 
-    def add(self, other: StringType) -> Tuple[Optional[StringType], Optional[Exc_OperationError]]:
+    def add(self, other: Any) -> Tuple[Optional[StringType], Optional[Exc_TypeError]]:
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -799,7 +825,7 @@ class StringType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None,
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{other.type} can not be added to {self.type}',
                     self.start, other.end,
                     self.context,
@@ -811,7 +837,7 @@ class StringType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -831,7 +857,7 @@ class StringType(TypeObj):
         return((
             IntType(value)
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -850,14 +876,14 @@ class StringType(TypeObj):
         return((
             FloatType(value)
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
     def copy(self):
         copy = StringType(self.value)
         copy.setcontext(self.context)
-        copy.setpos(self.start, self.end, self.originstart, self.originend), self.origindisplay
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
         copy.id = self.id
 
         return(copy)
@@ -874,16 +900,16 @@ class StringType(TypeObj):
 class BooleanType(TypeObj):
     def __init__(self, value):
         if not isinstance(value, bool):
-            raise TypeError(f'Internal Error: Non boolean value receievd ({type(value).__name__})')
+            raise InternalPeridotError(f'Non bool value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])
 
-    def and_(self, other: BooleanType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def and_(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value and other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -893,7 +919,7 @@ class BooleanType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None, 
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be combined with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -901,13 +927,13 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def or_(self, other: BooleanType) -> Tuple[Optional[BooleanType], Optional[Exc_OperationError]]:
+    def or_(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
                     self.value or other.value
                 )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))
@@ -917,7 +943,7 @@ class BooleanType(TypeObj):
             self.origindisplay += other.origindisplay
             return((
                 None, 
-                Exc_OperationError(
+                Exc_TypeError(
                     f'{self.type} can not be combined with {other.type}',
                     self.start, other.end,
                     self.context,
@@ -930,7 +956,7 @@ class BooleanType(TypeObj):
             BooleanType(
                 not self.value
             )
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                .setpos(self.start, self.end)
                 .setcontext(self.context),
             None
         ))
@@ -945,7 +971,7 @@ class BooleanType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -953,7 +979,7 @@ class BooleanType(TypeObj):
         return((
             IntType(int(self.value))
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -961,7 +987,7 @@ class BooleanType(TypeObj):
         return((
             FloatType(float(self.value))
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -976,8 +1002,12 @@ class BooleanType(TypeObj):
 
 class ArrayType(TypeObj):
     def __init__(self, elements):
-        if not all(type(x) == type(elements[0]) for x in elements):
-            raise TypeError(f'Internal Error: Array elements differ in type')
+        if not isinstance(elements, list):
+            raise InternalPeridotError(f'Non list value received')
+        if len(elements):
+            self.elmtype = type(elements[0])
+            if not all(type(x) == self.elmtype for x in elements):
+                raise InternalPeridotError(f'Array element recieved non {self.elmtype.__name__} value')
 
         super().__init__(elements, type_=TYPES['list'])
 
@@ -985,7 +1015,7 @@ class ArrayType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -1004,6 +1034,9 @@ class ArrayType(TypeObj):
 
 class BaseFunction(TypeObj):
     def __init__(self, name=None, type_=TYPES['builtinfunc']):
+        if not isinstance(name, str) and name:
+            raise InternalPeridotError(f'Non str value receievd ({type(name).__name__})')
+
         super().__init__(type_=type_)
         self.name = name or '<Anonymous>'
 
@@ -1265,7 +1298,7 @@ class BuiltInFunctionType(BaseFunction):
             return(
                 res.failure(
                     Exc_AssertionError(
-                        f'{message}',
+                        f'{message.__clean__()}',
                         condition.start, condition.end,
                         exec_context,
                         condition.originstart, condition.originend, condition.origindisplay
@@ -1292,7 +1325,16 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
 
-        raise PeridotPanic(message)
+        return(
+            res.failure(
+                Exc_PanicError(
+                    f'{message.__clean__()}',
+                    self.start, self.end,
+                    exec_context,
+                    self.originstart[0], self.originend[0], self.origindisplay[0]
+                )
+            )
+        )
     exec_panic.argnames = ['message']
 
 
@@ -1386,6 +1428,27 @@ class BuiltInFunctionType(BaseFunction):
     exec_float.argnames = ['obj']
 
 
+    def exec_bool(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('obj')
+        result, error = value.tobool()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_bool.argnames = ['obj']
+
+
     def exec_id(self, exec_context):
         res = RTResult()
 
@@ -1419,7 +1482,7 @@ class ExceptionType(TypeObj):
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -1431,19 +1494,11 @@ class IdType(TypeObj):
     def __init__(self, value):
         super().__init__(value, type_=TYPES['id'])
 
-    def copy(self):
-        copy = IdType(self.value)
-        copy.id = self.id
-        copy.setcontext(self.context)
-        self.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
-
-        return(copy)
-
     def tostr(self):
         return((
             StringType(self.value)
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
 
@@ -1451,9 +1506,17 @@ class IdType(TypeObj):
         return((
             IntType(int(self.value, 16))
                 .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+                .setpos(self.start, self.end),
             None
         ))
+
+    def copy(self):
+        copy = IdType(self.value)
+        copy.id = self.id
+        copy.setcontext(self.context)
+        self.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+
+        return(copy)
 
     def __repr__(self):
         return(f'<Id {self.value}>')

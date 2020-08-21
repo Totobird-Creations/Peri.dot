@@ -4,37 +4,17 @@
 
 # Rewrote indicies system
 
+
+
 ##########################################
 # NEW FEATURES                           #
 ##########################################
 
-var try = handler {
-    10 / 0
+for (var i in [1, 2, 3, 4, 5]) {
+    print(str(i ^ 2))
 }
-if ( try == Null ) {
-    print('Passed')
-
-} else {
-    var try = tuple(try)
 
 
-    if (try[0] == 'OperationException') {
-        print('Failed: OperationException')
-
-    } elif (try[0] == 'TypeException') {
-        print('Failed: TypeException')
-
-    } else {
-        print('Failed: UnknownException')
-
-    }
-
-
-    assert(
-        try[0] == 'OperationException',
-        'OperationException not raised.'
-    )
-}
 
 ##########################################
 # KNOWN BUGS                             #

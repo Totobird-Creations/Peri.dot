@@ -465,8 +465,78 @@ class Interpreter():
             )
         )
             
-            
 
+    def visit_ForLoopNode(self, node, context):
+        res = RTResult()
+
+        varname = node.vartoken.value
+
+        loopthrough = res.register(
+            self.visit(
+                node.loopthrough, context
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
+
+        prevvalue = context.symbols.access(varname)
+        if not node.varoverwrite and not prevvalue:
+            return(
+                res.failure(
+                    Exc_IdentifierError(
+                        f'\'{varname}\' is not defined',
+                        node.vartoken.start, node.vartoken.end,
+                        context
+                    )
+                )
+            )
+
+        try:
+            for i in loopthrough.value:
+                if type(i) != type(prevvalue) and not node.varoverwrite:
+                    return(
+                        res.failure(
+                            Exc_TypeError(
+                                f'Can not assign {i.type} to \'{varname}\' ({prevvalue.type})',
+                                i.start, i.end,
+                                context,
+                                i.originstart, i.originend, i.origindisplay
+                            )
+                        )
+                    )
+
+                context.symbols.assign(varname, i)
+
+                for j in node.bodynodes:
+                    res.register(
+                        self.visit(
+                            j,
+                            context
+                        )
+                    )
+
+                    if res.shouldreturn():
+                        return(res)
+
+        except TypeError:
+            return(
+                res.failure(
+                    Exc_IterationError(
+                        f'{loopthrough.type} is not iterable',
+                        loopthrough.start, loopthrough.end,
+                        context
+                    )
+                )
+            )
+
+        return(
+            res.success(
+                NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
+            )
+        )
 
 
 

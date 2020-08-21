@@ -22,6 +22,9 @@ KEYWORDS = {
     'if'        : 'if',
     'elif'      : 'elif',
     'else'      : 'else',
+    'forloop'   : 'for',
+    'in'        : 'in',
+    'whileloop' : 'while',
     'handler'   : 'handler'
 }
 
@@ -29,12 +32,17 @@ RESERVED = [
     'True',
     'False',
     'Null',
+
     'throw',
     'assert',
     'panic',
     'print',
+
     'id',
     'str',
     'int',
-    'float'
+    'float',
+    'bool',
+    'array',
+    'tuple'
 ]

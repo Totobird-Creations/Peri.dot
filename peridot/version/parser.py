@@ -578,12 +578,20 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
             expr = res.register(
                 self.statement()
             )
 
             if res.error:
                 return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
 
             if self.curtoken.type == TT_RPAREN:
                 res.registeradvancement()
@@ -676,6 +684,17 @@ class Parser():
             return(
                 res.success(
                     ifexpr
+                )
+            )
+
+        elif token.matches(TT_KEYWORD, KEYWORDS['forloop']) or token.matches(TT_KEYWORD, KEYWORDS['whileloop']):
+            loopexpr = res.register(self.loopexpr())
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    loopexpr
                 )
             )
 
@@ -1069,7 +1088,172 @@ class Parser():
         )
 
             
+    def loopexpr(self):
+        res = ParseResult()
 
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['forloop']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            varoverwrite = False
+            if self.curtoken.matches(TT_KEYWORD, KEYWORDS['varcreate']):
+                varoverwrite = True
+
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_IDENTIFIER:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'identifier\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            vartoken = self.curtoken
+
+            res.registeradvancement()
+            self.advance()
+
+            if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['in']):
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'{KEYWORDS["in"]}\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            loopthrough = res.register(
+                self.expr()
+            )
+
+            if res.error:
+                return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \')\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+            
+            codeblock = res.register(
+                self.codeblock()
+            )
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    ForLoopNode(
+                        vartoken, varoverwrite, loopthrough, codeblock
+                    )
+                )
+            )
+
+
+        elif self.curtoken.matches(TT_KEYWORD, KEYWORDS['whileloop']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+            
+            condition = self.expr()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+            
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \')\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            codeblock = res.register(
+                self.codeblock()
+            )
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    WhileLoopNode(
+                        condition, codeblock
+                    )
+                )
+            )
+
+
+        else:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'{KEYWORDS["forloop"]}\', \'{KEYWORDS["whileloop"]}\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
 
 
 

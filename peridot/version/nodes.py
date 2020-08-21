@@ -172,6 +172,33 @@ class IfNode():
             self.end = self.cases[-1][0].end
 
 
+class ForLoopNode():
+    def __init__(self, vartoken, varoverwrite, loopthrough, bodynodes):
+        self.vartoken = vartoken
+        self.varoverwrite = varoverwrite
+        self.loopthrough = loopthrough
+        self.bodynodes = bodynodes
+
+        self.start = self.vartoken.start
+
+        if len(self.bodynodes) > 0:
+            self.end = self.bodynodes[-1].end
+        else:
+            self.end = self.vartoken.end
+
+class WhileLoopNode():
+    def __init__(self, condition, bodynodes):
+        self.condition = condition
+        self.bodynodes = bodynodes
+
+        self.start = self.condition.start
+
+        if len(self.bodynodes) > 0:
+            self.end = self.bodynodes[-1].end
+        else:
+            self.end = self.condition.end
+
+
 
 ### OPERATIONS
 class UnaryOpNode():

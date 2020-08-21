@@ -49,7 +49,7 @@ atom:
         -> Float
     - STRING
         -> String
-    - LPAREN expr RPAREN
+    - LPAREN EOL* expr EOL* RPAREN
     - IDENTIFIER EQUALS expr
         -> VarAssign
     - IDENTIFIER
@@ -62,6 +62,8 @@ atom:
         -> Handler
     - ifexpr
         -> If
+    - loopexpr
+        -> ForLoop|WhileLoop
 
 arrayexpr:
     - LSQUARE EOL* (expr (COMMA EOL* expr)*)? EOL* RSQUARE
@@ -82,6 +84,12 @@ ifexpr:
       (KEYWORD:elif LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*)*
       (KEYWORD:else EOL* codeblock)?
         -> If
+
+loopexpr:
+    - KEYWORD:forloop LPAREN EOL* IDENTIFIER KEYWORD:in expr EOL* RPAREN EOL* codeblock
+        -> ForLoop
+    - KEYWORD:whileloop LPAREN EOL* expr EOL* RPAREN EOL* codeblock
+        -> WhileLoop
 
 codeblock:
     - LCURLY EOL* (expr (EOL expr))? EOL* RCURLY

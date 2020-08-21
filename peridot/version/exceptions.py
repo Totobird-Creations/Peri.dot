@@ -212,6 +212,10 @@ class Exc_IndexError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('IndexException', msg, start, end, context, originstart, originend, origindisplay)
 
+class Exc_IterationError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('IterationException', msg, start, end, context, originstart, originend, origindisplay)
+
 class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('OperationException', msg, start, end, context, originstart, originend, origindisplay)

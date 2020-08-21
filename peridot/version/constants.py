@@ -15,11 +15,14 @@ ALPHANUMERIC = ALPHABET + DIGITS
 KEYWORDS = {
     'varcreate' : 'var',
     'funccreate': 'func',
-    'return'    : 'return',
-    'handler'   : 'handler',
     'logicaland': 'and',
     'logicalor' : 'or',
-    'logicalnot': 'not'
+    'logicalnot': 'not',
+    'return'    : 'return',
+    'if'        : 'if',
+    'elif'      : 'elif',
+    'else'      : 'else',
+    'handler'   : 'handler'
 }
 
 RESERVED = [

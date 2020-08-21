@@ -12,7 +12,7 @@ init()
 
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_PanicError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -1142,13 +1142,25 @@ class FunctionType(BaseFunction):
             if res.funcvalue:
                 break
 
-            if res.shouldreturn():
+            if res.error:
                 return(res)
 
-        result = res.funcvalue or NullType()
-        return(
-            res.success(result)
-        )
+        result = res.funcvalue
+
+        if result:
+            return(
+                res.success(result)
+            )
+        else:
+            return(
+                res.failure(
+                    Exc_ReturnError(
+                        f'\'{self.name}\' did not return a value',
+                        self.start, self.end,
+                        self.context
+                    )
+                )
+            )
 
     def copy(self):
         copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)

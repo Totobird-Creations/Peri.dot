@@ -2,20 +2,12 @@
 # NEW FEATURES                           #
 ##########################################
 
-func(
-    a,
-    b
-)
-    {
-        a + b
-    }
+var x = 9
+x = 10.0
 
-
-[
-    'hello',
-    'meow',
-    'oink'
-]
+print(str(
+    x
+))
 
 ##########################################
 # KNOWN BUGS                             #
@@ -26,3 +18,11 @@ func(
 #}
 
 #add(1)
+
+
+
+#var add = func(a, b) {
+#    return(None)
+#}
+
+#add(1, 2)

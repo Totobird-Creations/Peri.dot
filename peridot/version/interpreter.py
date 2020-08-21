@@ -207,7 +207,7 @@ class Interpreter():
                 )
             )
 
-        if type(prevvalue) != type(value):
+        if type(prevvalue) != type(value) and not isinstance(prevvalue, NullType):
             return(
                 res.failure(
                     Exc_TypeError(
@@ -286,7 +286,12 @@ class Interpreter():
                 )
             )
 
-        context.symbols.assign(name, NullType())
+        context.symbols.assign(
+            name.value,
+            NullType()
+                .setpos(node.start, node.end)
+                .setcontext(context)
+        )
 
         return(
             res.success(

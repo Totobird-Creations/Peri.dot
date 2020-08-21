@@ -96,6 +96,8 @@ class TypeObj():
         self.type  = type_
         self.id = uuid()
 
+        self.reserved = False
+
         self.originstart = []
         self.originend = []
         self.origindisplay = []

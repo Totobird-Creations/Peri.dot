@@ -185,17 +185,6 @@ class Interpreter():
             )
         )
 
-        if name in RESERVED:
-            return(
-                res.failure(
-                    Exc_TypeError(
-                        f'Can not assign {value.type} to \'{name}\' (reserved)',
-                        node.start, node.end,
-                        context
-                    )
-                )
-            )
-
         prevvalue = context.symbols.access(name)
 
         if not prevvalue:
@@ -203,6 +192,17 @@ class Interpreter():
                 res.failure(
                     Exc_IdentifierError(
                         f'\'{name}\' is not defined',
+                        node.start, node.end,
+                        context
+                    )
+                )
+            )
+
+        if name in RESERVED or prevvalue.reserved:
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {value.type} to \'{name}\' (reserved)',
                         node.start, node.end,
                         context
                     )
@@ -250,16 +250,19 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
-        if name in RESERVED:
-            return(
-                res.failure(
-                    Exc_TypeError(
-                        f'Can not assign {value.type} to \'{name}\' (reserved)',
-                        node.start, node.end,
-                        context
+        prevvalue = context.symbols.access(name)
+
+        if prevvalue:
+            if name in RESERVED or prevvalue.reserved:
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {value.type} to \'{name}\' (reserved)',
+                            node.start, node.end,
+                            context
+                        )
                     )
                 )
-            )
 
         if isinstance(value, FunctionType):
             value.name = name
@@ -506,6 +509,7 @@ class Interpreter():
                         )
                     )
 
+                i.reserved = True
                 context.symbols.assign(varname, i)
 
                 for j in node.bodynodes:

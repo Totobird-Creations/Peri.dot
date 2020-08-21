@@ -2,7 +2,7 @@
 # COMMIT INFO                           #
 ##########################################
 
-# - Iterating variable is reserved and can not be modified
+# - Added while loops
 
 
 
@@ -10,14 +10,11 @@
 # NEW FEATURES                           #
 ##########################################
 
-var i = 10
-
-for (var i in range(1, 6, 1)) {
-    var i = str(i)
-    print(i)
+var i = 0
+while (i <= 1000) {
+    print(str(i))
+    i = i + 1
 }
-
-var i = 10
 
 
 

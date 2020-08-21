@@ -280,16 +280,20 @@ class Interpreter():
         res = RTResult()
 
         name = node.token
-        if name.value in RESERVED:
-            return(
-                res.failure(
-                    Exc_TypeError(
-                        f'Can not assign {TYPES["nonetype"]} to \'{name.value}\' (reserved)',
-                        name.start, name.end,
-                        context
+
+        prevvalue = context.symbols.access(name)
+
+        if prevvalue:
+            if name in RESERVED or prevvalue.reserved:
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Can not assign {TYPES["nonetype"]} to \'{name}\' (reserved)',
+                            node.start, node.end,
+                            context
+                        )
                     )
                 )
-            )
 
         context.symbols.assign(
             name.value,
@@ -301,6 +305,8 @@ class Interpreter():
         return(
             res.success(
                 NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
             )
         )
 
@@ -546,10 +552,46 @@ class Interpreter():
         )
 
 
-    def visit_WhileNode(self, node, context):
+    def visit_WhileLoopNode(self, node, context):
         res = RTResult()
 
-        
+        while True:
+            condition = res.register(
+                self.visit(
+                    node.condition, context
+                )
+            )
+
+            if res.error:
+                return(res)
+
+            istrue, error = condition.istrue()
+
+            if error:
+                return(
+                    res.failure(error)
+                )
+
+            if not istrue: break
+
+            for j in node.bodynodes:
+                res.register(
+                    self.visit(
+                        j,
+                        context
+                    )
+                )
+
+                if res.shouldreturn():
+                    return(res)
+
+        return(
+            res.success(
+                NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
+            )
+        )
 
 
 

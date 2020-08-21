@@ -1205,11 +1205,19 @@ class Parser():
                     )
                 )
 
+            res.registeradvancement()
+            self.advance()
+
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
                 self.advance()
             
-            condition = self.expr()
+            condition = res.register(
+                self.expr()
+            )
+
+            if res.error:
+                return(res)
 
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
@@ -1224,6 +1232,9 @@ class Parser():
                         )
                     )
                 )
+
+            res.registeradvancement()
+            self.advance()
 
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()

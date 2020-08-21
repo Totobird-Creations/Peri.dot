@@ -375,7 +375,53 @@ class Parser():
                 )
             )
 
+        return(self.indicies())
+
+
+    def indicies(self):
+        res = ParseResult()
+        
+        if self.curtoken.type == TT_IDENTIFIER:
+            token = self.curtoken
+
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type == TT_LSQUARE:
+                res.registeradvancement()
+                self.advance()
+
+                expr = res.register(
+                    self.expr()
+                )
+
+                if self.curtoken.type != TT_RSQUARE:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                'Expected \']\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                res.registeradvancement()
+                self.advance()
+
+                return(
+                    res.success(
+                        VarIndicieNode(
+                            token, expr
+                        )
+                    )
+                )
+
+            else:
+                res.registerretreat()
+                self.retreat()
+
         return(self.call())
+
 
 
     def call(self):

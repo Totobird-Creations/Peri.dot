@@ -112,6 +112,18 @@ class VarCallNode():
         return(f'VarCall:{self.node.token.value}')
 
 
+class VarIndicieNode():
+    def __init__(self, token, indicie):
+        self.token = token
+        self.indicie = indicie
+
+        self.start = indicie.start
+        self.end = indicie.end
+
+    def __repr__(self):
+        return(f'{self.token.value}[{self.indicie.value}]')
+
+
 
 ### FUNCTIONS
 class FuncCreateNode():

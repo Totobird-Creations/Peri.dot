@@ -20,6 +20,10 @@ raised:
 
 factor:
     - (PLUS|DASH) factor
+    - indicies
+
+indicies:
+    - IDENTIFIER LSQUARE expr RSQUARE
     - call
 
 call:

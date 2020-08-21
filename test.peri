@@ -5,16 +5,30 @@
 var try = handler {
     10 / 0
 }
-
 var try = tuple(try)
+var try = try[0]
 
-print(str(try))
+assert(try == 'OperationException', 'OperationException not raised.')
 
 
 
 ##########################################
 # KNOWN BUGS                             #
 ##########################################
+
+#var try = handler {
+#    10 / 0.0
+#}
+#var try = tuple(try)
+#var try = try[0]
+
+#assert(try == 'OperationException', 'OperationException not raised.')
+
+
+
+#10[10]
+
+
 
 #int([1, 2, 3])
 #float([1, 2, 3])

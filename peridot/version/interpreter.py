@@ -352,6 +352,34 @@ class Interpreter():
         return(
             res.success(result)
         )
+    
+    def visit_VarIndicieNode(self, node, context):
+        res = RTResult()
+
+        name = node.token.value
+        indicie = res.register(
+            self.visit(
+                node.indicie, context
+            )
+        )
+        
+        if res.shouldreturn():
+            return(res)
+
+        value = context.symbols.access(name)
+
+        returnval, error = value.indicie(
+            indicie
+        )
+
+        if error:
+            return(
+                res.failure(error)
+            )
+        
+        return(
+            res.success(returnval)
+        )
 
 
 

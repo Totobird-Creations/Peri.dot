@@ -208,6 +208,10 @@ class Exc_IdentifierError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('IdentifierException', msg, start, end, context, originstart, originend, origindisplay)
 
+class Exc_IndexError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('IndexException', msg, start, end, context, originstart, originend, origindisplay)
+
 class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('OperationException', msg, start, end, context, originstart, originend, origindisplay)

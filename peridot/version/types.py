@@ -12,7 +12,7 @@ init()
 
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_IndexError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -229,6 +229,12 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["list"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def totuple(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["tuple"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
+    def indicie(self, indicie) -> Tuple[Any, Optional[Exc_TypeError]]:
+        self.originstart += indicie.originstart
+        self.originend += indicie.originend
+        self.origindisplay += indicie.origindisplay
+        return((None, Exc_TypeError(f'{self.type} can not be indexed', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -1024,6 +1030,37 @@ class ArrayType(TypeObj):
             None
         ))
 
+    def indicie(self, indicie):
+        if not isinstance(indicie, IntType):
+            return((
+                None,
+                Exc_TypeError(
+                    f'{TYPES["list"]} index must be of type {TYPES["integer"]}',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+        
+        try:
+            value = self.value[indicie.value]
+
+        except IndexError:
+            return((
+                None,
+                Exc_IndexError(
+                    f'{TYPES["list"]} index out of range',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+
+        return((
+            value,
+            None
+        ))
+
     def copy(self):
         copy = ArrayType(self.value.copy())
         copy.setcontext(self.context)
@@ -1048,6 +1085,37 @@ class TupleType(TypeObj):
             StringType(self.__clean__())
                 .setcontext(self.context)
                 .setpos(self.start, self.end),
+            None
+        ))
+
+    def indicie(self, indicie):
+        if not isinstance(indicie, IntType):
+            return((
+                None,
+                Exc_TypeError(
+                    f'{TYPES["list"]} index must be of type {TYPES["integer"]}',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+        
+        try:
+            value = self.value[indicie.value]
+
+        except IndexError:
+            return((
+                None,
+                Exc_IndexError(
+                    f'{TYPES["list"]} index out of range',
+                    self.start, self.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+
+        return((
+            value,
             None
         ))
 

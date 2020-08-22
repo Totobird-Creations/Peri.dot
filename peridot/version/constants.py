@@ -25,6 +25,8 @@ KEYWORDS = {
     'forloop'   : 'for',
     'in'        : 'in',
     'whileloop' : 'while',
+    'continue'  : 'continue',
+    'break'     : 'break',
     'handler'   : 'handler'
 }
 

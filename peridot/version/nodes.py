@@ -197,6 +197,7 @@ class ForLoopNode():
         else:
             self.end = self.vartoken.end
 
+
 class WhileLoopNode():
     def __init__(self, condition, bodynodes):
         self.condition = condition
@@ -208,6 +209,24 @@ class WhileLoopNode():
             self.end = self.bodynodes[-1].end
         else:
             self.end = self.condition.end
+
+
+class BreakNode():
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def __repr__(self):
+        return(f'Break')
+
+
+class ContinueNode():
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+    def __repr__(self):
+        return(f'Continue')
 
 
 

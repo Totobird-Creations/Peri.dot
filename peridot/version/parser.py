@@ -192,12 +192,95 @@ class Parser():
                     )
                 )
 
+            end = self.curtoken.end.copy()
             res.registeradvancement()
             self.advance()
 
             return(
                 res.success(
-                    ReturnNode(expr, start, self.curtoken.end.copy())
+                    ReturnNode(expr, start, end)
+                )
+            )
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['break']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
+
+            return(
+                res.success(
+                    BreakNode(start, end)
+                )
+            )
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['continue']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
+
+            return(
+                res.success(
+                    ContinueNode(start, end)
                 )
             )
 

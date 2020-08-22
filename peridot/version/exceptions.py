@@ -200,6 +200,14 @@ class Exc_AssertionError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('AssertionException', msg, start, end, context, originstart, originend, origindisplay)
 
+class Exc_BreakError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('BreakException', msg, start, end, context, originstart, originend, origindisplay)
+
+class Exc_ContinueError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('ContinueException', msg, start, end, context, originstart, originend, origindisplay)
+
 class Exc_FileAccessError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('FileAccessException', msg, start, end, context, originstart, originend, origindisplay)

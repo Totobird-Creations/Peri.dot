@@ -18,11 +18,15 @@ class RTResult():
     def reset(self):
         self.value = None
         self.funcvalue = None
+        self.shouldbreak = False
+        self.shouldcontinue = False
         self.error = None
 
     def register(self, res):
         self.error = res.error
         self.funcvalue = res.funcvalue
+        self.shouldbreak = res.shouldbreak
+        self.shouldcontinue = res.shouldcontinue
 
         return(res.value)
 
@@ -38,6 +42,18 @@ class RTResult():
 
         return(self)
 
+    def successbreak(self, value):
+        self.reset()
+        self.shouldbreak = value
+
+        return(self)
+
+    def successcontinue(self, value):
+        self.reset()
+        self.shouldcontinue = value
+
+        return(self)
+
     def failure(self, error):
         self.error = error
 
@@ -45,7 +61,7 @@ class RTResult():
 
     def shouldreturn(self):
         return(
-            self.error or self.funcvalue
+            self.error or self.funcvalue or self.shouldbreak or self.shouldcontinue
         )
 
 ##########################################
@@ -53,19 +69,37 @@ class RTResult():
 ##########################################
 
 class Interpreter():
-    def visit(self, node, context):
+    def visit(self, node, context, insideloop=False):
         method = f'visit_{type(node).__name__}'
         meth = method
         method = getattr(self, method)
 
-        result = method(node, context)
+        result = method(node, context, insideloop=insideloop)
+
+        if result.shouldcontinue and not insideloop:
+            return(RTResult().failure(
+                Exc_ContinueError(
+                    'Can not continue from outside loop',
+                    node.start, node.end,
+                    context
+                )
+            ))
+
+        if result.shouldbreak and not insideloop:
+            return(RTResult().failure(
+                Exc_BreakError(
+                    'Can not break from outside loop',
+                    node.start, node.end,
+                    context
+                )
+            ))
 
         return(result)
 
 
 
     ### TYPES
-    def visit_IntNode(self, node, context):
+    def visit_IntNode(self, node, context, insideloop=False):
         return(
             RTResult().success(
                 IntType(node.token.value)
@@ -75,7 +109,7 @@ class Interpreter():
         )
 
 
-    def visit_FloatNode(self, node, context):
+    def visit_FloatNode(self, node, context, insideloop=False):
         return(
             RTResult().success(
                 FloatType(node.token.value)
@@ -85,7 +119,7 @@ class Interpreter():
         )
 
 
-    def visit_StringNode(self, node, context):
+    def visit_StringNode(self, node, context, insideloop=False):
         return(
             RTResult().success(
                 StringType(node.token.value)
@@ -95,7 +129,7 @@ class Interpreter():
         )
 
 
-    def visit_ArrayNode(self, node, context):
+    def visit_ArrayNode(self, node, context, insideloop=False):
         res = RTResult()
         elements = []
         type_ = None
@@ -103,7 +137,8 @@ class Interpreter():
             elm = res.register(
                 self.visit(
                     i,
-                    context
+                    context,
+                    insideloop=insideloop
                 )
             )
 
@@ -136,14 +171,15 @@ class Interpreter():
         )
 
 
-    def visit_TupleNode(self, node, context):
+    def visit_TupleNode(self, node, context, insideloop=False):
         res = RTResult()
         elements = []
         for i in node.elmnodes:
             elm = res.register(
                 self.visit(
                     i,
-                    context
+                    context,
+                    insideloop=insideloop
                 )
             )
 
@@ -163,7 +199,7 @@ class Interpreter():
 
 
     ### VARIABLE CONTROL
-    def visit_VarAccessNode(self, node, context):
+    def visit_VarAccessNode(self, node, context, insideloop=False):
         res = RTResult()
 
         name = node.token.value
@@ -198,7 +234,7 @@ class Interpreter():
         )
 
 
-    def visit_VarAssignNode(self, node, context):
+    def visit_VarAssignNode(self, node, context, insideloop=False):
         res = RTResult()
 
         name = node.token.value
@@ -206,7 +242,8 @@ class Interpreter():
         value = res.register(
             self.visit(
                 node.valnode,
-                context
+                context,
+                    insideloop=insideloop
             )
         )
 
@@ -261,14 +298,15 @@ class Interpreter():
         )
 
 
-    def visit_VarCreateNode(self, node, context):
+    def visit_VarCreateNode(self, node, context, insideloop=False):
         res = RTResult()
 
         name = node.token.value
         value = res.register(
             self.visit(
                 node.valnode,
-                context
+                context,
+                insideloop=insideloop
             )
         )
 
@@ -301,7 +339,7 @@ class Interpreter():
         )
 
 
-    def visit_VarNullNode(self, node, context):
+    def visit_VarNullNode(self, node, context, insideloop=False):
         res = RTResult()
 
         name = node.token
@@ -335,7 +373,7 @@ class Interpreter():
             )
         )
 
-    def visit_VarCallNode(self, node, context):
+    def visit_VarCallNode(self, node, context, insideloop=False):
         res = RTResult()
 
         name = node.name
@@ -344,7 +382,9 @@ class Interpreter():
 
         callnode = res.register(
             self.visit(
-                node.node, context
+                node.node,
+                context,
+                insideloop=insideloop
             )
         )
 
@@ -362,7 +402,8 @@ class Interpreter():
                 res.register(
                     self.visit(
                         argnode,
-                        context
+                        context,
+                        insideloop=insideloop
                     )
                 )
             )
@@ -390,7 +431,7 @@ class Interpreter():
 
 
     ### FUNCTIONS
-    def visit_FuncCreateNode(self, node, context):
+    def visit_FuncCreateNode(self, node, context, insideloop=False):
         res = RTResult()
 
         bodynodes = node.bodynodes
@@ -403,7 +444,7 @@ class Interpreter():
         )
 
 
-    def visit_ReturnNode(self, node, context):
+    def visit_ReturnNode(self, node, context, insideloop=False):
         res = RTResult()
 
         if not context.parent:
@@ -421,7 +462,8 @@ class Interpreter():
             value = res.register(
                 self.visit(
                     node.returnnode,
-                    context
+                    context,
+                    insideloop=insideloop
                 )
             )
 
@@ -437,14 +479,16 @@ class Interpreter():
 
 
     ### FLOW CONTROL
-    def visit_IfNode(self, node, context):
+    def visit_IfNode(self, node, context, insideloop=False):
         res = RTResult()
         #returnval = NullType().setpos(node.start, node.end).setcontext(context)
 
         for condition, codeblock in node.cases:
             condvalue = res.register(
                 self.visit(
-                    condition, context
+                    condition,
+                    context,
+                    insideloop=insideloop
                 )
             )
             if res.shouldreturn():
@@ -464,7 +508,8 @@ class Interpreter():
                     res.register(
                         self.visit(
                             j,
-                            context
+                            context,
+                            insideloop=insideloop
                         )
                     )
 
@@ -484,7 +529,8 @@ class Interpreter():
                 res.register(
                     self.visit(
                         i,
-                        context
+                        context,
+                        insideloop=insideloop
                     )
                 )
 
@@ -500,14 +546,16 @@ class Interpreter():
         )
             
 
-    def visit_ForLoopNode(self, node, context):
+    def visit_ForLoopNode(self, node, context, insideloop=False):
         res = RTResult()
 
         varname = node.vartoken.value
 
         loopthrough = res.register(
             self.visit(
-                node.loopthrough, context
+                node.loopthrough,
+                context,
+                insideloop=insideloop
             )
         )
 
@@ -527,6 +575,7 @@ class Interpreter():
             )
 
         try:
+            shouldbreak = False
             for i in loopthrough.value:
                 if type(i) != type(prevvalue) and not node.varoverwrite:
                     return(
@@ -547,12 +596,23 @@ class Interpreter():
                     res.register(
                         self.visit(
                             j,
-                            context
+                            context,
+                            insideloop=True
                         )
                     )
 
-                    if res.shouldreturn():
+                    if res.error:
                         return(res)
+
+                    if res.shouldbreak:
+                        shouldbreak = True
+                        break
+                
+                    if res.shouldcontinue:
+                        break
+
+                if shouldbreak:
+                    break
 
         except TypeError:
             return(
@@ -577,13 +637,15 @@ class Interpreter():
         )
 
 
-    def visit_WhileLoopNode(self, node, context):
+    def visit_WhileLoopNode(self, node, context, insideloop=False):
         res = RTResult()
 
         while True:
             condition = res.register(
                 self.visit(
-                    node.condition, context
+                    node.condition,
+                    context,
+                    insideloop=insideloop
                 )
             )
 
@@ -603,7 +665,8 @@ class Interpreter():
                 res.register(
                     self.visit(
                         j,
-                        context
+                        context,
+                        insideloop=insideloop
                     )
                 )
 
@@ -619,16 +682,33 @@ class Interpreter():
         )
 
 
+    def visit_BreakNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        res.successbreak(True)
+
+        return(res)
+
+
+    def visit_ContinueNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        res.successcontinue(True)
+
+        return(res)
+
+
 
     ### HANDLER
-    def visit_HandlerNode(self, node, context):
+    def visit_HandlerNode(self, node, context, insideloop=False):
         res = RTResult()
 
         for i in node.bodynodes:
             res.register(
                 self.visit(
                     i,
-                    context
+                    context,
+                    insideloop=insideloop
                 )
             )
 
@@ -659,12 +739,13 @@ class Interpreter():
 
 
     ### OPERATIONS
-    def visit_UnaryOpNode(self, node, context):
+    def visit_UnaryOpNode(self, node, context, insideloop=False):
         res = RTResult()
         result = res.register(
             self.visit(
                 node.node,
-                context
+                context,
+                insideloop=insideloop
             )
         )
 
@@ -695,13 +776,14 @@ class Interpreter():
         )
 
 
-    def visit_BinaryOpNode(self, node, context):
+    def visit_BinaryOpNode(self, node, context, insideloop=False):
         res = RTResult()
 
         left = res.register(
             self.visit(
                 node.lnode,
-                context
+                context,
+                insideloop=insideloop
             )
         )
         if res.shouldreturn():
@@ -710,7 +792,8 @@ class Interpreter():
         right = res.register(
             self.visit(
                 node.rnode,
-                context
+                context,
+                insideloop=insideloop
             )
         )
         if res.shouldreturn():
@@ -760,12 +843,14 @@ class Interpreter():
 
 
     ### MISCELLANIOUS
-    def visit_IndicieNode(self, node, context):
+    def visit_IndicieNode(self, node, context, insideloop=False):
         res = RTResult()
 
         value = res.register(
             self.visit(
-                node.node, context
+                node.node,
+                context,
+                insideloop=insideloop
             )
         )
 
@@ -775,7 +860,9 @@ class Interpreter():
         for i in node.indicies:
             i = res.register(
                 self.visit(
-                    i, context
+                    i,
+                    context,
+                    insideloop=insideloop
                 )
             )
 

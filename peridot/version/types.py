@@ -56,11 +56,15 @@ class RTResult():
     def reset(self):
         self.value = None
         self.funcvalue = None
+        self.shouldbreak = False
+        self.shouldcontinue = False
         self.error = None
 
     def register(self, res):
-        self.error = res.shouldreturn()
+        self.error = res.error
         self.funcvalue = res.funcvalue
+        self.shouldbreak = res.shouldbreak
+        self.shouldcontinue = res.shouldcontinue
 
         return(res.value)
 
@@ -76,6 +80,18 @@ class RTResult():
 
         return(self)
 
+    def successbreak(self, value):
+        self.reset()
+        self.shouldbreak = value
+
+        return(self)
+
+    def successcontinue(self, value):
+        self.reset()
+        self.shouldcontinue = value
+
+        return(self)
+
     def failure(self, error):
         self.error = error
 
@@ -83,7 +99,7 @@ class RTResult():
 
     def shouldreturn(self):
         return(
-            self.error or self.funcvalue
+            self.error or self.funcvalue or self.shouldbreak or self.shouldcontinue
         )
 
 ##########################################

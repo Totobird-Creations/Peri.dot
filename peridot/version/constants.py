@@ -22,6 +22,8 @@ KEYWORDS = {
     'if'        : 'if',
     'elif'      : 'elif',
     'else'      : 'else',
+    'case'      : 'switch',
+    'when'      : 'when',
     'forloop'   : 'for',
     'in'        : 'in',
     'whileloop' : 'while',

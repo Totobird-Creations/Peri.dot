@@ -3,6 +3,7 @@
 ##########################################
 
 from .constants  import * # type: ignore
+from .context    import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
 from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
@@ -526,7 +527,92 @@ class Interpreter():
                     .setcontext(context)
             )
         )
-            
+
+
+    def visit_SwitchNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        varname = node.vartoken.value
+        value = res.register(
+            self.visit(
+                node.value,
+                context,
+                insideloop=insideloop
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
+
+        prevvalue = context.symbols.access(varname)
+        if not node.varoverwrite and not prevvalue:
+            return(
+                res.failure(
+                    Exc_IdentifierError(
+                        f'\'{varname}\' is not defined',
+                        node.vartoken.start, node.vartoken.end,
+                        context
+                    )
+                )
+            )
+
+        exec_symbols = SymbolTable(context.symbols.parent)
+        exec_symbols.assign(varname, value)
+        exec_context = Context(context.display, exec_symbols, context.parent, context.parententry)
+
+        for condition, codeblock in node.cases:
+            condvalue = res.register(
+                self.visit(
+                    condition,
+                    exec_context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            istrue, error = condvalue.istrue()
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
+
+            if istrue:
+                for j in codeblock:
+                    res.register(
+                        self.visit(
+                            j,
+                            context,
+                            insideloop=insideloop
+                        )
+                    )
+
+                    if res.shouldreturn():
+                        return(res)
+
+                return(
+                    res.success(
+                        NullType()
+                            .setpos(node.start, node.end)
+                            .setcontext(context)
+                    )
+                )
+
+        if not node.varoverwrite:
+            context.symbols.assign(varname, prevvalue)
+
+        return(
+            res.success(
+                NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
+            )
+        )
+
 
     def visit_ForLoopNode(self, node, context, insideloop=False):
         res = RTResult()

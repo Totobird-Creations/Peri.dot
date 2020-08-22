@@ -183,6 +183,18 @@ class IfNode():
             self.end = self.cases[-1][0].end
 
 
+class SwitchNode():
+    def __init__(self, vartoken, varoverwrite, value, cases, elsecase, start, end):
+        self.vartoken = vartoken
+        self.varoverwrite = varoverwrite
+        self.value = value
+        self.cases = cases
+        self.elsecase = elsecase
+
+        self.start = start
+        self.end = end
+
+
 class ForLoopNode():
     def __init__(self, vartoken, varoverwrite, loopthrough, bodynodes):
         self.vartoken = vartoken

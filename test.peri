@@ -12,8 +12,9 @@
 ##########################################
 
 var a = 10
+var i = 20
 
-switch (var i as a) {
+switch (i as a) {
     when (i == 0) {
         print('0: ' + str(i))
     }

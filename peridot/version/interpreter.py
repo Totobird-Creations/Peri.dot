@@ -555,6 +555,17 @@ class Interpreter():
                     )
                 )
             )
+        if type(value) != type(prevvalue) and not node.varoverwrite:
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Can not assign {value.type} to \'{varname}\' ({prevvalue.type})',
+                        value.start, value.end,
+                        context,
+                        value.originstart, value.originend, value.origindisplay
+                    )
+                )
+            )
 
         value.reserved = True
 
@@ -618,9 +629,6 @@ class Interpreter():
 
                 if res.shouldreturn():
                     return(res)
-
-        if not node.varoverwrite:
-            context.symbols.assign(varname, prevvalue)
 
         return(
             res.success(
@@ -709,9 +717,6 @@ class Interpreter():
                     )
                 )
             )
-
-        if not node.varoverwrite:
-            context.symbols.assign(varname, prevvalue)
 
         return(
             res.success(

@@ -76,24 +76,6 @@ class Interpreter():
 
         result = method(node, context, insideloop=insideloop)
 
-        if result.shouldcontinue and not insideloop:
-            return(RTResult().failure(
-                Exc_ContinueError(
-                    'Can not continue from outside loop',
-                    node.start, node.end,
-                    context
-                )
-            ))
-
-        if result.shouldbreak and not insideloop:
-            return(RTResult().failure(
-                Exc_BreakError(
-                    'Can not break from outside loop',
-                    node.start, node.end,
-                    context
-                )
-            ))
-
         return(result)
 
 
@@ -685,6 +667,17 @@ class Interpreter():
     def visit_BreakNode(self, node, context, insideloop=False):
         res = RTResult()
 
+        if not insideloop:
+            return(
+                res.failure(
+                    Exc_BreakError(
+                        'Can not break from outside loop',
+                        node.start, node.end,
+                        context
+                    )
+                )
+            )
+
         res.successbreak(True)
 
         return(res)
@@ -692,6 +685,17 @@ class Interpreter():
 
     def visit_ContinueNode(self, node, context, insideloop=False):
         res = RTResult()
+
+        if not insideloop:
+            return(
+                res.failure(
+                    Exc_ContinueError(
+                        'Can not continue from outside loop',
+                        node.start, node.end,
+                        context
+                    )
+                )
+            )
 
         res.successcontinue(True)
 

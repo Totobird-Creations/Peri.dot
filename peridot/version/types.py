@@ -12,7 +12,7 @@ init()
 
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_IndexError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -38,6 +38,7 @@ TYPES = {
     'string'       : 'Str',
     'list'         : 'Array',
     'tuple'        : 'Tuple',
+    'dictionary'   : 'Dictionary',
     'boolean'      : 'Bool',
     'function'     : 'Function',
     'builtinfunc'  : 'Built-In Function',
@@ -184,24 +185,13 @@ class TypeObj():
                 None
             ))
     def bangequals(self, other: Any) -> Tuple[BooleanType, None]:
-        if type(self) != type(other):
-            return((
-                BooleanType(
-                    True
-                )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
-                    .setcontext(self.context),
-                None
-            ))
-        else:
-            return((
-                BooleanType(
-                    self.value != other.value
-                )
-                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
-                    .setcontext(self.context),
-                None
-            ))
+        eqequals, error = self.eqequals(other)
+        if error:
+            return((None, error))
+        eqequals.value = not eqequals.value
+
+        return((eqequals, None))
+        
     def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
@@ -265,6 +255,22 @@ class TypeObj():
 class NullType(TypeObj):
     def __init__(self):
         super().__init__(type_=TYPES['nonetype'])
+
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        if type(self) == type(other):
+            return((
+                BooleanType(True)
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(False)
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -1073,6 +1079,25 @@ class ArrayType(TypeObj):
 
         super().__init__(elements, type_=TYPES['list'])
 
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        equals = True
+        if type(self) == type(other):
+            if len(self.value) == len(other.value):
+                for i in range(len(self.value)):
+                    if not self.value[i].eqequals(other.value[i])[0].value:
+                        equals = False
+                        break
+            else:
+                equals = False
+        else:
+            equals = False
+        return((
+            BooleanType(equals)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                .setcontext(self.context),
+            None
+        ))
+
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
@@ -1126,12 +1151,138 @@ class ArrayType(TypeObj):
         return(f'[{", ".join([str(i) for i in self.value])}]')
 
 
+class DictionaryType(TypeObj):
+    def __init__(self, elements):
+        if not isinstance(elements, dict):
+            raise InternalPeridotError(f'Non dict value received')
+        keys = list(elements.keys())
+        if len(keys):
+            self.keytype = type(keys[0])
+            self.keytypename = keys[0].type
+            self.valuetype = type(elements[keys[0]])
+            self.valuetypename = elements[keys[0]].type
+            if not all(type(x) == self.keytype for x in keys):
+                raise InternalPeridotError(f'Dictionary element key recieved non {self.keytype.__name__} value')
+            if not all(type(elements[x]) == self.valuetype for x in keys):
+                raise InternalPeridotError(f'Dictionary element recieved non {self.valuetype.__name__} value')
+
+        super().__init__(elements, type_=TYPES['dictionary'])
+
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        equals = True
+        if type(self) == type(other):
+            selfkeys = list(self.value.keys())
+            otherkeys = list(other.value.keys())
+            if len(selfkeys) == len(otherkeys):
+                for i in range(len(selfkeys)):
+                    if not selfkeys[i].eqequals(otherkeys[i])[0].value:
+                        equals = False
+                        break
+                    if not self.value[selfkeys[i]].eqequals(other.value[otherkeys[i]])[0].value:
+                        equals = False
+                        break
+            else:
+                equals = False
+        else:
+            equals = False
+        return((
+            BooleanType(equals)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                .setcontext(self.context),
+            None
+        ))
+
+    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def indicie(self, indicie):
+        if not isinstance(indicie, self.keytype):
+            return((
+                None,
+                Exc_TypeError(
+                    f'{self.type} key must be of type {self.keytypename}',
+                    indicie.start, indicie.end,
+                    self.context,
+                    indicie.originstart, indicie.originend, indicie.origindisplay
+                )
+            ))
+        
+        value = None
+        keys = list(self.value.keys())
+        for i in range(len(keys)):
+            if keys[i].eqequals(indicie):
+                value = self.value[keys[i]]
+                break
+
+        if not value:
+            return((
+                None,
+                Exc_KeyError(
+                    f'{self.type} key, {indicie} does not exist',
+                    indicie.start, indicie.end,
+                    self.context,
+                    indicie.originstart, indicie.originend, indicie.origindisplay
+                )
+            ))
+
+        value = value.setpos(self.start, self.end).setcontext(self.context)
+
+        return((
+            value,
+            None
+        ))
+
+    def copy(self):
+        copy = DictionaryType(self.value.copy())
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.id = self.id
+
+        return(copy)
+
+    def __repr__(self):
+        result = ''
+        first = True
+        keys = list(self.value.keys())
+        values = self.value
+        for i in range(len(keys)):
+            if not first:
+                result += ', '
+            result += f'{keys[i]}: {values[keys[i]]}'
+            first = False
+        return(f'{{{result}}}')
+
+
 class TupleType(TypeObj):
     def __init__(self, elements):
         if not isinstance(elements, tuple):
             raise InternalPeridotError(f'Non tuple value received')
 
         super().__init__(elements, type_=TYPES['tuple'])
+
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        equals = True
+        if type(self) == type(other):
+            if len(self.value) == len(other.value):
+                for i in range(len(self.value)):
+                    if not self.value[i].eqequals(other.value[i])[0].value:
+                        equals = False
+                        break
+            else:
+                equals = False
+        else:
+            equals = False
+        return((
+            BooleanType(equals)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                .setcontext(self.context),
+            None
+        ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -1271,6 +1422,26 @@ class FunctionType(BaseFunction):
         self.argnames = argnames
         self.shouldreturn = shouldreturn
 
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.id == other.id
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    False
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+
     def call(self, name, args):
         res = RTResult()
         interpreter = Interpreter()
@@ -1344,6 +1515,26 @@ class BuiltInFunctionType(BaseFunction):
             self.value = value
         else:
             self.value = name
+
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value == other.value
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    False
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
 
     def call(self, name, args):
         res = RTResult()
@@ -1750,6 +1941,26 @@ class ExceptionType(TypeObj):
         self.line = start.line
         self.column = start.column
 
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.exc == other.exc and self.msg == other.msg and self.exc_start == other.exc_start and self.line == other.line and self.column == other.column
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    False
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+
     def copy(self):
         copy = ExceptionType(self.exc, self.msg, self.exc_start)
         copy.id = self.id
@@ -1791,6 +2002,26 @@ class ExceptionType(TypeObj):
 class IdType(TypeObj):
     def __init__(self, value):
         super().__init__(value, type_=TYPES['id'])
+
+    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+        if type(self) == type(other):
+            return((
+                BooleanType(
+                    self.value == other.value
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            return((
+                BooleanType(
+                    False
+                )
+                    .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                    .setcontext(self.context),
+                None
+            ))
 
     def tostr(self):
         return((

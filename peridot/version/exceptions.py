@@ -224,6 +224,10 @@ class Exc_IterationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('IterationException', msg, start, end, context, originstart, originend, origindisplay)
 
+class Exc_KeyError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('KeyException', msg, start, end, context, originstart, originend, origindisplay)
+
 class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('OperationException', msg, start, end, context, originstart, originend, origindisplay)

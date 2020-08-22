@@ -4,6 +4,8 @@
 
 # - Added switch statements
 # - Code block syntax is less strict
+# - Added dictionaries
+# - Rewrote eqequals system for most types
 
 
 
@@ -11,30 +13,19 @@
 # NEW FEATURES                           #
 ##########################################
 
-var a = 10
-var i = 20
-
-switch (i as a) {
-    when (i == 0) {
-        print('0: ' + str(i))
-    }
-    when (i <= 20) {
-        print('1~20: ' + str(i))
-    }
-    when (i <= 70) {
-        print('21~70: ' + str(i))
-    }
-    when (i <= 100) {
-        print('71~100: ' + str(i))
-    }
-    else {
-        print('Invalid value: ' + str(i))
-    }
+var apples = {
+    '1': 'apple',
+    '2': 'babble',
+    '3': 'cackle',
+    '4': 'dabble',
+    '5': 'fable',
+    '6': 'gurgle',
+    '7': 'hurdle'
 }
 
-print(str(i))
-
-
+print(str(
+    apples['1']
+))
 
 ##########################################
 # KNOWN BUGS                             #

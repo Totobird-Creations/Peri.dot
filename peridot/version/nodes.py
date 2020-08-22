@@ -47,6 +47,25 @@ class ArrayNode():
         return(f'[{", ".join(self.elmnodes)}]')
 
 
+class DictionaryNode():
+    def __init__(self, keynodes, valuenodes, start, end):
+        self.keynodes = keynodes
+        self.valuenodes = valuenodes
+
+        self.start = start
+        self.end   = end
+
+    def __repr__(self):
+        result = ''
+        first = True
+        for i in range(len(self.keynodes)):
+            if not first:
+                result += ', '
+            result += f'{self.keynodes[i]}: {self.valuenodes[i]}'
+            first = False
+        return(f'{{{result}}}')
+
+
 class TupleNode():
     def __init__(self, elmnodes, start, end):
         self.elmnodes = elmnodes

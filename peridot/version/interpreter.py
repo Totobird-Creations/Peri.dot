@@ -6,7 +6,7 @@ from .constants  import * # type: ignore
 from .context    import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
-from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
+from .types      import typesinit, TYPES, ArrayType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -149,7 +149,7 @@ class Interpreter():
             res.success(
                 ArrayType(elements)
                     .setcontext(context)
-                    .setpos(node.start, node.end, node.start, node.end, context.display)
+                    .setpos(node.start, node.end)
             )
         )
 
@@ -175,7 +175,76 @@ class Interpreter():
             res.success(
                 TupleType(tuple(elements))
                     .setcontext(context)
-                    .setpos(node.start, node.end, node.start, node.end, context.display)
+                    .setpos(node.start, node.end)
+            )
+        )
+
+
+    def visit_DictionaryNode(self, node, context, insideloop=False):
+        res = RTResult()
+        elements = {}
+        keytype = None
+        valuetype = None
+        for i in range(len(node.keynodes)):
+            key = res.register(
+                self.visit(
+                    node.keynodes[i],
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            value = res.register(
+                self.visit(
+                    node.valuenodes[i],
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if keytype:
+                if type(key) != type(keytype):
+                    return(
+                        res.failure(
+                            Exc_TypeError(
+                                f'{TYPES["dictionary"]} keys of type {keytype.type} can not include {key.type}',
+                                key.start, key.end,
+                                context,
+                                key.originstart, key.originend, key.origindisplay
+                            )
+                        )
+                    )
+            else:
+                keytype = key
+
+            if valuetype:
+                if type(value) != type(valuetype):
+                    return(
+                        res.failure(
+                            Exc_TypeError(
+                                f'{TYPES["dictionary"]} of type {valuetype.type} can not include {value.type}',
+                                value.start, value.end,
+                                context,
+                                value.originstart, value.originend, value.origindisplay
+                            )
+                        )
+                    )
+            else:
+                valuetype = value
+
+            if res.shouldreturn():
+                return(res)
+
+            elements[key] = value
+
+        return(
+            res.success(
+                DictionaryType(elements)
+                    .setcontext(context)
+                    .setpos(node.start, node.end)
             )
         )
 

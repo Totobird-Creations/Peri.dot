@@ -33,7 +33,7 @@ factor:
     - indicie
 
 indicie:
-    - call LSQUARE expr RSQUARE
+    - call (LSQUARE statement RSQUARE)+
         -> Index
     - call
 
@@ -56,6 +56,8 @@ atom:
         -> VarAccess
     - arrayexpr
         -> Array
+    - dictionaryexpr
+        -> Dictionary
     - funcdef
         -> FuncCreate
     - handler
@@ -68,7 +70,11 @@ atom:
         -> ForLoop|WhileLoop
 
 arrayexpr:
-    - LSQUARE EOL* (expr (COMMA EOL* expr)*)? EOL* RSQUARE
+    - LSQUARE EOL* (statement (COMMA EOL* statement)*)? EOL* RSQUARE
+        -> Array
+
+dictionaryexpr:
+    - LCURLY EOL* (statement COLON EOL* statement (COMMA ROL* statement COLON EOL* statement)*)? EOL* RCURLY
         -> Array
 
 funcdef:
@@ -82,8 +88,8 @@ handler:
         -> Handler
 
 ifexpr:
-    - KEYWORD:if LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*
-      (KEYWORD:elif LPAREN EOL* expr EOL* RPAREN EOL* codeblock EOL*)*
+    - KEYWORD:if LPAREN EOL* statement EOL* RPAREN EOL* codeblock EOL*
+      (KEYWORD:elif LPAREN EOL* statement EOL* RPAREN EOL* codeblock EOL*)*
       (KEYWORD:else EOL* codeblock)?
         -> If
 
@@ -95,9 +101,9 @@ switchexpr:
         -> Switch
 
 loopexpr:
-    - KEYWORD:forloop LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in expr EOL* RPAREN EOL* codeblock
+    - KEYWORD:forloop LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in statement EOL* RPAREN EOL* codeblock
         -> ForLoop
-    - KEYWORD:whileloop LPAREN EOL* expr EOL* RPAREN EOL* codeblock
+    - KEYWORD:whileloop LPAREN EOL* statement EOL* RPAREN EOL* codeblock
         -> WhileLoop
 
 codeblock:

@@ -478,7 +478,7 @@ class Parser():
 
                 indicies.append(
                     res.register(
-                        self.expr()
+                        self.statement()
                     )
                 )
 
@@ -784,6 +784,20 @@ class Parser():
                 )
             )
 
+        elif token.type == TT_LCURLY:
+            dictionaryexpr = res.register(
+                self.dictionaryexpr()
+            )
+
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    dictionaryexpr
+                )
+            )
+
         elif token.matches(TT_KEYWORD, KEYWORDS['funccreate']):
             funcdef = res.register(self.funcdef())
             if res.error:
@@ -936,6 +950,150 @@ class Parser():
                 )
             )
         )
+
+
+    def dictionaryexpr(self):
+        res = ParseResult()
+        keys = []
+        values = []
+        start = self.curtoken.start.copy()
+
+        if self.curtoken.type != TT_LCURLY:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'{{\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        if self.curtoken.type == TT_RCURLY:
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
+        
+        else:
+            keys.append(
+                res.register(
+                    self.statement()
+                )
+            )
+
+            if res.error:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'}}\', identifier, keyword, operation, type not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            if self.curtoken.type != TT_COLON:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \':\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            values.append(
+                res.register(
+                    self.statement()
+                )
+            )
+
+            if res.error:
+                return(res)
+
+            while self.curtoken.type == TT_COMMA:
+                res.registeradvancement()
+                self.advance()
+
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+                keys.append(
+                    res.register(
+                        self.statement()
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+                if self.curtoken.type != TT_COLON:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                f'Expected \':\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                res.registeradvancement()
+                self.advance()
+
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+                values.append(
+                    res.register(
+                        self.statement()
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+            if self.curtoken.type != TT_RCURLY:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \',\', \'}}\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
+
+        return(
+            res.success(
+                DictionaryNode(
+                    keys, values,
+                    start, end
+                )
+            )
+        )
+
+            
 
 
     def funcdef(self):
@@ -1127,7 +1285,7 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-        condition = res.register(self.expr())
+        condition = res.register(self.statement())
         if res.error: return(res)
 
         while self.curtoken.type == TT_EOL:
@@ -1179,7 +1337,7 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-            condition = res.register(self.expr())
+            condition = res.register(self.statement())
             if res.error: return(res)
 
             while self.curtoken.type == TT_EOL:
@@ -1380,7 +1538,7 @@ class Parser():
                 self.advance()
 
             condition = res.register(
-                self.expr()
+                self.statement()
             )
 
             if res.error:
@@ -1522,7 +1680,7 @@ class Parser():
             self.advance()
 
             loopthrough = res.register(
-                self.expr()
+                self.statement()
             )
 
             if res.error:
@@ -1587,7 +1745,7 @@ class Parser():
                 self.advance()
             
             condition = res.register(
-                self.expr()
+                self.statement()
             )
 
             if res.error:

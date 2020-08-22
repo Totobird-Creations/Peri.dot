@@ -88,9 +88,10 @@ ifexpr:
         -> If
 
 switchexpr:
-    - KEYWORD:case LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in statement EOL* RPAREN EOL* LCURLY EOL+
+    - KEYWORD:case LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in statement EOL* RPAREN EOL* LCURLY EOL*
       (KEYWORD:when LPAREN EOL* statement EOL* RPAREN EOL* codeblock EOL*)+
-      (KEYWORD:else EOL* codeblock)?
+      (KEYWORD:else EOL* codeblock)? EOL*
+      RCURLY
         -> Switch
 
 loopexpr:
@@ -100,5 +101,4 @@ loopexpr:
         -> WhileLoop
 
 codeblock:
-    - LCURLY (statement)? RCURLY
-    - LCURLY EOL+ (statement (EOL statement))? EOL* RCURLY
+    - LCURLY EOL* (statement (EOL statement))? EOL* RCURLY

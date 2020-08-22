@@ -1289,11 +1289,11 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
-        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['in']):
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['as']):
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["in"]}\' not found',
+                        f'Expected \'{KEYWORDS["as"]}\' not found',
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1342,16 +1342,6 @@ class Parser():
 
         res.registeradvancement()
         self.advance()
-
-        if self.curtoken.type != TT_EOL:
-            return(
-                res.failure(
-                    Syn_SyntaxError(
-                        f'Expected EOL not found',
-                        self.curtoken.start, self.curtoken.end
-                    )
-                )
-            )
 
         while self.curtoken.type == TT_EOL:
             res.registeradvancement()
@@ -1430,6 +1420,23 @@ class Parser():
 
             cases.append((condition, codeblock))
 
+        elsecase = None
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['else']):
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+            
+            elsecase = res.register(self.codeblock())
+            if res.error:
+                return(res)
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         if self.curtoken.type != TT_RCURLY:
             return(
                 res.failure(
@@ -1447,7 +1454,7 @@ class Parser():
             res.success(
                 SwitchNode(
                     vartoken, varoverwrite, value,
-                    cases, None,
+                    cases, elsecase,
                     start, self.curtoken.end
                 )
             )
@@ -1652,37 +1659,11 @@ class Parser():
         res.registeradvancement()
         self.advance()
 
-        if self.curtoken.type == TT_EOL:
-            while self.curtoken.type == TT_EOL:
-                res.registeradvancement()
-                self.advance()
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
 
-            if self.curtoken.type != TT_RCURLY:
-                expr = res.register(
-                    self.statement()
-                )
-
-                if res.error:
-                    return(res)
-                tokens.append(expr)
-
-                while self.curtoken.type == TT_EOL:
-                    while self.curtoken.type == TT_EOL:
-                        res.registeradvancement()
-                        self.advance()
-
-                    if self.curtoken.type == TT_RCURLY:
-                        break
-
-                    expr = res.register(
-                        self.statement()
-                    )
-
-                    if res.error:
-                        return(res)
-                    tokens.append(expr)
-
-        elif self.curtoken.type != TT_RCURLY:
+        if self.curtoken.type != TT_RCURLY:
             expr = res.register(
                 self.statement()
             )
@@ -1690,6 +1671,22 @@ class Parser():
             if res.error:
                 return(res)
             tokens.append(expr)
+
+            while self.curtoken.type == TT_EOL:
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+                if self.curtoken.type == TT_RCURLY:
+                    break
+
+                expr = res.register(
+                    self.statement()
+                )
+
+                if res.error:
+                    return(res)
+                tokens.append(expr)
 
         if self.curtoken.type != TT_RCURLY:
             return(

@@ -556,9 +556,13 @@ class Interpreter():
                 )
             )
 
+        value.reserved = True
+
         exec_symbols = SymbolTable(context.symbols.parent)
         exec_symbols.assign(varname, value)
         exec_context = Context(context.display, exec_symbols, context.parent, context.parententry)
+
+        context.symbols.assign(varname, value)
 
         for condition, codeblock in node.cases:
             condvalue = res.register(
@@ -601,6 +605,19 @@ class Interpreter():
                             .setcontext(context)
                     )
                 )
+
+        if node.elsecase:
+            for i in node.elsecase:
+                res.register(
+                    self.visit(
+                        i,
+                        context,
+                        insideloop=insideloop
+                    )
+                )
+
+                if res.shouldreturn():
+                    return(res)
 
         if not node.varoverwrite:
             context.symbols.assign(varname, prevvalue)

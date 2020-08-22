@@ -23,6 +23,7 @@ KEYWORDS = {
     'elif'      : 'elif',
     'else'      : 'else',
     'case'      : 'switch',
+    'as'        : 'as',
     'when'      : 'when',
     'forloop'   : 'for',
     'in'        : 'in',

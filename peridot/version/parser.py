@@ -580,6 +580,7 @@ class Parser():
             )
 
         elif token.type == TT_LPAREN:
+            start = self.curtoken.start.copy()
             res.registeradvancement()
             self.advance()
 
@@ -594,19 +595,60 @@ class Parser():
             if res.error:
                 return(res)
 
-            while self.curtoken.type == TT_EOL:
-                res.registeradvancement()
-                self.advance()
+            if self.curtoken.type == TT_COMMA:
+                expr = [expr]
 
-            if self.curtoken.type == TT_RPAREN:
+                while self.curtoken.type == TT_COMMA:
+                    res.registeradvancement()
+                    self.advance()
+
+                    while self.curtoken.type == TT_EOL:
+                        res.registeradvancement()
+                        self.advance()
+
+                    expr.append(
+                        res.register(
+                            self.statement()
+                        )
+                    )
+                
+                if self.curtoken.type != TT_RPAREN:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                'Expected \',\' \')\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                end = self.curtoken.end.copy()
                 res.registeradvancement()
                 self.advance()
 
                 return(
                     res.success(
-                        expr
+                        TupleNode(
+                            expr,
+                            start, end
+                        )
                     )
                 )
+
+            else:
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+                if self.curtoken.type == TT_RPAREN:
+                    res.registeradvancement()
+                    self.advance()
+
+                    return(
+                        res.success(
+                            expr
+                        )
+                    )
 
             return(
                 res.failure(
@@ -718,7 +760,7 @@ class Parser():
         elmnodes = []
         start = self.curtoken.start.copy()
 
-        if not self.curtoken.type == TT_LSQUARE:
+        if self.curtoken.type != TT_LSQUARE:
             return(
                 res.failure(
                     Syn_SyntaxError(

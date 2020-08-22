@@ -5,7 +5,7 @@
 from .constants  import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
-from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType # type: ignore
+from .types      import typesinit, TYPES, ArrayType, BooleanType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -130,6 +130,31 @@ class Interpreter():
         return(
             res.success(
                 ArrayType(elements)
+                    .setcontext(context)
+                    .setpos(node.start, node.end, node.start, node.end, context.display)
+            )
+        )
+
+
+    def visit_TupleNode(self, node, context):
+        res = RTResult()
+        elements = []
+        for i in node.elmnodes:
+            elm = res.register(
+                self.visit(
+                    i,
+                    context
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            elements.append(elm)
+
+        return(
+            res.success(
+                TupleType(tuple(elements))
                     .setcontext(context)
                     .setpos(node.start, node.end, node.start, node.end, context.display)
             )

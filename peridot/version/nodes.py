@@ -44,7 +44,18 @@ class ArrayNode():
         self.end   = end
 
     def __repr__(self):
-        return(f'{self.elmnodes}')
+        return(f'[{", ".join(self.elmnodes)}]')
+
+
+class TupleNode():
+    def __init__(self, elmnodes, start, end):
+        self.elmnodes = elmnodes
+
+        self.start = start
+        self.end   = end
+
+    def __repr__(self):
+        return(f'({", ".join(self.elmnodes)})')
 
 
 

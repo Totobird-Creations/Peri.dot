@@ -49,7 +49,7 @@ atom:
         -> Float
     - STRING
         -> String
-    - LPAREN EOL* expr EOL* RPAREN
+    - LPAREN EOL* statement EOL* RPAREN
     - IDENTIFIER EQUALS expr
         -> VarAssign
     - IDENTIFIER

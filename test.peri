@@ -2,13 +2,16 @@
 # RELEASE INFO                           #
 ##########################################
 
-# - Added switch statements
-# - Code block syntax is less strict
-# - Added dictionaries
-# - Rewrote eqequals system for most types
-# - Added include statement
-# - Added namespace type (class)
-# - Type functions renamed to "Type"
+# - Added    : Switch statements
+# - Added    : Dictionaries
+# - Added    : Include statement
+# - Added    : Namespace type (class)
+# - Added    : Lambdas (Single line functions without a return needed)
+# - Added    : Type built-in function
+
+# - Modified : Code block syntax is less strict
+
+# - Rewrote  : Eqequals system for most types
 
 
 
@@ -16,17 +19,14 @@
 # NEW FEATURES                           #
 ##########################################
 
+print(str(
+    type('hello')
+))
 
-print(str(throw))
-print(str(assert))
-print(str(panic))
-print(str(print))
-print(str(range))
+print(str(
+    type(10)
+))
 
-print(str(id))
-print(str(str))
-print(str(int))
-print(str(float))
-print(str(bool))
-print(str(array))
-print(str(tuple))
+print(str(
+    type([1, 2, 3])
+))

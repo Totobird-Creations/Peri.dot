@@ -11,6 +11,7 @@ def defaultvariables(symbols):
     symbols.assign('print' , BuiltInFunctionType('print'))
     symbols.assign('range' , BuiltInFunctionType('range'))
 
+    symbols.assign('type'  , BuiltInFunctionType('type', type_=TYPES['type']))
     symbols.assign('id'    , BuiltInFunctionType('id', type_=TYPES['type']))
     symbols.assign('str'   , BuiltInFunctionType('str', type_=TYPES['type']))
     symbols.assign('int'   , BuiltInFunctionType('int', type_=TYPES['type']))

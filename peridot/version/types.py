@@ -227,6 +227,8 @@ class TypeObj():
         )
     def istrue(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["type"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["string"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
@@ -276,6 +278,14 @@ class NullType(TypeObj):
                     .setcontext(self.context),
                 None
             ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            NullType()
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -534,6 +544,14 @@ class IntType(TypeObj):
                     self.originstart, self.originend, self.origindisplay
                 )
             ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('int', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -800,6 +818,14 @@ class FloatType(TypeObj):
                 )
             ))
 
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('float', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
+
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
@@ -872,6 +898,14 @@ class StringType(TypeObj):
                     self.originstart, self.originend, self.origindisplay
                 )
             ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('string', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
@@ -1040,6 +1074,14 @@ class BooleanType(TypeObj):
             None
         ))
 
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('bool', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
+
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
@@ -1100,6 +1142,14 @@ class ArrayType(TypeObj):
             BooleanType(equals)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                 .setcontext(self.context),
+            None
+        ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('array', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
         ))
 
@@ -1197,6 +1247,14 @@ class DictionaryType(TypeObj):
             None
         ))
 
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('dictionary', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
+
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
@@ -1286,6 +1344,14 @@ class TupleType(TypeObj):
             BooleanType(equals)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
                 .setcontext(self.context),
+            None
+        ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('tuple', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
         ))
 
@@ -1814,6 +1880,27 @@ class BuiltInFunctionType(BaseFunction):
     exec_range.argnames = ['start', 'stop', 'step']
 
 
+    def exec_type(self, exec_context):
+        res = RTResult()
+
+        value = exec_context.symbols.access('obj')
+        result, error = value.totype()
+
+        if error:
+            return(
+                RTResult().failure(
+                    error
+                )
+            )
+
+        return(
+            RTResult().success(
+                result
+            )
+        )
+    exec_type.argnames = ['obj']
+
+
     def exec_str(self, exec_context):
         res = RTResult()
 
@@ -2042,6 +2129,14 @@ class IdType(TypeObj):
                     .setcontext(self.context),
                 None
             ))
+
+    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((
+            BuiltInFunctionType('id', type_=TYPES['type'])
+                .setcontext(self.context)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
+            None
+        ))
 
     def tostr(self):
         return((

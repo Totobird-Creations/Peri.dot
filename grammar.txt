@@ -89,6 +89,10 @@ funcdef:
       (IDENTIFIER (COMMA EOL* IDENTIFIER)*)? EOL*
       RPAREN EOL* codeblock
         -> FuncCreate
+    - KEYWORD:createlambda LPAREN EOL*
+      (IDENTIFIER (COMMA EOL* IDENTIFIER)*)? EOL*
+      RPAREN EOL* LCURLY EOL* statement EOL* RCURLY
+        -> LambdaCreate
 
 handler:
     - KEYWORD:handler EOL* codeblock

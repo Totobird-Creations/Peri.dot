@@ -898,7 +898,7 @@ class Parser():
                 )
             )
 
-        elif token.matches(TT_KEYWORD, KEYWORDS['funccreate']):
+        elif token.matches(TT_KEYWORD, KEYWORDS['funccreate']) or token.matches(TT_KEYWORD, KEYWORDS['lambdacreate']):
             funcdef = res.register(self.funcdef())
             if res.error:
                 return(res)
@@ -1199,7 +1199,7 @@ class Parser():
     def funcdef(self):
         res = ParseResult()
 
-        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['funccreate']):
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['funccreate']) and not self.curtoken.matches(TT_KEYWORD, KEYWORDS['lambdacreate']):
             return(
                 res.failure(
                     Syn_SyntaxError(
@@ -1210,6 +1210,7 @@ class Parser():
             )
 
         token = self.curtoken
+        mode = self.curtoken.value
 
         res.registeradvancement()
         self.advance()
@@ -1292,12 +1293,59 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-        codeblock = res.register(
-            self.codeblock()
-        )
+        if mode == KEYWORDS['funccreate']:
+            codeblock = res.register(
+                self.codeblock()
+            )
 
-        if res.error:
-            return(res)
+            if res.error:
+                return(res)
+        else:
+            if self.curtoken.type != TT_LCURLY:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \'(\', identifier not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+                
+            line = res.register(
+                self.statement()
+            )
+
+            if res.error:
+                return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RCURLY:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \')\', identifier not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            end = self.curtoken
+            res.registeradvancement()
+            self.advance()
+
+            codeblock = [ReturnNode(
+                line, token.start, end
+            )]
 
         return(
             res.success(

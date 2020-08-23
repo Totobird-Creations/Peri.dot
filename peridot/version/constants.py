@@ -13,25 +13,26 @@ ALPHABET = string.ascii_letters
 ALPHANUMERIC = ALPHABET + DIGITS
 
 KEYWORDS = {
-    'varcreate' : 'var',
-    'funccreate': 'func',
-    'logicaland': 'and',
-    'logicalor' : 'or',
-    'logicalnot': 'not',
-    'return'    : 'return',
-    'if'        : 'if',
-    'elif'      : 'elif',
-    'else'      : 'else',
-    'case'      : 'switch',
-    'as'        : 'as',
-    'when'      : 'when',
-    'forloop'   : 'for',
-    'in'        : 'in',
-    'whileloop' : 'while',
-    'continue'  : 'continue',
-    'break'     : 'break',
-    'handler'   : 'handler',
-    'import'    : 'include'
+    'varcreate'   : 'var',
+    'funccreate'  : 'func',
+    'lambdacreate': 'lambda',
+    'logicaland'  : 'and',
+    'logicalor'   : 'or',
+    'logicalnot'  : 'not',
+    'return'      : 'return',
+    'if'          : 'if',
+    'elif'        : 'elif',
+    'else'        : 'else',
+    'case'        : 'switch',
+    'as'          : 'as',
+    'when'        : 'when',
+    'forloop'     : 'for',
+    'in'          : 'in',
+    'whileloop'   : 'while',
+    'continue'    : 'continue',
+    'break'       : 'break',
+    'handler'     : 'handler',
+    'import'      : 'include'
 }
 
 RESERVED = [

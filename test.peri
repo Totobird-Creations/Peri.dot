@@ -18,7 +18,7 @@
 var module = include('testmodule.peri')
 
 print(str(
-    meow()
+    module.add()
 ))
 
 

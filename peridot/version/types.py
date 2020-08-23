@@ -1410,15 +1410,15 @@ class BaseFunction(TypeObj):
 
     def gencontext(self, display):
         self.display = display
-        context = Context(
+        exec_context = Context(
             display,
             SymbolTable(self.context.symbols),
             self.context,
-            [self.start, self.end, self.originstart, self.originend, self.origindisplay]
+            [self.start, self.end, [self.originstart], [self.originend], [self.origindisplay]]
         )
-        context.caughterrors = self.context.caughterrors
+        exec_context.caughterrors = self.context.caughterrors
 
-        return(context)
+        return(exec_context)
 
     def checkargs(self, arguments, args):
         res = RTResult()
@@ -1576,16 +1576,12 @@ class FunctionType(BaseFunction):
 
         if not isinstance(result, NullType):
             if self.returntype.returntype != result.type:
-                self.context.display = exec_context.display
-                result.originstart.insert(0, self.returntype.start)
-                result.originend.insert(0, self.returntype.end)
-                result.origindisplay.insert(0, self.context)
                 return(
                     res.failure(
                         Exc_TypeError(
                             f'Return value of \'{self.name}\' must be of type {self.returntype.returntype}, {result.type} returned',
                             result.start, result.end,
-                            self.context,
+                            exec_context,
                             result.originstart, result.originend, result.origindisplay
                         )
                     )

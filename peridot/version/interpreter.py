@@ -462,7 +462,10 @@ class Interpreter():
             if res.shouldreturn():
                 return(res)
 
-        callvalue = callnode.value
+        try:
+            callvalue = callnode.name
+        except AttributeError:
+            callvalue = None
 
         result = res.register(
             callnode.call(
@@ -1084,6 +1087,9 @@ class Interpreter():
                         error
                     )
                 )
+
+            if isinstance(value, FunctionType):
+                value.name = i.value
 
         return(
             res.success(value)

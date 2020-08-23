@@ -1366,13 +1366,20 @@ class BaseFunction(TypeObj):
         res = RTResult()
 
         if len(args) != len(argnames):
+            try:
+                self.originstart = self.originstart[0]
+                self.originend = self.originend[0]
+                self.origindisplay = self.origindisplay[0]
+            except IndexError:
+                pass
+
             return(
                 res.failure(
                     Exc_ArgumentError(
                         f'\'{self.name}\' takes {len(argnames)} arguments, {len(args)} given',
                         self.start, self.end,
                         self.context,
-                        self.originstart[0], self.originend[0], self.origindisplay[0]
+                        self.originstart, self.originend, self.origindisplay
                     )
                 )
             )
@@ -1450,7 +1457,8 @@ class FunctionType(BaseFunction):
         res = RTResult()
         interpreter = Interpreter()
 
-        exec_context = self.gencontext((name, self.id))
+        print(self.name)
+        exec_context = self.gencontext((self.name, self.id))
         res.register(
             self.checkpopargs(
                 self.argnames, args,
@@ -1495,6 +1503,7 @@ class FunctionType(BaseFunction):
     def copy(self):
         copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)
         copy.id = self.id
+        copy.name = self.name
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 

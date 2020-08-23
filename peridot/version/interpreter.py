@@ -327,6 +327,7 @@ class Interpreter():
             )
 
         if type(prevvalue) != type(value) and not isinstance(prevvalue, NullType):
+            #value.originstart += prevvalue.originstart
             return(
                 res.failure(
                     Exc_TypeError(

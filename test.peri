@@ -8,6 +8,7 @@
 # - Rewrote eqequals system for most types
 # - Added include statement
 # - Added namespace type (class)
+# - Type functions renamed to "Type"
 
 
 
@@ -15,22 +16,17 @@
 # NEW FEATURES                           #
 ##########################################
 
-var module = include('testmodule.peri')
 
-print(str(
-    module.add(1, 2.0)
-))
+print(str(throw))
+print(str(assert))
+print(str(panic))
+print(str(print))
+print(str(range))
 
-
-
-##########################################
-# KNOWN BUGS                             #
-##########################################
-
-
-
-#var add = func(a, b) {
-#    return(None)
-#}
-
-#add(1, 2)
+print(str(id))
+print(str(str))
+print(str(int))
+print(str(float))
+print(str(bool))
+print(str(array))
+print(str(tuple))

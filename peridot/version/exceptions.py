@@ -86,7 +86,7 @@ class Exc_Error():
                     display = f'{display[0]} <{display[1]}>'
                 result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{" " * (orgstart.column)}{"^" * (orgend.column - orgstart.column)}{Style.RESET_ALL}')
                 result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{Style.BRIGHT}{orgstart.lntext}{Style.RESET_ALL}')
-                result.append(f'  {Fore.MAGENTA}{prefix}║   {Fore.GREEN}Line {Style.BRIGHT}{orgstart.line}{Style.RESET_ALL} {Fore.GREEN}Column {Style.BRIGHT}{orgstart.column}{Style.RESET_ALL}')
+                result.append(f'  {Fore.MAGENTA}{prefix}║   {Fore.GREEN}Line {Style.BRIGHT}{orgstart.line + 1}{Style.RESET_ALL} {Fore.GREEN}Column {Style.BRIGHT}{orgstart.column + 1}{Style.RESET_ALL}')
                 result.append(f'  {Fore.MAGENTA}{prefix}{cornertype}═{Fore.GREEN}File {Style.BRIGHT}{orgstart.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}')
                 index += 1
         
@@ -166,6 +166,13 @@ class Exc_Error():
         while context:
             start       = pos[0]
             end         = pos[1]
+
+            try:
+                pos[2] = pos[2][0]
+                pos[3] = pos[3][0]
+                pos[4] = pos[4][0]
+            except IndexError: pass
+
             pos[2] = self.fixorigin(pos[2])
             pos[3] = self.fixorigin(pos[3])
             pos[4] = self.fixorigin(pos[4])

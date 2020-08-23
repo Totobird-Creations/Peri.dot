@@ -32,6 +32,7 @@ def typesinit(interpreter):
 
 TYPES = {
     'invalid'      : 'Invalid',
+    'type'         : 'Type',
     'nonetype'     : 'Null',
     'integer'      : 'Int',
     'floatingpoint': 'Float',
@@ -1457,8 +1458,7 @@ class FunctionType(BaseFunction):
         res = RTResult()
         interpreter = Interpreter()
 
-        print(self.name)
-        exec_context = self.gencontext((self.name, self.id))
+        exec_context = self.gencontext((name or self.name, self.id))
         res.register(
             self.checkpopargs(
                 self.argnames, args,
@@ -1490,12 +1490,19 @@ class FunctionType(BaseFunction):
                 res.success(result)
             )
         else:
+            try:
+                self.originstart = self.originstart[0]
+                self.originend = self.originend[0]
+                self.origindisplay = self.origindisplay[0]
+            except IndexError: pass
+
             return(
                 res.failure(
                     Exc_ReturnError(
                         f'\'{self.name}\' did not return a value',
                         self.start, self.end,
-                        self.context
+                        self.context,
+                        self.originstart, self.originend, self.origindisplay
                     )
                 )
             )
@@ -1522,8 +1529,8 @@ class FunctionType(BaseFunction):
 
 
 class BuiltInFunctionType(BaseFunction):
-    def __init__(self, name, value=None):
-        super().__init__(name, type_=TYPES['builtinfunc'])
+    def __init__(self, name, value=None, type_=TYPES['builtinfunc']):
+        super().__init__(name, type_=type_)
         if value:
             self.value = value
         else:
@@ -1588,7 +1595,7 @@ class BuiltInFunctionType(BaseFunction):
         ))
 
     def copy(self):
-        copy = BuiltInFunctionType(self.name, self.value)
+        copy = BuiltInFunctionType(self.name, self.value, type_=self.type)
         copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
@@ -1596,7 +1603,7 @@ class BuiltInFunctionType(BaseFunction):
         return(copy)
 
     def __repr__(self):
-        return(f'<{TYPES["builtinfunc"]} {self.name}>')
+        return(f'<{self.type} {self.name}>')
 
 
     def exec_throw(self, exec_context):

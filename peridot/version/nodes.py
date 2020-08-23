@@ -107,17 +107,17 @@ class VarCallNode():
 
 ### FUNCTIONS
 class FuncCreateNode():
-    def __init__(self, token, argtokens, bodynodes, shouldreturn):
+    def __init__(self, token, argtokens, bodynodes, shouldreturn, end=None):
         self.token = token
         self.argtokens = argtokens
         self.bodynodes = bodynodes
         self.shouldreturn = shouldreturn
 
         self.start = self.token.start
-        self.end = self.token.end
-
-        if len(self.bodynodes) > 0:
-            self.end = self.bodynodes[-1].end
+        if end:
+            self.end = end
+        else:
+            self.end = self.token.end
 
 
 class ReturnNode():

@@ -673,13 +673,14 @@ class Parser():
                         )
                     )
 
+                end = self.curtoken.end.copy()
                 res.registeradvancement()
                 self.advance()
 
             return(
                 res.success(
                     IndicieNode(
-                        prevnode, indicies, self.curtoken.end
+                        prevnode, indicies, end
                     )
                 )
             )
@@ -705,13 +706,14 @@ class Parser():
                     self.curtoken
                 )
 
+                end = self.curtoken.end.copy()
                 res.registeradvancement()
                 self.advance()
 
             return(
                 res.success(
                     AttributeNode(
-                        prevnode, attributes, self.curtoken.end
+                        prevnode, attributes, end
                     )
                 )
             )

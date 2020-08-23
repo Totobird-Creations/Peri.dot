@@ -38,13 +38,19 @@ From the top level directory  `pytest`
     * Null/None: `Null`
     * Numbers: `Int`, `Float`
     * Strings: `Str`
-    * Booleans: `Bool`
     * Arrays: `Array`
+    * Tuples: `Tuple`
+    * Dictionaries: `Dict`
+    * Booleans: `Bool`
     * Functions: `Function`
+    * Built-in functions: `Built-In Function`
     * Exceptions: `Exception`
+    * Ids: `Id`
+    * Namespaces: `Namespace`
 * Types must be explicitely cast:
     * `1 + 1` -> `2`
     * `1 + 1.0` -> `OperationError('Float can not be added to Int')`
+* Including other files: `var operations = include('./operations.peri')`
 * Variables:
     * Creation/Initialization: `var x = 2`
     * Assignment: `x = 5`
@@ -70,23 +76,22 @@ From the top level directory  `pytest`
 * Built-In Functions:
     * Printing to console: `print('Hello World!')`
     * Testing: `assert(x == 10, 'x is not 10')`
-* Exception handler `var x = handler {10 / 0}`
+* Exception handler: `var x = handler {10 / 0}`
 * Assert / in-peri.dot testing: `assert(x == 9, 'x is not equal to 9')`
+* Flow control:
+    * If statements: `if (x == 1) {var y = 3} elif (x == 2) {var y = 2} else {var y = 1}`
+    * Switch statements: `switch (var x in a) {case (x == 10) {print('10')} else {print('Hmm...')}}`
+    * For loops: `for (var i in [True, True, False]) {print(i)}`
+    * While loops: `while (x < 100) {x = x + 1}`
 
 ## Coming Soon
 
 * Improved repl
-* More types:
-    * Dictionaries: `{'name': 'John', 'age': 47}`
-* Improved exception type
-* Importing other files: `incl('./file.peri')`
-* Function arguments and return values have to have an explicit type: `var add = func(a: Int, b:Int) -> Int {return(a + b)}`
-* Function default argument values: `var greet = func(name: Str, emph=1) {print(name + ' ' + '!' * emph)}`
-* Returning values from functions: `return(True)`
-* If statement: `if x == 1 {var y = 3} elif x == 2 {var y = 2} else {var y = 1}`
-* For and while loops: `for i in [True, True, False] {print(i)}`
+* Function arguments and return values have to have an explicit type: `var add = func(a: int, b: int) -> int {return(a + b)}`
+* Function default argument values: `var greet = func(name: str, emph :int=1) {print(name + ' ' + '!' * emph)}`
 
 ## Possible Features
+
 * Formatted strings `'Hello World{suffix}'`
 * More operations:
     * Add and assign `+=`

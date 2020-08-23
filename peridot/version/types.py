@@ -38,7 +38,7 @@ TYPES = {
     'string'       : 'Str',
     'list'         : 'Array',
     'tuple'        : 'Tuple',
-    'dictionary'   : 'Dictionary',
+    'dictionary'   : 'Dict',
     'boolean'      : 'Bool',
     'function'     : 'Function',
     'builtinfunc'  : 'Built-In Function',

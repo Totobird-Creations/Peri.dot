@@ -1,4 +1,4 @@
-# Peri.dot
+# Peri.dot ([Pre-06](https://github.com/toto-bird/Peri.dot/releases/tag/pre-06))
 
 ![Peri.dot Logo](logo.png)
 
@@ -87,8 +87,7 @@ From the top level directory  `pytest`
 ## Coming Soon
 
 * Improved repl
-* Function arguments and return values have to have an explicit type: `var add = func(a: int, b: int) -> int {return(a + b)}`
-* Function default argument values: `var greet = func(name: str, emph :int=1) {print(name + ' ' + '!' * emph)}`
+* Classes for general use: `var Test = class() {a = 'hello'}`
 
 ## Possible Features
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "peridot"
-version = "04-pre"
+version = "06-pre"
 description = "A strongly typed interpreted language, with type inference, implemented in Python."
 authors = ["Totobird", "Snowkeep"]
 

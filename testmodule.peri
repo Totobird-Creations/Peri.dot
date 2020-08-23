@@ -1,0 +1,19 @@
+var add = func(a, b) {
+    return(a + b)
+}
+
+var sub = func(a, b) {
+    return(a - b)
+}
+
+var mul = func(a, b) {
+    return(a * b)
+}
+
+var div = func(a, b) {
+    return(a / b)
+}
+
+var pow = func(a, b) {
+    return(a ^ b)
+}

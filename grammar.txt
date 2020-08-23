@@ -1,7 +1,13 @@
 statement:
-    - KEYWORD:return LPAREN EOL* expr? EOL* RPAREN
+    - KEYWORD:return LPAREN EOL* statement? EOL* RPAREN
         -> Return
-    - expr LSQUARE expr RSQUARE
+    - KEYWORD:break LPAREN EOL* RPAREN
+        -> Break
+    - KEYWORD:continue LPAREN EOL* RPAREN
+        -> Continue
+    - KEYWORD:include LPAREN EOL* statement EOL* RPAREN
+        -> Continue
+    - expr
 
 expr:
     - KEYWORD:varcreate IDENTIFIER EQ expr
@@ -30,17 +36,18 @@ raised:
 factor:
     - (PLUS|DASH) factor
         -> UnaryOp
-    - indicie
-
-indicie:
-    - call (LSQUARE statement RSQUARE)+
-        -> Index
     - call
 
 call:
-    - atom LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN
-        -> VarCall
-    - atom
+    - atom indicie* LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN indicie*
+        -> VarCall|Indicie
+    - atom indicie*
+
+indicie:
+    - (LSQUARE statement RSQUARE)+
+        -> Indicie
+    - (PERIOD IDENTIFIER)+
+        -> Attribute
 
 atom:
     - INT

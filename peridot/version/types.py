@@ -12,7 +12,7 @@ init()
 
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_FileAccessError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 from .nodes      import VarCallNode
 
 def uuid():
@@ -43,7 +43,8 @@ TYPES = {
     'function'     : 'Function',
     'builtinfunc'  : 'Built-In Function',
     'exception'    : 'Exception',
-    'id'           : 'Id'
+    'id'           : 'Id',
+    'namespace'    : 'Namespace'
 }
 
 ##########################################
@@ -243,6 +244,9 @@ class TypeObj():
         self.originend += indicie.originend
         self.origindisplay += indicie.origindisplay
         return((None, Exc_TypeError(f'{self.type} can not be indexed', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
+    def attribute(self, attribute) -> Tuple[Any, Optional[Exc_TypeError]]:
+        return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -2049,3 +2053,52 @@ class IdType(TypeObj):
 
     def __repr__(self):
         return(f'<Id {self.value}>')
+
+
+class NamespaceType(TypeObj):
+    def __init__(self, symbols):
+        self.symbols = symbols
+        super().__init__(type_=TYPES['namespace'])
+
+    def tostr(self):
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def attribute(self, attribute):
+        value = self.symbols.access(attribute.value)
+
+        if value:
+            return((
+                value,
+                None
+            ))
+
+        else:
+            return((
+                None,
+                Exc_AttributeError(
+                    f'\'{self.name}\' has no attribute \'{attribute.value}\'',
+                    attribute.start, attribute.end,
+                    self.context
+                )
+            ))
+
+    def copy(self):
+        copy = NamespaceType(self.symbols)
+        copy.id = self.id
+        copy.setcontext(self.context)
+        self.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'<Namespace: {len(list(self.symbols.symbols.keys()))} objects>')
+
+
+def runinit(self, obj):
+    global run
+    run = obj

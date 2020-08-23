@@ -10,9 +10,6 @@ class IntNode():
         self.start = self.token.start
         self.end   = self.token.end
 
-    def __repr__(self):
-        return(f'{self.token.value}')
-
 
 class FloatNode():
     def __init__(self, token):
@@ -20,9 +17,6 @@ class FloatNode():
 
         self.start = self.token.start
         self.end   = self.token.end
-
-    def __repr__(self):
-        return(f'{self.token.value}')
 
 
 class StringNode():
@@ -32,9 +26,6 @@ class StringNode():
         self.start = self.token.start
         self.end   = self.token.end
 
-    def __repr__(self):
-        return(f'"{self.token.value}"')
-
 
 class ArrayNode():
     def __init__(self, elmnodes, start, end):
@@ -42,9 +33,6 @@ class ArrayNode():
 
         self.start = start
         self.end   = end
-
-    def __repr__(self):
-        return(f'[{", ".join(self.elmnodes)}]')
 
 
 class DictionaryNode():
@@ -55,16 +43,6 @@ class DictionaryNode():
         self.start = start
         self.end   = end
 
-    def __repr__(self):
-        result = ''
-        first = True
-        for i in range(len(self.keynodes)):
-            if not first:
-                result += ', '
-            result += f'{self.keynodes[i]}: {self.valuenodes[i]}'
-            first = False
-        return(f'{{{result}}}')
-
 
 class TupleNode():
     def __init__(self, elmnodes, start, end):
@@ -72,9 +50,6 @@ class TupleNode():
 
         self.start = start
         self.end   = end
-
-    def __repr__(self):
-        return(f'({", ".join(self.elmnodes)})')
 
 
 
@@ -98,9 +73,6 @@ class VarAssignNode():
         self.start = token.start
         self.end = token.end
 
-    def __repr__(self):
-        return(f'VarAssign:{self.token.value}={self.valnode}')
-
 
 class VarCreateNode():
     def __init__(self, token, valnode):
@@ -110,9 +82,6 @@ class VarCreateNode():
         self.start = token.start
         self.end = token.end
 
-    def __repr__(self):
-        return(f'{self.token.value}={self.valnode}')
-
 
 class VarNullNode():
     def __init__(self, token):
@@ -121,14 +90,10 @@ class VarNullNode():
         self.start = token.start
         self.end = token.end
 
-    def __repr__(self):
-        return(f'VarNull:{self.token.value}')
-
 
 class VarCallNode():
     def __init__(self, node, argnodes, optionnodes, end=None):
         self.node = node
-        self.name = self.node.token.value
         self.argnodes = argnodes
         self.optionnodes = optionnodes
 
@@ -137,9 +102,6 @@ class VarCallNode():
             self.end = end
         else:
             self.end = node.end
-
-    def __repr__(self):
-        return(f'VarCall:{self.node.token.value}')
 
 
 
@@ -157,9 +119,6 @@ class FuncCreateNode():
         if len(self.bodynodes) > 0:
             self.end = self.bodynodes[-1].end
 
-    def __repr__(self):
-        return(f'Function')
-
 
 class ReturnNode():
     def __init__(self, returnnode, start, end):
@@ -167,9 +126,6 @@ class ReturnNode():
 
         self.start = start
         self.end = end
-
-    def __repr__(self):
-        return(f'Return:{self.returnnode}')
 
 
 
@@ -184,9 +140,6 @@ class HandlerNode():
 
         if len(self.bodynodes) > 0:
             self.end = self.bodynodes[-1].end
-
-    def __repr__(self):
-        return(f'Handler')
 
 
 ### FLOW CONTROL
@@ -247,17 +200,11 @@ class BreakNode():
         self.start = start
         self.end = end
 
-    def __repr__(self):
-        return(f'Break')
-
 
 class ContinueNode():
     def __init__(self, start, end):
         self.start = start
         self.end = end
-
-    def __repr__(self):
-        return(f'Continue')
 
 
 
@@ -283,9 +230,6 @@ class BinaryOpNode():
         self.start = self.lnode.start
         self.end   = self.rnode.end
 
-    def __repr__(self):
-        return(f'({self.lnode} {self.optoken.type} {self.rnode})')
-
 
 
 ### MISCELLANIOUS
@@ -300,5 +244,24 @@ class IndicieNode():
         else:
             self.end = self.node.end
 
-    def __repr__(self):
-        return(f'{self.node}[{self.indicie}]')
+
+class AttributeNode():
+    def __init__(self, node, attributes, end=None):
+        self.node = node
+        self.attributes = attributes
+
+        self.start = self.node.start
+        if end:
+            self.end = end
+        else:
+            self.end = self.node.end
+
+
+
+### MODULES
+class IncludeNode():
+    def __init__(self, filenode, start, end):
+        self.filenode = filenode
+
+        self.start = start
+        self.end = end

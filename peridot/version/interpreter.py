@@ -2,11 +2,14 @@
 # DEPENDENCIES                           #
 ##########################################
 
+from sys import exec_prefix
 from .constants  import * # type: ignore
-from .context    import * # type: ignore
+from .context    import Context, SymbolTable # type: ignore
+from .default    import defaultvariables # type: ignore
 from .exceptions import * # type: ignore
+from .run        import run, runinit # type: ignore
 from .tokens     import * # type: ignore
-from .types      import typesinit, TYPES, ArrayType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
+from .types      import NamespaceType, typesinit, TYPES, ArrayType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -428,7 +431,6 @@ class Interpreter():
     def visit_VarCallNode(self, node, context, insideloop=False):
         res = RTResult()
 
-        name = node.name
         argnodes = node.argnodes
         options = node.optionnodes
 
@@ -444,9 +446,6 @@ class Interpreter():
             return(res)
 
         callnode = callnode.copy().setpos(node.start, node.end)
-
-        if isinstance(callnode, FunctionType):
-            callnode.name = name
 
         args = []
         for argnode in argnodes:
@@ -914,6 +913,8 @@ class Interpreter():
         return(
             res.success(
                 NullType()
+                    .setpos(node.start, node.end)
+                    .setcontext(context)
             )
         )
 
@@ -1060,4 +1061,112 @@ class Interpreter():
             res.success(value)
         )
 
+    def visit_AttributeNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        value = res.register(
+            self.visit(
+                node.node,
+                context,
+                insideloop=insideloop
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
+
+        for i in node.attributes:
+            value, error = value.attribute(i)
+
+            if error:
+                return(
+                    res.failure(
+                        error
+                    )
+                )
+
+        return(
+            res.success(value)
+        )
+
+
+
+    ### MODULES
+    def visit_IncludeNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        file = res.register(
+            self.visit(
+                node.filenode,
+                context,
+                insideloop=insideloop
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
+
+        if not isinstance(file, StringType):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'\'file\' must be of type {TYPES["string"]}, {file.type} given',
+                        file.start, file.end,
+                        context
+                    )
+                )
+            )
+
+        try:
+            with open(file.value, 'r') as f:
+                script = f.read()
+
+        except FileNotFoundError as e:
+            return(
+                res.failure(
+                    Exc_FileAccessError(
+                        f'File \'{file.value}\' does not exist',
+                        file.start, file.end,
+                        context
+                    )
+                )
+            )
+
+        except IsADirectoryError as e:
+            return(
+                res.failure(
+                    Exc_FileAccessError(
+                        f'\'{file.value}\' is a directory',
+                        file.start, file.end,
+                        context
+                    )
+                )
+            )
+
+        except PermissionError as e:
+            return(
+                res.failure(
+                    Exc_FileAccessError(
+                        f'File \'{file.value}\' could not be accessed due to permission restrictions',
+                        file.start, file.end,
+                        context
+                    )
+                )
+            )
+
+        symbols = defaultvariables(SymbolTable())
+        result, exec_context, error = run(file.value, script, symbols)
+
+        if error:
+            return(
+                res.failure(error)
+            )
+
+        result = NamespaceType(symbols).setpos(node.start, node.end).setcontext(exec_context)
+
+        return(
+            res.success(result)
+        )
+
 typesinit(Interpreter)
+runinit(Interpreter)

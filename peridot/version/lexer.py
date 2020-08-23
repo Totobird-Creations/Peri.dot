@@ -153,6 +153,10 @@ class Lexer():
                 tokens.append(Token(TT_COLON, start=self.pos))
                 self.advance()
 
+            elif self.char == '.':
+                tokens.append(Token(TT_PERIOD, start=self.pos))
+                self.advance()
+
 
             elif self.char == '(':
                 tokens.append(Token(TT_LPAREN, start=self.pos))

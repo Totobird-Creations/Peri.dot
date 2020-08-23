@@ -6,6 +6,8 @@
 # - Code block syntax is less strict
 # - Added dictionaries
 # - Rewrote eqequals system for most types
+# - Added include statement
+# - Added namespace type (class)
 
 
 
@@ -13,30 +15,17 @@
 # NEW FEATURES                           #
 ##########################################
 
-var apples = {
-    '1': 'apple',
-    '2': 'babble',
-    '3': 'cackle',
-    '4': 'dabble',
-    '5': 'fable',
-    '6': 'gurgle',
-    '7': 'hurdle'
-}
+var module = include('testmodule.peri')
 
 print(str(
-    apples['1']
+    meow()
 ))
+
+
 
 ##########################################
 # KNOWN BUGS                             #
 ##########################################
-
-#int([1, 2, 3])
-#float([1, 2, 3])
-#array([1, 2, 3])
-#tuple([1, 2, 3])
-
-
 
 #var add = func(a, b) {
 #    return(None)

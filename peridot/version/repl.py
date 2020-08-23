@@ -26,7 +26,7 @@ class Repl():
         while not end:
             script = input('>>> ')
 
-            result, error = run(replname, script, symbols)
+            result, context, error = run(replname, script, symbols)
 
             if error:
                 print(error.asstring())
@@ -71,3 +71,5 @@ class CursesRepl():
 
             except KeyboardInterrupt as e:
                 raise KeyboardInterrupt(str(e))
+
+runinit(Interpreter)

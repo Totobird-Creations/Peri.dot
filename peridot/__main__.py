@@ -20,7 +20,7 @@ def improvederrormessage():
     from version.lexer              import Lexer
     from version.parser             import Parser
     from version.repl               import Repl
-    from version.run                import run
+    from version.run                import run, runinit
     from version.types              import BooleanType, NullType
 
     ##########################################
@@ -95,8 +95,10 @@ def improvederrormessage():
                 print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
                 exit(1)
 
+            runinit(Interpreter)
+
             symbols = defaultvariables(SymbolTable())
-            result, error = run(filename, script, symbols)
+            result, context, error = run(filename, script, symbols)
 
             if error:
                 print(error.asstring())

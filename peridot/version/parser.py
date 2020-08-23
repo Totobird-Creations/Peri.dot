@@ -169,14 +169,12 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-            expr = res.tryregister(
-                self.expr()
+            statement = res.register(
+                self.statement()
             )
 
-            if not expr:
-                for i in range(2):
-                    res.registerretreat()
-                    self.retreat()
+            if res.error:
+                return(res)
 
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
@@ -198,7 +196,7 @@ class Parser():
 
             return(
                 res.success(
-                    ReturnNode(expr, start, end)
+                    ReturnNode(statement, start, end)
                 )
             )
 
@@ -281,6 +279,58 @@ class Parser():
             return(
                 res.success(
                     ContinueNode(start, end)
+                )
+            )
+
+        if self.curtoken.matches(TT_KEYWORD, KEYWORDS['import']):
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type != TT_LPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \'(\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            file = res.register(
+                self.statement()
+            )
+
+            if res.error:
+                return(res)
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type != TT_RPAREN:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            'Expected \')\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            end = self.curtoken.end.copy()
+            res.registeradvancement()
+            self.advance()
+
+            return(
+                res.success(
+                    IncludeNode(file, start, end)
                 )
             )
 
@@ -458,69 +508,26 @@ class Parser():
                 )
             )
 
-        return(self.indicie())
-
-
-
-    def indicie(self):
-        res = ParseResult()
-        call = res.register(self.call())
-
-        if res.error:
-            return(res)
-        
-        if self.curtoken.type == TT_LSQUARE:
-            indicies = []
-
-            while self.curtoken.type == TT_LSQUARE:
-                res.registeradvancement()
-                self.advance()
-
-                indicies.append(
-                    res.register(
-                        self.statement()
-                    )
-                )
-
-                if res.error:
-                    return(res)
-
-                if self.curtoken.type != TT_RSQUARE:
-                    return(
-                        res.failure(
-                            Syn_SyntaxError(
-                                f'Expected \']\' not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-                end = self.curtoken.end.copy()
-                res.registeradvancement()
-                self.advance()
-
-            return(
-                res.success(
-                    IndicieNode(
-                        call,
-                        indicies,
-                        end=end
-                    )
-                )
-            )
-
-        return(
-            res.success(call)
-        )
+        return(self.call())
 
 
 
     def call(self):
         res = ParseResult()
-        atom = res.register(self.atom())
+        atom = res.register(
+            self.atom()
+        )
 
         if res.error:
             return(res)
+
+        while self.curtoken.type in [TT_LSQUARE, TT_PERIOD]:
+            atom = res.register(
+                self.indicie(atom)
+            )
+
+            if res.error:
+                return(res)
 
         if self.curtoken.type == TT_LPAREN:
             res.registeradvancement()
@@ -614,19 +621,110 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-            return(
-                res.success(
-                    VarCallNode(
-                        atom,
-                        args, options,
-                        end=end
-                    )
+            atom = VarCallNode(
+                atom,
+                args, options,
+                end=end
+            )
+
+            while self.curtoken.type in [TT_LSQUARE, TT_PERIOD]:
+                atom = res.register(
+                    self.indicie(atom)
                 )
+
+                if res.error:
+                    return(res)
+
+            return(
+                res.success(atom)
             )
 
         return(
             res.success(atom)
         )
+
+
+    def indicie(self, prevnode):
+        res = ParseResult()
+
+        if self.curtoken.type == TT_LSQUARE:
+            indicies = []
+
+            while self.curtoken.type == TT_LSQUARE:
+                res.registeradvancement()
+                self.advance()
+
+                indicies.append(
+                    res.register(
+                        self.statement()
+                    )
+                )
+
+                if res.error:
+                    return(res)
+
+                if not self.curtoken.type == TT_RSQUARE:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                f'Expected \']\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                res.registeradvancement()
+                self.advance()
+
+            return(
+                res.success(
+                    IndicieNode(
+                        prevnode, indicies, self.curtoken.end
+                    )
+                )
+            )
+
+        elif self.curtoken.type == TT_PERIOD:
+            attributes = []
+
+            while self.curtoken.type == TT_PERIOD:
+                res.registeradvancement()
+                self.advance()
+
+                if not self.curtoken.type == TT_IDENTIFIER:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                f'Expected identifier not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                attributes.append(
+                    self.curtoken
+                )
+
+                res.registeradvancement()
+                self.advance()
+
+            return(
+                res.success(
+                    AttributeNode(
+                        prevnode, attributes, self.curtoken.end
+                    )
+                )
+            )
+
+        else:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'[\', \'.\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
 
 
     def atom(self):

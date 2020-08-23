@@ -30,7 +30,8 @@ KEYWORDS = {
     'whileloop' : 'while',
     'continue'  : 'continue',
     'break'     : 'break',
-    'handler'   : 'handler'
+    'handler'   : 'handler',
+    'import'    : 'include'
 }
 
 RESERVED = [

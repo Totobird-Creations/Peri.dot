@@ -21,6 +21,40 @@
 # EXAMPLES                               #
 ##########################################
 
+# Switch statements
+
+var fuel = 50
+switch (var x as fuel) {
+    when (x < 0) {
+        print('Umm...')
+    }
+    when (x == 0) {
+        print('Out of fuel')
+    }
+    when (x <= 10) {
+        print('Almost out of fuel')
+    }
+    when (x <= 30) {
+        print('Might want to fill up')
+    }
+    when (x <= 60) {
+        print('Okay for now')
+    }
+    when (x <= 99) {
+        print('Almost full')
+    }
+    when (x == 100) {
+        print('Full')
+    }
+    else {
+        print('Too much')
+    }
+}
+
+
+
+# Dictionaries
+
 var apples = {
     'a': 'apple',
     'b': 'babble',
@@ -33,3 +67,50 @@ var apples = {
 print(
     apples['d']
 )
+
+
+
+# Include statements (Returns namespace type) & Attributes
+
+var module = include('testmodule.peri')
+print(str(
+    module.add(1, 2)
+))
+
+
+
+# Lambdas
+
+var add = lambda(a: int, b: int) -> int {a + b}
+print(str(
+    add(1, 2)
+))
+
+
+
+# Type built-in function
+
+var string = type('hello')
+print(str(
+    string
+))
+print(
+    string(10.0)
+)
+
+
+
+# Code block syntax is less strict
+
+func (a: int, b: int) -> int {i_can_put_stuff_here('hello')
+and_here('hello')}
+
+
+
+# Function arguments and return values are typed
+
+func(a: int, b: int) -> float {
+#       ^^^     ^^^     ^^^^^
+    return(float(a + b))
+}
+

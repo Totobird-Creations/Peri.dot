@@ -6,6 +6,7 @@
 # - Added    : Dictionaries
 # - Added    : Include statement
 # - Added    : Namespace type (class)
+# - Added    : Attributes
 # - Added    : Lambdas (Single line functions without a return needed)
 # - Added    : Type built-in function
 
@@ -17,14 +18,18 @@
 
 
 ##########################################
-# NEW FEATURES                           #
+# EXAMPLES                               #
 ##########################################
 
-var add = func(a: int, b: int) -> int {
-    var x = float(a + b)
-    return(x)
+var apples = {
+    'a': 'apple',
+    'b': 'babble',
+    'c': 'cobble',
+    'd': 'dabble',
+    'f': 'fable',
+    'g': 'gurgle',
+    'h': 'hurdle'
 }
-
-print(str(
-    add(1, 1)
-))
+print(
+    apples['d']
+)

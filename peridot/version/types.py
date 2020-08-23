@@ -1269,7 +1269,13 @@ class DictionaryType(TypeObj):
         value = None
         keys = list(self.value.keys())
         for i in range(len(keys)):
-            if keys[i].eqequals(indicie):
+            eqequals, error = keys[i].eqequals(indicie)
+            if error:
+                return((
+                    None,
+                    error
+                ))
+            if eqequals.value:
                 value = self.value[keys[i]]
                 break
 
@@ -1532,7 +1538,6 @@ class FunctionType(BaseFunction):
             ))
 
     def call(self, name, args):
-        raise Exception('Test Exception')
         res = RTResult()
         interpreter = Interpreter()
 

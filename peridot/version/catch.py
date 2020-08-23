@@ -42,7 +42,7 @@ def catch(func):
 
                 elif ln.startswith('    '):
                     ln = ln.lstrip(' ')
-                    print(f'      {Fore.RED}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
+                    print(f'      {Style.BRIGHT}{ln}{Style.RESET_ALL}')
 
                 elif ln.startswith('  '):
                     ln = ln.lstrip(' ').split(' ')
@@ -92,7 +92,7 @@ def catch(func):
 
                 elif ln.startswith('    '):
                     ln = ln.lstrip(' ')
-                    print(f'      {Fore.RED}{Style.BRIGHT}{ln}{Style.RESET_ALL}')
+                    print(f'      {Style.BRIGHT}{ln}{Style.RESET_ALL}')
 
                 elif ln.startswith('  '):
                     ln = ln.lstrip(' ').split(' ')

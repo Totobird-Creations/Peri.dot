@@ -1532,6 +1532,7 @@ class FunctionType(BaseFunction):
             ))
 
     def call(self, name, args):
+        raise Exception('Test Exception')
         res = RTResult()
         interpreter = Interpreter()
 

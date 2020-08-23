@@ -97,8 +97,12 @@ class Lexer():
                 self.advance()
 
             elif self.char == '-':
-                tokens.append(Token(TT_DASH, start=self.pos))
-                self.advance()
+                token, error = self.makedash()
+
+                if error:
+                    return(([], error))
+
+                tokens.append(token)
 
             elif self.char == '*':
                 tokens.append(Token(TT_ASTRISK, start=self.pos))
@@ -290,6 +294,18 @@ class Lexer():
         self.advance()
 
         return((Token(TT_STRING, string, start=start, end=self.pos), None))
+
+
+    def makedash(self):
+        start = self.pos.copy()
+
+        self.advance()
+
+        if self.char == '>':
+            self.advance()
+            return((Token(TT_ARROW, string, start=start, end=self.pos), None))
+
+        return((Token(TT_DASH, string, start=start, end=self.pos), None))
 
 
     def makeequals(self):

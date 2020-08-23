@@ -1330,6 +1330,34 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
+        if self.curtoken.type != TT_ARROW:
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        f'Expected \'->\' not found',
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        returntype = res.register(
+            self.statement()
+        )
+
+        if res.error:
+            return(res)
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         if mode == KEYWORDS['funccreate']:
             codeblock = res.register(
                 self.codeblock()
@@ -1389,6 +1417,7 @@ class Parser():
                 FuncCreateNode(
                     token,
                     arguments,
+                    returntype,
                     codeblock,
                     False
                 )

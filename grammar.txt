@@ -1,105 +1,206 @@
+##########################################
+# LEXER TOKENS                          #
+##########################################
+
+TT_INT         : [0-9]+
+TT_FLOAT       : [0-9]+\.[0-9]+
+TT_STRING      : (["']).*\1
+
+TT_PLUS        : \+
+TT_DASH        : -
+TT_ASTRISK     : \*
+TT_FSLASH      : \/
+TT_CARAT       : \^
+
+TT_LPAREN      : \(
+TT_RPAREN      : \)
+TT_LCURLY      : {
+TT_RCURLY      : }
+TT_LSQUARE     : \[
+TT_RSQUARE     : ]
+
+TT_EQUALS      : =
+TT_COMMA       : ,
+TT_COLON       : :
+TT_ARROW       : ->
+TT_PERIOD      : \.
+
+TT_EQEQUALS    : ==
+TT_BANGEQUALS  : !=
+TT_LESSTHAN    : <
+TT_LTEQUALS    : <=
+TT_GREATERTHAN : >
+TT_GTEQUALS    : >=
+
+TT_KEYWORD     : [a-zA-Z][a-zA-Z0-9]*
+TT_IDENTIFIER  : [a-zA-Z][a-zA-Z0-9]*
+
+TT_EOL         : \n
+TT_EOF         : $
+
+
+
+##########################################
+# PARSING RULES                          #
+##########################################
+
 statement:
     - KEYWORD:return LPAREN EOL* statement? EOL* RPAREN
         -> Return
+
     - KEYWORD:break LPAREN EOL* RPAREN
         -> Break
+
     - KEYWORD:continue LPAREN EOL* RPAREN
         -> Continue
+
     - KEYWORD:include LPAREN EOL* statement EOL* RPAREN
         -> Continue
+
     - expr
+        -> *
+
+
 
 expr:
     - KEYWORD:varcreate IDENTIFIER EQ expr
         -> VarCreate
+
     - compexpr ((KEYWORD:logicaland|KEYWORD:logicalor) compexpr)*
         -> BinaryOp
+
+
 
 compexpr:
     - KEYWORD:logicalnot compexpr
         -> UnaryOp
+
     - arithexpr ((EQEQUALS|BANGEQUALS|LESSTHAN|LTEQUALS|GREATERTHAN|GTEQUALS) arithexpr)*
         -> BinaryOp
+
+
 
 arithexpr:
     - term ((PLUS|DASH) term)*
         -> BinaryOp
 
+
+
 term:
     - raised ((ASTRISK|FSLASH) raised)*
         -> BinaryOp
+
+
 
 raised:
     - factor (CARAT factor)*
         -> BinaryOp
 
+
+
 factor:
     - (PLUS|DASH) factor
         -> UnaryOp
+
     - atom calttricie*
+        -> *
+
+
 
 atom:
     - INT
         -> Int
+
     - FLOAT
         -> Float
+
     - STRING
         -> String
+
     - LPAREN EOL* statement EOL* RPAREN
+        -> *
+
     - IDENTIFIER EQUALS expr
         -> VarAssign
+
     - IDENTIFIER
         -> VarAccess
+
     - arrayexpr
         -> Array
+
     - dictionaryexpr
         -> Dictionary
+
     - funcdef
-        -> FuncCreate
+        -> FuncCreate|LambdaCreate
+
     - handler
         -> Handler
+
     - ifexpr
         -> If
+
     - switchexpr:
         -> Switch
+
     - loopexpr
         -> ForLoop|WhileLoop
+
+
 
 calttricie:
     - (LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN)+
         -> VarCall
+
     - (LSQUARE EOL* statement EOL* RSQUARE)+
         -> Indicie
+
     - (EOL* PERIOD IDENTIFIER)+
         -> Attribute
+
+
 
 arrayexpr:
     - LSQUARE EOL* (statement (COMMA EOL* statement)*)? EOL* RSQUARE
         -> Array
 
+
+
 dictionaryexpr:
     - LCURLY EOL* (statement COLON EOL* statement (COMMA ROL* statement COLON EOL* statement)*)? EOL* RCURLY
         -> Array
 
+
+
 funcdef:
     - KEYWORD:createfunc LPAREN EOL*
       (IDENTIFIER COLON statement (COMMA EOL* IDENTIFIER COLON statement)*)? EOL*
-      RPAREN EOL* codeblock
+      RPAREN EOL* ARROW EOL* statement EOL*
+      codeblock
         -> FuncCreate
+
     - KEYWORD:createlambda LPAREN EOL*
       (IDENTIFIER COLON statement (COMMA EOL* IDENTIFIER COLON statement)*)? EOL*
-      RPAREN EOL* LCURLY EOL* statement EOL* RCURLY
+      RPAREN EOL* ARROW EOL* statement EOL*
+      LCURLY EOL* statement EOL*RCURLY
         -> LambdaCreate
+
+
 
 handler:
     - KEYWORD:handler EOL* codeblock
         -> Handler
+
+
 
 ifexpr:
     - KEYWORD:if LPAREN EOL* statement EOL* RPAREN EOL* codeblock EOL*
       (KEYWORD:elif LPAREN EOL* statement EOL* RPAREN EOL* codeblock EOL*)*
       (KEYWORD:else EOL* codeblock)?
         -> If
+
+
 
 switchexpr:
     - KEYWORD:case LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in statement EOL* RPAREN EOL* LCURLY EOL*
@@ -108,11 +209,17 @@ switchexpr:
       RCURLY
         -> Switch
 
+
+
 loopexpr:
     - KEYWORD:forloop LPAREN EOL* KEYWORD:varcreate? IDENTIFIER KEYWORD:in statement EOL* RPAREN EOL* codeblock
         -> ForLoop
+
     - KEYWORD:whileloop LPAREN EOL* statement EOL* RPAREN EOL* codeblock
         -> WhileLoop
 
+
+
 codeblock:
     - LCURLY EOL* (statement (EOL statement))? EOL* RCURLY
+        -> CodeBlock

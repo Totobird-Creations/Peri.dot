@@ -17,7 +17,7 @@ def catch(func):
     except Exception as e:
         size = os.get_terminal_size()
         traceback = format_exc()
-        print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}')
+        print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n')
 
         traceback = traceback.rstrip('\n').split('\n\n')
         traceback = [i.split('\n') for i in traceback]
@@ -58,7 +58,7 @@ def catch(func):
                 print('')
 
 
-        print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}')
+        print(f'\n{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}')
         print(f'{_FOOTER}')
         print(f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}')
 

@@ -10,7 +10,7 @@
 # - Added    : Type built-in function
 
 # - Modified : Code block syntax is less strict
-# - Modified : Function arguments are typed
+# - Modified : Function arguments and return values are typed
 
 # - Rewrote  : Eqequals system for most types
 
@@ -20,10 +20,11 @@
 # NEW FEATURES                           #
 ##########################################
 
-var try = handler {
-    include('./testmodule.peri')
+var add = func(a: int, b: int) -> int {
+    var x = float(a + b)
+    return(x)
 }
 
 print(str(
-    try
+    add(1, 1)
 ))

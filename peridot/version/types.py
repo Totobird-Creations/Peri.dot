@@ -1504,10 +1504,11 @@ class BaseFunction(TypeObj):
 
 
 class FunctionType(BaseFunction):
-    def __init__(self, bodynodes, arguments, shouldreturn):
+    def __init__(self, bodynodes, arguments, returntype, shouldreturn):
         super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
         self.arguments = arguments
+        self.returntype = returntype
         self.shouldreturn = shouldreturn
 
     def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
@@ -1561,17 +1562,6 @@ class FunctionType(BaseFunction):
 
         result = res.funcvalue
 
-        if result:
-            return(
-                res.success(result)
-            )
-
-        try:
-            self.originstart = self.originstart[0]
-            self.originend = self.originend[0]
-            self.origindisplay = self.origindisplay[0]
-        except IndexError: pass
-
         if not result:
             return(
                 res.failure(
@@ -1584,8 +1574,36 @@ class FunctionType(BaseFunction):
                 )
             )
 
+        if not isinstance(result, NullType):
+            if self.returntype.returntype != result.type:
+                self.context.display = exec_context.display
+                result.originstart.insert(0, self.returntype.start)
+                result.originend.insert(0, self.returntype.end)
+                result.origindisplay.insert(0, self.context)
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Return value of \'{self.name}\' must be of type {self.returntype.returntype}, {result.type} returned',
+                            result.start, result.end,
+                            self.context,
+                            result.originstart, result.originend, result.origindisplay
+                        )
+                    )
+                )
+
+        if result:
+            return(
+                res.success(result)
+            )
+
+        try:
+            self.originstart = self.originstart[0]
+            self.originend = self.originend[0]
+            self.origindisplay = self.origindisplay[0]
+        except IndexError: pass
+
     def copy(self):
-        copy = FunctionType(self.bodynodes, self.arguments, self.shouldreturn)
+        copy = FunctionType(self.bodynodes, self.arguments, self.returntype, self.shouldreturn)
         copy.id = self.id
         copy.name = self.name
         copy.setcontext(self.context)

@@ -437,6 +437,7 @@ class Interpreter():
 
         bodynodes = node.bodynodes
         arguments = node.arguments
+        returntype = node.returntype
 
         for key in list(arguments.keys()):
             i = arguments[key]
@@ -456,7 +457,7 @@ class Interpreter():
                 return(
                     res.failure(
                         Exc_TypeError(
-                            f'Argument type must be of type \'{TYPES["type"]}\'',
+                            f'Argument type must be of type {TYPES["type"]}',
                             i.start, i.end,
                             context
                         )
@@ -465,7 +466,29 @@ class Interpreter():
 
             arguments[key] = i.returntype
 
-        funcvalue = FunctionType(bodynodes, arguments, node.shouldreturn)
+        returntype = res.register(
+            self.visit(
+                returntype,
+                context,
+                insideloop=insideloop
+            )
+        )
+
+        if res.shouldreturn():
+            return(res)
+
+        if returntype.type != TYPES['type']:
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'Return type must be of type {TYPES["type"]}, {returntype.type} given',
+                        returntype.start, returntype.end,
+                        context
+                    )
+                )
+            )
+
+        funcvalue = FunctionType(bodynodes, arguments, returntype, node.shouldreturn)
         funcvalue.setcontext(context).setpos(node.start, node.end)
 
         return(

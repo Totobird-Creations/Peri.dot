@@ -203,10 +203,6 @@ class Exc_AttributeError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('AttributeException', msg, start, end, context, originstart, originend, origindisplay)
 
-class Exc_ArgumentTypeError(Exc_Error):
-    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('ArgTypeException', msg, start, end, context, originstart, originend, origindisplay)
-
 class Exc_AssertionError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('AssertionException', msg, start, end, context, originstart, originend, origindisplay)

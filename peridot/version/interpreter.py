@@ -931,7 +931,14 @@ class Interpreter():
                     error.exc,
                     error.msg,
                     error.start
-                ).setcontext(context).setpos(error.start, error.end, error.originstart, error.originend, error.origindisplay)
+                )
+
+                try:
+                    exc.setcontext(context).setpos(error.start, error.end, error.originstart, error.originend, error.origindisplay)
+
+                except AttributeError:
+                    return(res)
+
                 return(
                     res.success(exc)
                 )

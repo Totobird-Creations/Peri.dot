@@ -12,7 +12,7 @@ init()
 
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
-from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
+from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
 
 def uuid():
     u = '00000000000000000000000000000000'
@@ -1451,7 +1451,7 @@ class BaseFunction(TypeObj):
                 if argumenttype != argument.type:
                     return(
                         res.failure(
-                            Exc_ArgumentError(
+                            Exc_TypeError(
                                 f'\'{argtypekey}\' must be of type {argumenttype}, {argument.type} given',
                                 argument.start, argument.end,
                                 self.context,
@@ -1565,13 +1565,14 @@ class FunctionType(BaseFunction):
             return(
                 res.success(result)
             )
-        else:
-            try:
-                self.originstart = self.originstart[0]
-                self.originend = self.originend[0]
-                self.origindisplay = self.origindisplay[0]
-            except IndexError: pass
 
+        try:
+            self.originstart = self.originstart[0]
+            self.originend = self.originend[0]
+            self.origindisplay = self.origindisplay[0]
+        except IndexError: pass
+
+        if not result:
             return(
                 res.failure(
                     Exc_ReturnError(

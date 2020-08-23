@@ -20,10 +20,10 @@
 # NEW FEATURES                           #
 ##########################################
 
-var add = func(a: int, b: int) -> int {
-    return(a + b)
+var try = handler {
+    include('./testmodule.peri')
 }
 
 print(str(
-    add(1, 1)
+    try
 ))

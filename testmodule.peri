@@ -1,19 +1,20 @@
-var add = func(a, b) {
+var add = func(a: int, b: int) {
     return(a + b)
 }
 
-var sub = func(a, b) {
+var sub = func(a: int, b: int) {
     return(a - b)
 }
 
-var mul = func(a, b) {
+var mul = func(a: int, b: int) {
     return(a * b)
 }
 
-var div = func(a, b) {
+var div = func(a: int, b: int) {
     return(a / b)
 }
 
-var pow = func(a, b) {
+var pow = func(a: int, b: int) {
     return(a ^ b)
 }
+==

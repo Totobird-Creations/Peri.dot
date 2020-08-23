@@ -278,14 +278,6 @@ class NullType(TypeObj):
                 None
             ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((
-            NullType()
-                .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
-            None
-        ))
-
     def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
@@ -546,7 +538,7 @@ class IntType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('int', type_=TYPES['type'])
+            BuiltInFunctionType('int', type_=TYPES['type'], returntype=TYPES['integer'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -819,7 +811,7 @@ class FloatType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('float', type_=TYPES['type'])
+            BuiltInFunctionType('float', type_=TYPES['type'], returntype=TYPES['floatingpoint'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -900,7 +892,7 @@ class StringType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('str', type_=TYPES['type'])
+            BuiltInFunctionType('str', type_=TYPES['type'], returntype=TYPES['string'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -1075,7 +1067,7 @@ class BooleanType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('bool', type_=TYPES['type'])
+            BuiltInFunctionType('bool', type_=TYPES['type'], returntype=TYPES['boolean'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -1146,7 +1138,7 @@ class ArrayType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('array', type_=TYPES['type'])
+            BuiltInFunctionType('array', type_=TYPES['type'], returntype=TYPES['list'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -1248,7 +1240,7 @@ class DictionaryType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('dictionary', type_=TYPES['type'])
+            BuiltInFunctionType('dictionary', type_=TYPES['type'], returntype=TYPES['dictionary'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -1348,7 +1340,7 @@ class TupleType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('tuple', type_=TYPES['type'])
+            BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TYPES['tuple'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -1428,10 +1420,10 @@ class BaseFunction(TypeObj):
 
         return(context)
 
-    def checkargs(self, argnames, args):
+    def checkargs(self, arguments, args):
         res = RTResult()
 
-        if len(args) != len(argnames):
+        if len(args) != len(list(arguments.keys())):
             try:
                 self.originstart = self.originstart[0]
                 self.originend = self.originend[0]
@@ -1442,7 +1434,7 @@ class BaseFunction(TypeObj):
             return(
                 res.failure(
                     Exc_ArgumentError(
-                        f'\'{self.name}\' takes {len(argnames)} arguments, {len(args)} given',
+                        f'\'{self.name}\' takes {len(list(arguments.keys()))} arguments, {len(args)} given',
                         self.start, self.end,
                         self.context,
                         self.originstart, self.originend, self.origindisplay
@@ -1450,26 +1442,45 @@ class BaseFunction(TypeObj):
                 )
             )
 
+        for i in range(len(list(arguments.keys()))):
+            argtypekey = list(arguments.keys())[i]
+            argumenttype = arguments[list(arguments.keys())[i]]
+            argument = args[i]
+
+            if not isinstance(argumenttype, NullType):
+                if argumenttype != argument.type:
+                    return(
+                        res.failure(
+                            Exc_ArgumentError(
+                                f'\'{argtypekey}\' must be of type {argumenttype}, {argument.type} given',
+                                argument.start, argument.end,
+                                self.context,
+                                argument.originstart, argument.originend, argument.origindisplay
+                            )
+                        )
+                    )
+
         return(
             res.success(
                 None
             )
         )
 
-    def popargs(self, argnames, args, exec_context):
-        for i in range(len(args)):
-            argname = argnames[i]
+    def popargs(self, arguments, args, exec_context):
+        keys = list(arguments.keys())
+        for i in range(len(keys)):
+            argname = keys[i]
             argvalue = args[i]
 
             argvalue.setcontext(exec_context)
             exec_context.symbols.assign(argname, argvalue)
 
-    def checkpopargs(self, argnames, args, exec_context):
+    def checkpopargs(self, arguments, args, exec_context):
         res = RTResult()
 
         res.register(
             self.checkargs(
-                argnames,
+                arguments,
                 args
             )
         )
@@ -1477,7 +1488,7 @@ class BaseFunction(TypeObj):
         if res.shouldreturn():
             return(res)
 
-        self.popargs(argnames, args, exec_context)
+        self.popargs(arguments, args, exec_context)
 
         return(
             res.success(None)
@@ -1493,10 +1504,10 @@ class BaseFunction(TypeObj):
 
 
 class FunctionType(BaseFunction):
-    def __init__(self, bodynodes, argnames, shouldreturn):
+    def __init__(self, bodynodes, arguments, shouldreturn):
         super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
-        self.argnames = argnames
+        self.arguments = arguments
         self.shouldreturn = shouldreturn
 
     def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
@@ -1526,7 +1537,7 @@ class FunctionType(BaseFunction):
         exec_context = self.gencontext((name or self.name, self.id))
         res.register(
             self.checkpopargs(
-                self.argnames, args,
+                self.arguments, args,
                 exec_context
             )
         )
@@ -1573,7 +1584,7 @@ class FunctionType(BaseFunction):
             )
 
     def copy(self):
-        copy = FunctionType(self.bodynodes, self.argnames, self.shouldreturn)
+        copy = FunctionType(self.bodynodes, self.arguments, self.shouldreturn)
         copy.id = self.id
         copy.name = self.name
         copy.setcontext(self.context)
@@ -1594,8 +1605,9 @@ class FunctionType(BaseFunction):
 
 
 class BuiltInFunctionType(BaseFunction):
-    def __init__(self, name, value=None, type_=TYPES['builtinfunc']):
+    def __init__(self, name, value=None, type_=TYPES['builtinfunc'], returntype=TYPES['type']):
         super().__init__(name, type_=type_)
+        self.returntype = returntype
         if value:
             self.value = value
         else:
@@ -1660,7 +1672,7 @@ class BuiltInFunctionType(BaseFunction):
         ))
 
     def copy(self):
-        copy = BuiltInFunctionType(self.name, self.value, type_=self.type)
+        copy = BuiltInFunctionType(self.name, self.value, type_=self.type, returntype=self.returntype)
         copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
@@ -1675,18 +1687,6 @@ class BuiltInFunctionType(BaseFunction):
         res = RTResult()
 
         exc = exec_context.symbols.access('exception')
-
-        if not isinstance(exc, ExceptionType):
-            return(
-                res.failure(
-                    Exc_TypeError(
-                        f'\'exception\' must be of type {TYPES["exception"]}, {exc.type} given',
-                        exc.start, exc.end,
-                        exec_context,
-                        exc.originstart, exc.originend, exc.origindisplay
-                    )
-                )
-            )
         
         return(
             res.failure(
@@ -1699,7 +1699,7 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
         )
-    exec_throw.argnames = ['exception']
+    exec_throw.argnames = {'exception': TYPES['exception']}
 
 
     def exec_assert(self, exec_context):
@@ -1707,30 +1707,6 @@ class BuiltInFunctionType(BaseFunction):
 
         condition = exec_context.symbols.access('condition')
         message   = exec_context.symbols.access('message')
-
-        if not isinstance(condition, BooleanType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'condition\' must be of type {TYPES["boolean"]}, {condition.type} given',
-                        condition.start, condition.end,
-                        exec_context,
-                        condition.originstart, condition.originend, condition.origindisplay
-                    )
-                )
-            )
-
-        if not isinstance(message, StringType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
-                        message.start, message.end,
-                        exec_context,
-                        message.originstart, message.originend, message.origindisplay
-                    )
-                )
-            )
 
         if condition.istrue()[0]:
             return(
@@ -1755,25 +1731,13 @@ class BuiltInFunctionType(BaseFunction):
                     )
                 )
             )
-    exec_assert.argnames = ['condition', 'message']
+    exec_assert.argnames = {'condition': TYPES['boolean'], 'message': TYPES['string']}
 
 
     def exec_panic(self, exec_context):
         res = RTResult()
 
         message = exec_context.symbols.access('message')
-
-        if not isinstance(message, StringType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'message\' must be of type {TYPES["string"]}, {message.type} given',
-                        message.start, message.end,
-                        exec_context,
-                        message.originstart, message.originend, message.origindisplay
-                    )
-                )
-            )
 
         return(
             res.failure(
@@ -1785,34 +1749,22 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
         )
-    exec_panic.argnames = ['message']
+    exec_panic.argnames = {'message': TYPES['string']}
 
 
     def exec_print(self, exec_context):
         res = RTResult()
 
-        text = exec_context.symbols.access('text')
+        message = exec_context.symbols.access('message')
 
-        if not isinstance(text, StringType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'message\' must be of type {TYPES["string"]}, {text.type} given',
-                        text.start, text.end,
-                        exec_context,
-                        text.originstart, text.originend, text.origindisplay
-                    )
-                )
-            )
-
-        print(text.__clean__())
+        print(message.__clean__())
 
         return(
             RTResult().success(
                 NullType()
             )
         )
-    exec_print.argnames = ['text']
+    exec_print.argnames = {'message': TYPES['string']}
 
 
     def exec_range(self, exec_context):
@@ -1821,42 +1773,6 @@ class BuiltInFunctionType(BaseFunction):
         start = exec_context.symbols.access('start')
         stop = exec_context.symbols.access('stop')
         step = exec_context.symbols.access('step')
-
-        if not isinstance(start, IntType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'start\' must be of type {TYPES["int"]}, {start.type} given',
-                        start.start, start.end,
-                        exec_context,
-                        start.originstart, start.originend, start.origindisplay
-                    )
-                )
-            )
-
-        if not isinstance(stop, IntType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'start\' must be of type {TYPES["int"]}, {stop.type} given',
-                        stop.start, stop.end,
-                        exec_context,
-                        stop.originstart, stop.originend, stop.origindisplay
-                    )
-                )
-            )
-
-        if not isinstance(step, IntType):
-            return(
-                res.failure(
-                    Exc_ArgumentTypeError(
-                        f'\'start\' must be of type {TYPES["int"]}, {step.type} given',
-                        step.start, step.end,
-                        exec_context,
-                        step.originstart, step.originend, step.origindisplay
-                    )
-                )
-            )
 
         returnlist = []
 
@@ -1876,7 +1792,7 @@ class BuiltInFunctionType(BaseFunction):
                 ArrayType(returnlist)
             )
         )
-    exec_range.argnames = ['start', 'stop', 'step']
+    exec_range.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
 
 
     def exec_type(self, exec_context):
@@ -1897,7 +1813,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_type.argnames = ['obj']
+    exec_type.argnames = {'obj': NullType()}
 
 
     def exec_str(self, exec_context):
@@ -1918,7 +1834,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_str.argnames = ['obj']
+    exec_str.argnames = {'obj': NullType()}
 
 
     def exec_int(self, exec_context):
@@ -1939,7 +1855,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_int.argnames = ['obj']
+    exec_int.argnames = {'obj': NullType()}
 
 
     def exec_float(self, exec_context):
@@ -1960,7 +1876,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_float.argnames = ['obj']
+    exec_float.argnames = {'obj': NullType()}
 
 
     def exec_bool(self, exec_context):
@@ -1981,7 +1897,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_bool.argnames = ['obj']
+    exec_bool.argnames = {'obj': NullType()}
 
 
     def exec_array(self, exec_context):
@@ -2002,7 +1918,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_array.argnames = ['obj']
+    exec_array.argnames = {'obj': NullType()}
 
 
     def exec_tuple(self, exec_context):
@@ -2023,7 +1939,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_tuple.argnames = ['obj']
+    exec_tuple.argnames = {'obj': NullType()}
 
 
     def exec_id(self, exec_context):
@@ -2035,7 +1951,7 @@ class BuiltInFunctionType(BaseFunction):
                 IdType(obj.id)
             )
         )
-    exec_id.argnames = ['obj']
+    exec_id.argnames = {'obj': NullType()}
 
 
 class ExceptionType(TypeObj):
@@ -2131,7 +2047,7 @@ class IdType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('id', type_=TYPES['type'])
+            BuiltInFunctionType('id', type_=TYPES['type'], returntype=TYPES['id'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None

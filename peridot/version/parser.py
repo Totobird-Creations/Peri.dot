@@ -1224,13 +1224,35 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-        argtokens = []
+        arguments = {}
 
         if self.curtoken.type == TT_IDENTIFIER:
-            argtokens.append(self.curtoken)
+            argname = self.curtoken
 
             res.registeradvancement()
             self.advance()
+
+            if self.curtoken.type != TT_COLON:
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            f'Expected \':\' not found',
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            argtype = res.register(
+                self.statement()
+            )
+
+            if res.error:
+                return(res)
+
+            arguments[argname.value] = argtype
 
             while self.curtoken.type == TT_COMMA:
                 res.registeradvancement()
@@ -1250,9 +1272,32 @@ class Parser():
                         )
                     )
 
-                argtokens.append(self.curtoken)
+                argname = self.curtoken
+
                 res.registeradvancement()
                 self.advance()
+
+                if self.curtoken.type != TT_COLON:
+                    return(
+                        res.failure(
+                            Syn_SyntaxError(
+                                f'Expected \':\' not found',
+                                self.curtoken.start, self.curtoken.end
+                            )
+                        )
+                    )
+
+                res.registeradvancement()
+                self.advance()
+
+                argtype = res.register(
+                    self.statement()
+                )
+
+                if res.error:
+                    return(res)
+
+                arguments[argname.value] = argtype
 
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
@@ -1343,7 +1388,7 @@ class Parser():
             res.success(
                 FuncCreateNode(
                     token,
-                    argtokens,
+                    arguments,
                     codeblock,
                     False
                 )

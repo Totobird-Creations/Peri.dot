@@ -10,6 +10,7 @@
 # - Added    : Type built-in function
 
 # - Modified : Code block syntax is less strict
+# - Modified : Function arguments are typed
 
 # - Rewrote  : Eqequals system for most types
 
@@ -19,6 +20,10 @@
 # NEW FEATURES                           #
 ##########################################
 
+var add = func(a: int, b: int) -> int {
+    return(a + b)
+}
+
 print(str(
-    type('hello')(10.0)
+    add(1, 1)
 ))

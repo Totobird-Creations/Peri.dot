@@ -430,6 +430,49 @@ class Interpreter():
         )
 
 
+
+    ### FUNCTIONS
+    def visit_FuncCreateNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        bodynodes = node.bodynodes
+        arguments = node.arguments
+
+        for key in list(arguments.keys()):
+            i = arguments[key]
+            
+            i = res.register(
+                self.visit(
+                    i,
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            if i.type != TYPES['type']:
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            f'Argument type must be of type \'{TYPES["type"]}\'',
+                            i.start, i.end,
+                            context
+                        )
+                    )
+                )
+
+            arguments[key] = i.returntype
+
+        funcvalue = FunctionType(bodynodes, arguments, node.shouldreturn)
+        funcvalue.setcontext(context).setpos(node.start, node.end)
+
+        return(
+            res.success(funcvalue)
+        )
+
+
     def visit_FuncCallNode(self, node, context, insideloop=False):
         res = RTResult()
 
@@ -478,21 +521,6 @@ class Interpreter():
 
         return(
             res.success(value)
-        )
-
-
-
-    ### FUNCTIONS
-    def visit_FuncCreateNode(self, node, context, insideloop=False):
-        res = RTResult()
-
-        bodynodes = node.bodynodes
-        argnames = [i.value for i in node.argtokens]
-        funcvalue = FunctionType(bodynodes, argnames, node.shouldreturn)
-        funcvalue.setcontext(context).setpos(node.start, node.end)
-
-        return(
-            res.success(funcvalue)
         )
 
 

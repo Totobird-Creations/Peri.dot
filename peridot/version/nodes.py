@@ -91,19 +91,6 @@ class VarNullNode():
         self.end = token.end
 
 
-class VarCallNode():
-    def __init__(self, node, argnodes, optionnodes, end=None):
-        self.node = node
-        self.argnodes = argnodes
-        self.optionnodes = optionnodes
-
-        self.start = node.start
-        if end:
-            self.end = end
-        else:
-            self.end = node.end
-
-
 
 ### FUNCTIONS
 class FuncCreateNode():
@@ -118,6 +105,15 @@ class FuncCreateNode():
             self.end = end
         else:
             self.end = self.token.end
+
+
+class FuncCallNode():
+    def __init__(self, node, calls):
+        self.node = node
+        self.calls = calls
+
+        self.start = node.start
+        self.end = calls[-1][2]
 
 
 class ReturnNode():

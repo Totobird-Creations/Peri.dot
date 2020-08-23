@@ -36,12 +36,7 @@ raised:
 factor:
     - (PLUS|DASH) factor
         -> UnaryOp
-    - call
-
-call:
-    - atom indicie* LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN indicie*
-        -> VarCall|Indicie
-    - atom indicie*
+    - atom calttricie*
 
 atom:
     - INT
@@ -70,10 +65,12 @@ atom:
     - loopexpr
         -> ForLoop|WhileLoop
 
-indicie:
-    - (LSQUARE statement RSQUARE)+
+calttricie:
+    - (LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN)+
+        -> VarCall
+    - (LSQUARE EOL* statement EOL* RSQUARE)+
         -> Indicie
-    - (PERIOD IDENTIFIER)+
+    - (EOL* PERIOD IDENTIFIER)+
         -> Attribute
 
 arrayexpr:

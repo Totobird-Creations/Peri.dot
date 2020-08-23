@@ -20,13 +20,5 @@
 ##########################################
 
 print(str(
-    type('hello')
-))
-
-print(str(
-    type(10)
-))
-
-print(str(
-    type([1, 2, 3])
+    type('hello')(10.0)
 ))

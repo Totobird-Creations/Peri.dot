@@ -508,12 +508,6 @@ class Parser():
                 )
             )
 
-        return(self.call())
-
-
-
-    def call(self):
-        res = ParseResult()
         atom = res.register(
             self.atom()
         )
@@ -521,133 +515,130 @@ class Parser():
         if res.error:
             return(res)
 
-        while self.curtoken.type in [TT_LSQUARE, TT_PERIOD]:
+        while self.curtoken.type in [TT_LPAREN, TT_LSQUARE, TT_PERIOD]:
             atom = res.register(
-                self.indicie(atom)
+                self.calttricie(atom)
             )
 
             if res.error:
                 return(res)
-
-        if self.curtoken.type == TT_LPAREN:
-            res.registeradvancement()
-            self.advance()
-
-            while self.curtoken.type == TT_EOL:
-                res.registeradvancement()
-                self.advance()
-
-            args = []
-            options = {}
-
-            if self.curtoken.type == TT_RPAREN:
-                end = self.curtoken.end.copy()
-                res.registeradvancement()
-                self.advance()
-            else:
-                args.append(
-                    res.register(
-                        self.statement()
-                    )
-                )
-
-                if res.error:
-                    return(
-                        res.failure(
-                            Syn_SyntaxError(
-                                'Expected \')\', identifier, keyword, operation, type not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-
-                while self.curtoken.type == TT_COMMA:
-                    res.registeradvancement()
-                    self.advance()
-
-                    while self.curtoken.type == TT_EOL:
-                        res.registeradvancement()
-                        self.advance()
-
-                    if self.curtoken.type == TT_IDENTIFIER:
-                        token = self.curtoken
-                        res.registeradvancement()
-                        self.advance()
-
-                        if self.curtoken.type == TT_EQUALS:
-                            res.registeradvancement()
-                            self.advance()
-
-                            options[token.value] = res.register(
-                                self.statement()
-                            )
-
-                        else:
-                            res.registerretreat()
-                            self.retreat()
-
-                            args.append(
-                                res.register(
-                                    self.statement()
-                                )
-                            )
-                    else:
-                        args.append(
-                            res.register(
-                                self.statement()
-                            )
-                        )
-
-                    if res.error:
-                        return(res)
-
-                while self.curtoken.type == TT_EOL:
-                    res.registeradvancement()
-                    self.advance()
-
-
-                if self.curtoken.type != TT_RPAREN:
-                    return(
-                        res.failure(
-                            Syn_SyntaxError(
-                                f'Expected \',\', \')\' not found',
-                                self.curtoken.start, self.curtoken.end
-                            )
-                        )
-                    )
-
-                end = self.curtoken.end.copy()
-                res.registeradvancement()
-                self.advance()
-
-            atom = VarCallNode(
-                atom,
-                args, options,
-                end=end
-            )
-
-            while self.curtoken.type in [TT_LSQUARE, TT_PERIOD]:
-                atom = res.register(
-                    self.indicie(atom)
-                )
-
-                if res.error:
-                    return(res)
-
-            return(
-                res.success(atom)
-            )
 
         return(
             res.success(atom)
         )
 
 
-    def indicie(self, prevnode):
+    def calttricie(self, prevnode):
         res = ParseResult()
 
-        if self.curtoken.type == TT_LSQUARE:
+        if self.curtoken.type == TT_LPAREN:
+            calls = []
+
+            while self.curtoken.type == TT_LPAREN:
+                args = []
+                options = {}
+
+                res.registeradvancement()
+                self.advance()
+
+                while self.curtoken.type == TT_EOL:
+                    res.registeradvancement()
+                    self.advance()
+
+                if self.curtoken.type == TT_RPAREN:
+                    end = self.curtoken.end.copy()
+                    res.registeradvancement()
+                    self.advance()
+                else:
+                    args.append(
+                        res.register(
+                            self.statement()
+                        )
+                    )
+
+                    if res.error:
+                        return(
+                            res.failure(
+                                Syn_SyntaxError(
+                                    'Expected \')\', identifier, keyword, operation, type not found',
+                                    self.curtoken.start, self.curtoken.end
+                                )
+                            )
+                        )
+
+
+                    while self.curtoken.type == TT_COMMA:
+                        res.registeradvancement()
+                        self.advance()
+
+                        while self.curtoken.type == TT_EOL:
+                            res.registeradvancement()
+                            self.advance()
+
+                        if self.curtoken.type == TT_IDENTIFIER:
+                            token = self.curtoken
+                            res.registeradvancement()
+                            self.advance()
+
+                            if self.curtoken.type == TT_EQUALS:
+                                res.registeradvancement()
+                                self.advance()
+
+                                options[token.value] = res.register(
+                                    self.statement()
+                                )
+
+                            else:
+                                res.registerretreat()
+                                self.retreat()
+
+                                args.append(
+                                    res.register(
+                                        self.statement()
+                                    )
+                                )
+                        else:
+                            args.append(
+                                res.register(
+                                    self.statement()
+                                )
+                            )
+
+                        if res.error:
+                            return(res)
+
+                    while self.curtoken.type == TT_EOL:
+                        res.registeradvancement()
+                        self.advance()
+
+
+                    if self.curtoken.type != TT_RPAREN:
+                        return(
+                            res.failure(
+                                Syn_SyntaxError(
+                                    f'Expected \',\', \')\' not found',
+                                    self.curtoken.start, self.curtoken.end
+                                )
+                            )
+                        )
+
+                    end = self.curtoken.end.copy()
+                    res.registeradvancement()
+                    self.advance()
+
+                calls.append((args, options, end))
+
+            return(
+                res.success(
+                    FuncCallNode(
+                        prevnode,
+                        calls
+                    )
+                )
+            )
+
+
+        elif self.curtoken.type == TT_LSQUARE:
             indicies = []
 
             while self.curtoken.type == TT_LSQUARE:
@@ -684,6 +675,7 @@ class Parser():
                     )
                 )
             )
+
 
         elif self.curtoken.type == TT_PERIOD:
             attributes = []

@@ -429,13 +429,11 @@ class Interpreter():
             )
         )
 
-    def visit_VarCallNode(self, node, context, insideloop=False):
+
+    def visit_FuncCallNode(self, node, context, insideloop=False):
         res = RTResult()
 
-        argnodes = node.argnodes
-        options = node.optionnodes
-
-        callnode = res.register(
+        value = res.register(
             self.visit(
                 node.node,
                 context,
@@ -446,41 +444,40 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
-        callnode = callnode.copy().setpos(node.start, node.end)
-
-        args = []
-        for argnode in argnodes:
-            args.append(
-                res.register(
-                    self.visit(
-                        argnode,
-                        context,
-                        insideloop=insideloop
+        for i in node.calls:
+            args = []
+            for argnode in i[0]:
+                args.append(
+                    res.register(
+                        self.visit(
+                            argnode,
+                            context,
+                            insideloop=insideloop
+                        )
                     )
+                )
+
+            if res.shouldreturn():
+                return(res)
+
+            try:
+                callvalue = value.name
+            except AttributeError:
+                callvalue = None
+
+            value = res.register(
+                value.call(
+                    callvalue, args
                 )
             )
 
             if res.shouldreturn():
                 return(res)
 
-        try:
-            callvalue = callnode.name
-        except AttributeError:
-            callvalue = None
-
-        result = res.register(
-            callnode.call(
-                callvalue, args
-            )
-        )
-
-        if res.shouldreturn():
-            return(res)
-
-        result = result.copy().setpos(node.start, node.end).setcontext(context)
+            value = value.copy().setpos(node.start, node.end).setcontext(context)
 
         return(
-            res.success(result)
+            res.success(value)
         )
 
 

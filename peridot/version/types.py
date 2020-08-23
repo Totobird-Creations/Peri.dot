@@ -13,7 +13,6 @@ init()
 from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
 from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_ArgumentTypeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
-from .nodes      import VarCallNode
 
 def uuid():
     u = '00000000000000000000000000000000'
@@ -901,7 +900,7 @@ class StringType(TypeObj):
 
     def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((
-            BuiltInFunctionType('string', type_=TYPES['type'])
+            BuiltInFunctionType('str', type_=TYPES['type'])
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None

@@ -3,6 +3,8 @@
 ##########################################
 
 from sys import exec_prefix
+from pathlib import Path
+import re
 from .constants  import * # type: ignore
 from .context    import Context, SymbolTable # type: ignore
 from .default    import defaultvariables # type: ignore
@@ -1174,44 +1176,47 @@ class Interpreter():
                     Exc_TypeError(
                         f'\'file\' must be of type {TYPES["string"]}, {file.type} given',
                         file.start, file.end,
-                        context
+                        context,
+                        file.originstart, file.originend, file.origindisplay
                     )
                 )
             )
 
-        try:
-            with open(file.value, 'r') as f:
-                script = f.read()
-
-        except FileNotFoundError as e:
+        if not re.match(r'^([A-z][A-z0-9]*)(\/([A-z][A-z0-9]*))*$', file.value):
             return(
                 res.failure(
-                    Exc_FileAccessError(
-                        f'File \'{file.value}\' does not exist',
+                    Exc_PatternError(
+                        f'\'file\' does not match pattern: /^([A-z][A-z0-9]*)(\/([A-z][A-z0-9]*))*$/',
                         file.start, file.end,
-                        context
+                        context,
+                        file.originstart, file.originend, file.origindisplay
                     )
                 )
             )
 
-        except IsADirectoryError as e:
-            return(
-                res.failure(
-                    Exc_FileAccessError(
-                        f'\'{file.value}\' is a directory',
-                        file.start, file.end,
-                        context
-                    )
-                )
-            )
+        script = None
+        for i in context.symbols.access('__peridot__').symbols.access('path').value:
+            i = i.value
 
-        except PermissionError as e:
+            try:
+                path = file.value + '.peri'
+                path = Path(i) / path
+                with open(str(path), 'r') as f:
+                    script = f.read()
+                break
+
+            except FileNotFoundError as e: pass
+            except IsADirectoryError as e: pass
+            except PermissionError   as e: pass
+
+        if not script:
             return(
                 res.failure(
                     Exc_FileAccessError(
-                        f'File \'{file.value}\' could not be accessed due to permission restrictions',
+                        f'Module {file} does not exist',
                         file.start, file.end,
-                        context
+                        context,
+                        file.originstart, file.originend, file.origindisplay
                     )
                 )
             )

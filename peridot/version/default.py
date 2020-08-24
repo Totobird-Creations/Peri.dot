@@ -1,6 +1,16 @@
 from .types import *
+from .context import SymbolTable
+import xdgappdirs
 
 def defaultvariables(symbols):
+    perisymbols = SymbolTable(symbols)
+    perisymbols.assign('path', ArrayType([
+        StringType(__file__),
+        StringType(xdgappdirs.user_data_dir('peri.modules', 'TotobirdCreations', version)),
+        StringType(xdgappdirs.site_data_dir('peri.modules', 'TotobirdCreations', version))
+    ]))
+    symbols.assign('__peridot__', NamespaceType(perisymbols))
+
     symbols.assign('True'  , BooleanType(True))
     symbols.assign('False' , BooleanType(False))
     symbols.assign('Null'  , NullType())
@@ -21,3 +31,8 @@ def defaultvariables(symbols):
     symbols.assign('tuple' , BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TYPES['tuple']))
 
     return(symbols)
+
+def defaultinit(appversion, file):
+    global version, __file__
+    version = appversion
+    __file__ = file

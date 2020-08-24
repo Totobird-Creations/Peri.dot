@@ -8,13 +8,14 @@ def improvederrormessage():
     ##########################################
 
     import sys
+    from pathlib import Path
 
     import click
     from   colorama  import init, Fore, Style
     init()
 
     from version.context            import Context, SymbolTable
-    from version.default            import defaultvariables
+    from version.default            import defaultinit, defaultvariables
     from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError, Cmd_OutOfDateWarning
     from version.interpreter        import Interpreter
     from version.lexer              import Lexer
@@ -27,7 +28,8 @@ def improvederrormessage():
     # LOGO                                   #
     ##########################################
 
-    VERSION = 'Pre-06'
+    VERSION       = 'Pre-06'
+    MODULEVERSION = 'Pre-06'
 
     def logo() -> str:
         logolines = [
@@ -95,6 +97,8 @@ def improvederrormessage():
                 print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
                 exit(1)
 
+            path = str(Path(filename).parent.resolve())
+            defaultinit(MODULEVERSION, path)
             runinit(Interpreter)
 
             symbols = defaultvariables(SymbolTable())

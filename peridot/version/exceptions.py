@@ -243,6 +243,10 @@ class Exc_PanicError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('PanicException', msg, start, end, context, originstart, originend, origindisplay)
 
+class Exc_PatternError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__('PatternException', msg, start, end, context, originstart, originend, origindisplay)
+
 class Exc_ReturnError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         super().__init__('ReturnException', msg, start, end, context, originstart, originend, origindisplay)

@@ -1442,8 +1442,7 @@ class BaseFunction(TypeObj):
                     Exc_ArgumentError(
                         f'\'{self.name}\' takes {len(list(arguments.keys()))} arguments, {len(args)} given',
                         self.start, self.end,
-                        self.context,
-                        self.originstart, self.originend, self.origindisplay
+                        self.context
                     )
                 )
             )

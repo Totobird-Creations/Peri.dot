@@ -8,6 +8,7 @@ authors = ["Totobird", "Snowkeep"]
 python = "^3.8"
 click = "7.1.2"
 colorama = "0.4.3"
+xdgappdirs = "^1.4.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"

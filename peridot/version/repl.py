@@ -18,10 +18,13 @@ replname = '<repl>'
 ##########################################
 
 class Repl():
-    def __init__(self):
+    def __init__(self, MODULEVERSION, path):
         end = False
         symbols = defaultvariables(SymbolTable())
         failed = False
+
+        defaultinit(MODULEVERSION, path)
+        runinit(Interpreter)
 
         while not end:
             script = input('>>> ')

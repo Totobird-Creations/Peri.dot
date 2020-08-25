@@ -80,6 +80,10 @@ def improvederrormessage():
   {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}\n''')
 
 
+        path = str(Path(filename).parent.resolve())
+        defaultinit(MODULEVERSION, path)
+        runinit(Interpreter)
+
         if filename:
             script = ''
 
@@ -97,10 +101,6 @@ def improvederrormessage():
                 print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
                 exit(1)
 
-            path = str(Path(filename).parent.resolve())
-            defaultinit(MODULEVERSION, path)
-            runinit(Interpreter)
-
             symbols = defaultvariables(SymbolTable())
             result, context, error = run(filename, script, symbols)
 
@@ -109,12 +109,12 @@ def improvederrormessage():
                 exit(1)
 
 
-        elif not (version or help) or repl:
+        if not (version or help) or repl:
             #print(
             #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
             #)
 
-            Repl()
+            Repl(MODULEVERSION, path)
 
 
     main()

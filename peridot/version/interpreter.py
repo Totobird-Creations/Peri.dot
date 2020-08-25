@@ -439,6 +439,7 @@ class Interpreter():
 
         bodynodes = node.bodynodes
         arguments = node.arguments
+        options = node.options
         returntype = node.returntype
 
         for key in list(arguments.keys()):
@@ -471,6 +472,22 @@ class Interpreter():
             else:
                 arguments[key] = i.returntype
 
+        for key in list(options.keys()):
+            i = options[key]
+
+            i = res.register(
+                self.visit(
+                    i,
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            options[key] = i
+
         returntype = res.register(
             self.visit(
                 returntype,
@@ -494,9 +511,9 @@ class Interpreter():
             )
 
         if isinstance(returntype, NullType):
-            funcvalue = FunctionType(bodynodes, arguments, NullType, node.shouldreturn)
+            funcvalue = FunctionType(bodynodes, arguments, options, NullType, node.shouldreturn)
         else:
-            funcvalue = FunctionType(bodynodes, arguments, returntype, node.shouldreturn)
+            funcvalue = FunctionType(bodynodes, arguments, options, returntype, node.shouldreturn)
         funcvalue.setcontext(context).setpos(node.start, node.end)
 
         return(
@@ -530,6 +547,15 @@ class Interpreter():
                         )
                     )
                 )
+            opts = {}
+            for optnode in list(i[1].keys()):
+                opts[optnode] = res.register(
+                    self.visit(
+                        i[1][optnode],
+                        context,
+                        insideloop=insideloop
+                    )
+                )
 
             if res.shouldreturn():
                 return(res)
@@ -541,7 +567,7 @@ class Interpreter():
 
             value = res.register(
                 value.call(
-                    callvalue, args, i[0]
+                    callvalue, args, opts, i[0]
                 )
             )
 

@@ -136,9 +136,10 @@ class VarNullNode():
 
 ### FUNCTIONS
 class FuncCreateNode():
-    def __init__(self, token, arguments, returntype, bodynodes, shouldreturn, end=None):
+    def __init__(self, token, arguments, options, returntype, bodynodes, shouldreturn, end=None):
         self.token = token
         self.arguments = arguments
+        self.options = options
         self.returntype = returntype
         self.bodynodes = bodynodes
         self.shouldreturn = shouldreturn

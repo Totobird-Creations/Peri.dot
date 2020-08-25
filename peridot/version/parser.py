@@ -536,7 +536,7 @@ class Parser():
 
             while self.curtoken.type == TT_LPAREN:
                 args = []
-                options = {}
+                opts = {}
 
                 res.registeradvancement()
                 self.advance()
@@ -550,11 +550,35 @@ class Parser():
                     res.registeradvancement()
                     self.advance()
                 else:
-                    args.append(
-                        res.register(
-                            self.statement()
+                    if self.curtoken.type == TT_IDENTIFIER:
+                        token = self.curtoken
+                        res.registeradvancement()
+                        self.advance()
+
+                        if self.curtoken.type == TT_EQUALS:
+                            res.registeradvancement()
+                            self.advance()
+
+                            opts[token.value] = res.register(
+                                self.statement()
+                            )
+
+                        else:
+                            res.registerretreat()
+                            self.retreat()
+
+                            args.append(
+                                res.register(
+                                    self.statement()
+                                )
+                            )
+
+                    else:
+                        args.append(
+                            res.register(
+                                self.statement()
+                            )
                         )
-                    )
 
                     if res.error:
                         return(
@@ -584,7 +608,7 @@ class Parser():
                                 res.registeradvancement()
                                 self.advance()
 
-                                options[token.value] = res.register(
+                                opts[token.value] = res.register(
                                     self.statement()
                                 )
 
@@ -625,7 +649,7 @@ class Parser():
                     res.registeradvancement()
                     self.advance()
 
-                calls.append((args, options, end))
+                calls.append((args, opts, end))
 
             return(
                 res.success(
@@ -1224,6 +1248,7 @@ class Parser():
             self.advance()
 
         arguments = {}
+        options   = {}
 
         if self.curtoken.type == TT_IDENTIFIER:
             argname = self.curtoken
@@ -1231,27 +1256,42 @@ class Parser():
             res.registeradvancement()
             self.advance()
 
-            if self.curtoken.type != TT_COLON:
+
+            if self.curtoken.type == TT_COLON:
+                res.registeradvancement()
+                self.advance()
+
+                argtype = res.register(
+                    self.statement()
+                )
+
+                if res.error:
+                    return(res)
+
+                arguments[argname.value] = argtype
+
+            elif self.curtoken.type == TT_EQUALS:
+                res.registeradvancement()
+                self.advance()
+
+                optdefault = res.register(
+                    self.statement()
+                )
+
+                if res.error:
+                    return(res)
+
+                options[argname.value] = optdefault
+
+            else:
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \':\' not found',
+                            f'Expected \':\', \'=\' not found',
                             self.curtoken.start, self.curtoken.end
                         )
                     )
                 )
-
-            res.registeradvancement()
-            self.advance()
-
-            argtype = res.register(
-                self.statement()
-            )
-
-            if res.error:
-                return(res)
-
-            arguments[argname.value] = argtype
 
             while self.curtoken.type == TT_COMMA:
                 res.registeradvancement()
@@ -1276,27 +1316,41 @@ class Parser():
                 res.registeradvancement()
                 self.advance()
 
-                if self.curtoken.type != TT_COLON:
+                if self.curtoken.type == TT_COLON:
+                    res.registeradvancement()
+                    self.advance()
+
+                    argtype = res.register(
+                        self.statement()
+                    )
+
+                    if res.error:
+                        return(res)
+
+                    arguments[argname.value] = argtype
+
+                if self.curtoken.type == TT_EQUALS:
+                    res.registeradvancement()
+                    self.advance()
+
+                    optdefault = res.register(
+                        self.statement()
+                    )
+
+                    if res.error:
+                        return(res)
+
+                    options[argname.value] = optdefault
+
+                else:
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected \':\' not found',
+                                f'Expected \':\', \'=\' not found',
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
                     )
-
-                res.registeradvancement()
-                self.advance()
-
-                argtype = res.register(
-                    self.statement()
-                )
-
-                if res.error:
-                    return(res)
-
-                arguments[argname.value] = argtype
 
             while self.curtoken.type == TT_EOL:
                 res.registeradvancement()
@@ -1416,6 +1470,7 @@ class Parser():
                 FuncCreateNode(
                     token,
                     arguments,
+                    options,
                     returntype,
                     codeblock,
                     False

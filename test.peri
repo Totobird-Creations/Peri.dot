@@ -2,6 +2,8 @@
 # RELEASE INFO                           #
 ##########################################
 
+# - Added    : Function default arguments
+
 # - Modified : Include location
 # - Modified : Assert statement
 
@@ -13,14 +15,29 @@
 # EXAMPLES                               #
 ##########################################
 
-# Modified assert statement to auto-generate message
+# Added default arguments to functions
 
-var both = func(a: bool, b: bool) -> bool {
-    return(a and b)
+var greet = func(name: str, emph='!') -> str {
+    var message = 'Hello, ' + name + emph
+    print(message)
+    return(message)
 }
+greet('Totobird', emph='!!!!!!!!!!')
 
-var a = 5
 
-assert(
-    a == 10
-)
+var f = func(name=Null) -> Null {
+    print(str(type(name)))
+    return(Null)
+}
+f(name=10)
+
+
+print(prefix='Hello, ', 'Totobird', suffix='!\n')
+
+
+print(str(
+    range(25, start=5, step=5)
+))
+
+
+assert(10 == 9, msg='Something\'s not right!')

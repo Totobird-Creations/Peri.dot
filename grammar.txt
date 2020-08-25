@@ -175,13 +175,13 @@ dictionaryexpr:
 
 funcdef:
     - KEYWORD:createfunc LPAREN EOL*
-      (IDENTIFIER COLON statement (COMMA EOL* IDENTIFIER COLON statement)*)? EOL*
+      (IDENTIFIER (COLON|EQUALS) statement (COMMA EOL* IDENTIFIER (COLON|EQUALS) statement)*)? EOL*
       RPAREN EOL* ARROW EOL* statement EOL*
       codeblock
         -> FuncCreate
 
     - KEYWORD:createlambda LPAREN EOL*
-      (IDENTIFIER COLON statement (COMMA EOL* IDENTIFIER COLON statement)*)? EOL*
+      (IDENTIFIER (COLON|EQUALS) statement (COMMA EOL* IDENTIFIER (COLON|EQUALS) statement)*)? EOL*
       RPAREN EOL* ARROW EOL* statement EOL*
       LCURLY EOL* statement EOL*RCURLY
         -> LambdaCreate

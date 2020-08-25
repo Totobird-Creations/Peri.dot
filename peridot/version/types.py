@@ -1429,7 +1429,7 @@ class BaseFunction(TypeObj):
 
         return(exec_context)
 
-    def checkargs(self, arguments, args):
+    def checkargs(self, arguments, options, args, opts):
         res = RTResult()
 
         if len(args) != len(list(arguments.keys())):
@@ -1455,7 +1455,7 @@ class BaseFunction(TypeObj):
             argumenttype = arguments[list(arguments.keys())[i]]
             argument = args[i]
 
-            if not argumenttype == NullType:
+            if argumenttype != NullType:
                 if argumenttype != argument.type:
                     return(
                         res.failure(
@@ -1468,13 +1468,45 @@ class BaseFunction(TypeObj):
                         )
                     )
 
+        for i in range(len(list(opts.keys()))):
+            optkey = list(opts.keys())[i]
+            try:
+                optiondef = options[optkey]
+            except KeyError:
+                return(
+                    res.failure(
+                        Exc_ArgumentError(
+                            f'\'{self.name}\' has not option \'{optkey}\'',
+                            opts[optkey].start, opts[optkey].end,
+                            self.context,
+                            opts[optkey].originstart, opts[optkey].originend, opts[optkey].origindisplay
+                        )
+                    )
+                )
+
+            if opts[optkey]:
+                option = opts[optkey]
+            else:
+                option = optiondef
+
+            if not isinstance(optiondef, NullType):
+                if optiondef.type != option.type:
+                    return(
+                        res.failure(
+                            Exc_TypeError(
+                                f'\'{optkey}\' must be of type {optiondef.type}, {option.type} given',
+                                option.start, option.end,
+                                self.context,
+                                option.originstart, option.originend, option.origindisplay
+                            )
+                        )
+                    )
+
         return(
-            res.success(
-                None
-            )
+            res.success(None)
         )
 
-    def popargs(self, arguments, args, rawargs, exec_context):
+    def popargs(self, arguments, options, args, opts, rawargs, exec_context):
         keys = list(arguments.keys())
         for i in range(len(keys)):
             argname = keys[i]
@@ -1485,20 +1517,33 @@ class BaseFunction(TypeObj):
 
             exec_context.symbols.assign(argname, argvalue)
 
-    def checkpopargs(self, arguments, args, rawargs, exec_context):
+        keys = list(options.keys())
+        for i in range(len(keys)):
+            optname = keys[i]
+            try:
+                optvalue = opts[keys[i]]
+            except KeyError:
+                optvalue = options[keys[i]]
+            optvalue.setcontext(exec_context)
+
+            exec_context.symbols.assign(optname, optvalue)
+
+    def checkpopargs(self, arguments, options, args, opts, rawargs, exec_context):
         res = RTResult()
 
         res.register(
             self.checkargs(
                 arguments,
-                args
+                options,
+                args,
+                opts
             )
         )
 
         if res.shouldreturn():
             return(res)
 
-        self.popargs(arguments, args, rawargs, exec_context)
+        self.popargs(arguments, options, args, opts, rawargs, exec_context)
 
         return(
             res.success(None)
@@ -1514,10 +1559,11 @@ class BaseFunction(TypeObj):
 
 
 class FunctionType(BaseFunction):
-    def __init__(self, bodynodes, arguments, returntype, shouldreturn):
+    def __init__(self, bodynodes, arguments, options, returntype, shouldreturn):
         super().__init__(type_=TYPES['function'])
         self.bodynodes = bodynodes
         self.arguments = arguments
+        self.options = options
         self.returntype = returntype
         self.shouldreturn = shouldreturn
 
@@ -1541,14 +1587,14 @@ class FunctionType(BaseFunction):
                 None
             ))
 
-    def call(self, name, args, rawargs):
+    def call(self, name, args, opts, rawargs):
         res = RTResult()
         interpreter = Interpreter()
 
         exec_context = self.gencontext((name or self.name, self.id))
         res.register(
             self.checkpopargs(
-                self.arguments, args, None,
+                self.arguments, self.options, args, opts, None,
                 exec_context
             )
         )
@@ -1609,7 +1655,7 @@ class FunctionType(BaseFunction):
         except IndexError: pass
 
     def copy(self):
-        copy = FunctionType(self.bodynodes, self.arguments, self.returntype, self.shouldreturn)
+        copy = FunctionType(self.bodynodes, self.arguments, self.options, self.returntype, self.shouldreturn)
         copy.id = self.id
         copy.name = self.name
         copy.setcontext(self.context)
@@ -1658,18 +1704,18 @@ class BuiltInFunctionType(BaseFunction):
                 None
             ))
 
-    def call(self, name, args, rawargs):
+    def call(self, name, args, opts, rawargs):
         res = RTResult()
 
         #exec_context = self.gencontext(('Built-In Function', name))
-        exec_context = self.context
+        exec_context = self.context.copy()
 
         method = f'exec_{self.value}'
         method = getattr(self, method)
 
         res.register(
             self.checkpopargs(
-                method.argnames, args, rawargs,
+                method.argnames, method.optnames, args, opts, rawargs,
                 exec_context
             )
         )
@@ -1725,6 +1771,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_throw.argnames = {'exception': TYPES['exception']}
+    exec_throw.optnames = {}
 
 
     def exec_assert(self, exec_context):
@@ -1746,35 +1793,38 @@ class BuiltInFunctionType(BaseFunction):
                 condition.origindisplay = condition.origindisplay[0]
             except IndexError: pass
 
-            message = ''
+            message = exec_context.symbols.access('msg')
 
-            if isinstance(conditiontype, VarAssignNode) or isinstance(conditiontype, VarCreateNode) or isinstance(conditiontype, VarNullNode):
-                message = f'{conditiontype.valnode} is not True'
+            if len(message.value):
+                message = message.value
+            else:
+                if isinstance(conditiontype, VarAssignNode) or isinstance(conditiontype, VarCreateNode) or isinstance(conditiontype, VarNullNode):
+                    message = f'{conditiontype.valnode} is not True'
 
-            elif isinstance(conditiontype, VarAccessNode) or isinstance(conditiontype, FuncCallNode) or isinstance(conditiontype, IndicieNode) or isinstance(conditiontype, AttributeNode):
-                message = f'{conditiontype} is not True'
+                elif isinstance(conditiontype, VarAccessNode) or isinstance(conditiontype, FuncCallNode) or isinstance(conditiontype, IndicieNode) or isinstance(conditiontype, AttributeNode):
+                    message = f'{conditiontype} is not True'
 
-            elif isinstance(conditiontype, BinaryOpNode):
-                if conditiontype.optoken.type == TT_EQEQUALS:
-                    message = f'{conditiontype.lnode} is not equal to {conditiontype.rnode}'
-                elif conditiontype.optoken.type == TT_BANGEQUALS:
-                    message = f'{conditiontype.lnode} is equal to {conditiontype.rnode}'
-                elif conditiontype.optoken.type == TT_LESSTHAN:
-                    message = f'{conditiontype.lnode} is not less than {conditiontype.rnode}'
-                elif conditiontype.optoken.type == TT_LTEQUALS:
-                    message = f'{conditiontype.lnode} is not less than or equal to {conditiontype.rnode}'
-                elif conditiontype.optoken.type == TT_GREATERTHAN:
-                    message = f'{conditiontype.lnode} is not greater than {conditiontype.rnode}'
-                elif conditiontype.optoken.type == TT_GTEQUALS:
-                    message = f'{conditiontype.lnode} is not greater than or equal to {conditiontype.rnode}'
-                elif conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicaland']):
-                    message = f'Both {conditiontype.lnode} and {conditiontype.rnode} are not True'
-                elif conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicalor']):
-                    message = f'Neither {conditiontype.lnode} or {conditiontype.rnode} are True'
+                elif isinstance(conditiontype, BinaryOpNode):
+                    if conditiontype.optoken.type == TT_EQEQUALS:
+                        message = f'{conditiontype.lnode} is not equal to {conditiontype.rnode}'
+                    elif conditiontype.optoken.type == TT_BANGEQUALS:
+                        message = f'{conditiontype.lnode} is equal to {conditiontype.rnode}'
+                    elif conditiontype.optoken.type == TT_LESSTHAN:
+                        message = f'{conditiontype.lnode} is not less than {conditiontype.rnode}'
+                    elif conditiontype.optoken.type == TT_LTEQUALS:
+                        message = f'{conditiontype.lnode} is not less than or equal to {conditiontype.rnode}'
+                    elif conditiontype.optoken.type == TT_GREATERTHAN:
+                        message = f'{conditiontype.lnode} is not greater than {conditiontype.rnode}'
+                    elif conditiontype.optoken.type == TT_GTEQUALS:
+                        message = f'{conditiontype.lnode} is not greater than or equal to {conditiontype.rnode}'
+                    elif conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicaland']):
+                        message = f'Both {conditiontype.lnode} and {conditiontype.rnode} are not True'
+                    elif conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicalor']):
+                        message = f'Neither {conditiontype.lnode} or {conditiontype.rnode} are True'
 
-            elif isinstance(conditiontype, UnaryOpNode):
-                if conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
-                    message = f'{conditiontype.node} inverted is not True'
+                elif isinstance(conditiontype, UnaryOpNode):
+                    if conditiontype.optoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
+                        message = f'{conditiontype.node} inverted is not True'
 
 
             return(
@@ -1788,6 +1838,7 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
     exec_assert.argnames = {'condition': TYPES['boolean']}
+    exec_assert.optnames = {'msg': StringType('')}
 
 
     def exec_panic(self, exec_context):
@@ -1806,14 +1857,17 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_panic.argnames = {'message': TYPES['string']}
+    exec_panic.optnames = {}
 
 
     def exec_print(self, exec_context):
         res = RTResult()
 
         message = exec_context.symbols.access('message')[0]
+        prefix = exec_context.symbols.access('prefix')
+        suffix = exec_context.symbols.access('suffix')
 
-        print(message.__clean__())
+        print(f'{prefix.__clean__()}{message.__clean__()}{suffix.__clean__()}', end='')
 
         return(
             RTResult().success(
@@ -1821,14 +1875,15 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_print.argnames = {'message': TYPES['string']}
+    exec_print.optnames = {'prefix': StringType(''), 'suffix': StringType('\n')}
 
 
     def exec_range(self, exec_context):
         res = RTResult()
 
-        start = exec_context.symbols.access('start')[0]
         stop = exec_context.symbols.access('stop')[0]
-        step = exec_context.symbols.access('step')[0]
+        start = exec_context.symbols.access('start')
+        step = exec_context.symbols.access('step')
 
         returnlist = []
 
@@ -1848,7 +1903,8 @@ class BuiltInFunctionType(BaseFunction):
                 ArrayType(returnlist)
             )
         )
-    exec_range.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
+    exec_range.argnames = {'stop': TYPES['integer']}
+    exec_range.optnames = {'start': IntType(0), 'step': IntType(1)}
 
 
     def exec_type(self, exec_context):
@@ -1870,6 +1926,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_type.argnames = {'obj': NullType}
+    exec_type.optnames = {}
 
 
     def exec_str(self, exec_context):
@@ -1891,6 +1948,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_str.argnames = {'obj': NullType}
+    exec_str.optnames = {}
 
 
     def exec_int(self, exec_context):
@@ -1912,6 +1970,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_int.argnames = {'obj': NullType}
+    exec_int.optnames = {}
 
 
     def exec_float(self, exec_context):
@@ -1933,6 +1992,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_float.argnames = {'obj': NullType}
+    exec_float.optnames = {}
 
 
     def exec_bool(self, exec_context):
@@ -1954,6 +2014,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_bool.argnames = {'obj': NullType}
+    exec_bool.optnames = {}
 
 
     def exec_array(self, exec_context):
@@ -1975,6 +2036,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_array.argnames = {'obj': NullType}
+    exec_array.optnames = {}
 
 
     def exec_tuple(self, exec_context):
@@ -1996,6 +2058,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_tuple.argnames = {'obj': NullType}
+    exec_tuple.optnames = {}
 
 
     def exec_id(self, exec_context):
@@ -2008,6 +2071,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         )
     exec_id.argnames = {'obj': NullType}
+    exec_id.optnames = {}
 
 
 class ExceptionType(TypeObj):

@@ -9,7 +9,7 @@ from typing import Any
 ##########################################
 
 class Context():
-    def __init__(self, display, symbols=None, parent=None, parententry=None):
+    def __init__(self, display, symbols=None, parent=None, parententry=None, caughterrors=None):
         self.display      = display
         self.parent       = parent
         self.parententry  = parententry
@@ -22,6 +22,10 @@ class Context():
         if self.parent:
             self.parent.caughterror(error)
         self.caughterrors.append(error)
+
+    def copy(self):
+        ctx = Context(self.display, self.symbols.copy(), self.parent, self.parententry, self.caughterrors)
+        return(ctx)
 
 ##########################################
 # SYMBOL TABLE                           #
@@ -51,3 +55,8 @@ class SymbolTable():
 
     def remove(self, name: str):
         del self.symbols[name]
+
+    def copy(self):
+        sym = SymbolTable(self.parent)
+        sym.symbols = self.symbols.copy()
+        return(sym)

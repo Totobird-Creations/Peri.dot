@@ -3,6 +3,7 @@
 ##########################################
 
 # - Added    : Function default arguments
+# - Added    : Methods for strings
 
 # - Modified : Include location
 # - Modified : Assert statement
@@ -15,29 +16,34 @@
 # EXAMPLES                               #
 ##########################################
 
-# Added default arguments to functions
+# Added methods for strings
 
-var greet = func(name: str, emph='!') -> str {
-    var message = 'Hello, ' + name + emph
-    print(message)
-    return(message)
-}
-greet('Totobird', emph='!!!!!!!!!!')
+var a = 'Hello, World! I like Peri.dot. '
+print(prefix='\n',
+    str(a)
+)
 
+var a = a.repeat(2)
+print(prefix='\n',
+    str(a)
+)
 
-var f = func(name=Null) -> Null {
-    print(str(type(name)))
-    return(Null)
-}
-f(name=10)
+var a = a.split(' ')
+print(prefix='\n',
+    str(a)
+)
 
+var a = a.join('\n')
+print(prefix='\n',
+    str(a)
+)
 
-print(prefix='Hello, ', 'Totobird', suffix='!\n')
+var a = a.replace('\n', ' ')
+print(prefix='\n',
+    str(a)
+)
 
-
-print(str(
-    range(25, start=5, step=5)
-))
-
-
-assert(10 == 9, msg='Something\'s not right!')
+var a = a.slice(0, a.length / 2, 1)
+print(prefix='\n',
+    str(a)
+)

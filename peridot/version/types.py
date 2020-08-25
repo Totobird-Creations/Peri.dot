@@ -14,7 +14,7 @@ from .catch      import InternalPeridotError
 from .context    import Context, SymbolTable
 from .constants  import KEYWORDS
 from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
-from .nodes      import AttributeNode, BinaryOpNode, FuncCallNode, IndicieNode, UnaryOpNode, VarAccessNode, VarAssignNode, VarCreateNode, VarNullNode, nodesinit
+from .nodes      import ArrayNode, AttributeNode, BinaryOpNode, FuncCallNode, IndicieNode, UnaryOpNode, VarAccessNode, VarAssignNode, VarCreateNode, VarNullNode, nodesinit
 from .tokens     import *
 
 def uuid():
@@ -210,7 +210,7 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
     def not_(self) -> Tuple[Any, Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def call(self, name, args) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def call(self, name, args, opts, rawargs) -> Tuple[Any, Optional[Exc_TypeError]]:
         res = RTResult()
         try:
             self.originstart = self.originstart[0]
@@ -251,7 +251,7 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be indexed', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def attribute(self, attribute) -> Tuple[Any, Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+        return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -981,6 +981,45 @@ class StringType(TypeObj):
             None
         ))
 
+    def attribute(self, attribute) -> Tuple[Any, Optional[Exc_TypeError]]:
+        if attribute.value == 'repeat':
+            f = BuiltInFunctionType('repeat').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'split':
+            f = BuiltInFunctionType('split').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'replace':
+            f = BuiltInFunctionType('replace').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'slice':
+            f = BuiltInFunctionType('slice').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'length':
+            f = IntType(len(self.value)).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
     def copy(self):
         copy = StringType(self.value)
         copy.setcontext(self.context)
@@ -1188,6 +1227,31 @@ class ArrayType(TypeObj):
             None
         ))
 
+    def attribute(self, attribute):
+        if attribute.value == 'join':
+            f = BuiltInFunctionType('join').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'slice':
+            f = BuiltInFunctionType('slice').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'length':
+            f = IntType(len(self.value)).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
     def copy(self):
         copy = ArrayType(self.value.copy())
         copy.setcontext(self.context)
@@ -1197,7 +1261,7 @@ class ArrayType(TypeObj):
         return(copy)
 
     def __repr__(self):
-        return(f'[{", ".join([str(i) for i in self.value])}]')
+        return(f'[{", ".join([i.__repr__() for i in self.value])}]')
 
 
 class DictionaryType(TypeObj):
@@ -1395,6 +1459,17 @@ class TupleType(TypeObj):
             value,
             None
         ))
+
+    def attribute(self, attribute):
+        if attribute.value == 'join':
+            f = BuiltInFunctionType('join').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = TupleType(self.value)
@@ -1748,6 +1823,10 @@ class BuiltInFunctionType(BaseFunction):
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
+        try:
+            copy.editvalue = self.editvalue
+        except AttributeError: pass
+
         return(copy)
 
     def __repr__(self):
@@ -2072,6 +2151,119 @@ class BuiltInFunctionType(BaseFunction):
         )
     exec_id.argnames = {'obj': NullType}
     exec_id.optnames = {}
+
+
+
+    def exec_repeat(self, exec_context):
+        res = RTResult()
+
+        count = exec_context.symbols.access('count')[0]
+        if count.value < 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'count\' must be greater than or equal to 0',
+                        count.start, count.end,
+                        exec_context,
+                        count.originstart, count.originend, count.origindisplay
+                    )
+                )
+            )
+        return(
+            RTResult().success(
+                StringType(self.editvalue.value * count.value)
+            )
+        )
+    exec_repeat.argnames = {'count': TYPES['integer']}
+    exec_repeat.optnames = {}
+
+
+    def exec_split(self, exec_context):
+        res = RTResult()
+
+        separator = exec_context.symbols.access('separator')[0]
+        if len(separator.value) <= 0:
+            return(
+                RTResult().success(
+                    ArrayType(list(self.editvalue.value))
+                        .setpos(self.start, self.end)
+                        .setcontext(exec_context)
+                )
+            )
+        else:
+            return(
+                RTResult().success(
+                    ArrayType([StringType(i) for i in self.editvalue.value.split(separator.value)])
+                )
+            )
+    exec_split.argnames = {'separator': TYPES['string']}
+    exec_split.optnames = {}
+
+
+    def exec_join(self, exec_context):
+        res = RTResult()
+
+        combiner = exec_context.symbols.access('combiner')[0]
+        if not all(i.type == TYPES['string'] for i in self.editvalue.value):
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'All objects in \'combiner\' must be of type {TYPES["string"]}',
+                        combiner.start, combiner.end,
+                        exec_context,
+                        combiner.originstart, combiner.originend, combiner.origindisplay
+                    )
+                )
+            )
+        return(
+            RTResult().success(
+                StringType(combiner.value.join(i.value for i in self.editvalue.value))
+            )
+        )
+    exec_join.argnames = {'combiner': TYPES['string']}
+    exec_join.optnames = {}
+
+
+    def exec_replace(self, exec_context):
+        res = RTResult()
+
+        separator = exec_context.symbols.access('separator')[0]
+        combiner = exec_context.symbols.access('combiner')[0]
+        return(
+            RTResult().success(
+                StringType(self.editvalue.value.replace(separator.value, combiner.value))
+            )
+        )
+    exec_replace.argnames = {'separator': TYPES['string'], 'combiner': TYPES['string']}
+    exec_replace.optnames = {}
+
+
+    def exec_slice(self, exec_context):
+        res = RTResult()
+
+        start = exec_context.symbols.access('start')[0]
+        stop = exec_context.symbols.access('stop')[0]
+        step = exec_context.symbols.access('step')[0]
+
+        if step.value == 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'step\' must not be equal to 0',
+                        step.start, step.end,
+                        exec_context,
+                        step.originstart, step.originend, step.origindisplay
+                    )
+                )
+            )
+
+        return(
+            RTResult().success(
+                type(self.editvalue)(self.editvalue.value[start.value:stop.value:step.value])
+            )
+        )
+    exec_slice.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
+    exec_slice.optnames = {}
 
 
 class ExceptionType(TypeObj):

@@ -210,6 +210,9 @@ class Interpreter():
                 )
             )
 
+            if res.shouldreturn():
+                return(res)
+
             if keytype:
                 if type(key) != type(keytype):
                     return(
@@ -303,6 +306,9 @@ class Interpreter():
                     insideloop=insideloop
             )
         )
+
+        if res.shouldreturn():
+            return(res)
 
         prevvalue = context.symbols.access(name)
 
@@ -1145,9 +1151,7 @@ class Interpreter():
 
             if error:
                 return(
-                    res.failure(
-                        error
-                    )
+                    res.failure(error)
                 )
 
         return(
@@ -1173,9 +1177,7 @@ class Interpreter():
 
             if error:
                 return(
-                    res.failure(
-                        error
-                    )
+                    res.failure(error)
                 )
 
             if isinstance(value, FunctionType):

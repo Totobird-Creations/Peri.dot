@@ -12,8 +12,6 @@
 # EXAMPLES                               #
 ##########################################
 
-10 * 10.0
-
 # Added classes
 
 
@@ -30,12 +28,19 @@
 
 #__peridot__.path = ['/home']
 
-print(str(
-    __peridot__.path
-))
+#print(str(
+#    __peridot__.path
+#))
 
-var test = include('testmodule')
+#var test = include('testmodule')
 
-print(str(
-    test.add(1, 2)
-))
+#print(str(
+#    test.add(1, 2)
+#))
+
+var r = func(f: Null) -> Null {
+    print(str(f))
+    return(f)
+}
+
+r(r)

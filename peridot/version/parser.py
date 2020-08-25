@@ -611,7 +611,6 @@ class Parser():
                         res.registeradvancement()
                         self.advance()
 
-
                     if self.curtoken.type != TT_RPAREN:
                         return(
                             res.failure(

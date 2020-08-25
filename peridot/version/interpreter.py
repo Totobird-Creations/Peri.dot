@@ -455,18 +455,21 @@ class Interpreter():
             if res.shouldreturn():
                 return(res)
 
-            if i.type != TYPES['type']:
+            if i.type != TYPES['type'] and not isinstance(i, NullType):
                 return(
                     res.failure(
                         Exc_TypeError(
-                            f'Argument type must be of type {TYPES["type"]}',
+                            f'Argument type must be of type {TYPES["type"]}, {TYPES["nonetype"]}',
                             i.start, i.end,
                             context
                         )
                     )
                 )
 
-            arguments[key] = i.returntype
+            if isinstance(i, NullType):
+                arguments[key] = NullType
+            else:
+                arguments[key] = i.returntype
 
         returntype = res.register(
             self.visit(
@@ -479,7 +482,7 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
-        if returntype.type != TYPES['type']:
+        if returntype.type != TYPES['type'] and not isinstance(returntype, NullType):
             return(
                 res.failure(
                     Exc_TypeError(
@@ -490,7 +493,10 @@ class Interpreter():
                 )
             )
 
-        funcvalue = FunctionType(bodynodes, arguments, returntype, node.shouldreturn)
+        if isinstance(returntype, NullType):
+            funcvalue = FunctionType(bodynodes, arguments, NullType, node.shouldreturn)
+        else:
+            funcvalue = FunctionType(bodynodes, arguments, returntype, node.shouldreturn)
         funcvalue.setcontext(context).setpos(node.start, node.end)
 
         return(

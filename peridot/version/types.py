@@ -1453,7 +1453,7 @@ class BaseFunction(TypeObj):
             argumenttype = arguments[list(arguments.keys())[i]]
             argument = args[i]
 
-            if not isinstance(argumenttype, NullType):
+            if not argumenttype == NullType:
                 if argumenttype != argument.type:
                     return(
                         res.failure(
@@ -1580,7 +1580,7 @@ class FunctionType(BaseFunction):
                 )
             )
 
-        if not isinstance(result, NullType):
+        if not self.returntype == NullType:
             if self.returntype.returntype != result.type:
                 return(
                     res.failure(
@@ -1834,7 +1834,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_type.argnames = {'obj': NullType()}
+    exec_type.argnames = {'obj': NullType}
 
 
     def exec_str(self, exec_context):
@@ -1855,7 +1855,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_str.argnames = {'obj': NullType()}
+    exec_str.argnames = {'obj': NullType}
 
 
     def exec_int(self, exec_context):
@@ -1876,7 +1876,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_int.argnames = {'obj': NullType()}
+    exec_int.argnames = {'obj': NullType}
 
 
     def exec_float(self, exec_context):
@@ -1897,7 +1897,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_float.argnames = {'obj': NullType()}
+    exec_float.argnames = {'obj': NullType}
 
 
     def exec_bool(self, exec_context):
@@ -1918,7 +1918,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_bool.argnames = {'obj': NullType()}
+    exec_bool.argnames = {'obj': NullType}
 
 
     def exec_array(self, exec_context):
@@ -1939,7 +1939,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_array.argnames = {'obj': NullType()}
+    exec_array.argnames = {'obj': NullType}
 
 
     def exec_tuple(self, exec_context):
@@ -1960,7 +1960,7 @@ class BuiltInFunctionType(BaseFunction):
                 result
             )
         )
-    exec_tuple.argnames = {'obj': NullType()}
+    exec_tuple.argnames = {'obj': NullType}
 
 
     def exec_id(self, exec_context):
@@ -1972,7 +1972,7 @@ class BuiltInFunctionType(BaseFunction):
                 IdType(obj.id)
             )
         )
-    exec_id.argnames = {'obj': NullType()}
+    exec_id.argnames = {'obj': NullType}
 
 
 class ExceptionType(TypeObj):

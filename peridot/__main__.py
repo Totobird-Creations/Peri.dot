@@ -109,7 +109,7 @@ def improvederrormessage():
                 exit(1)
 
 
-        if not (version or help) or repl:
+        if not (filename or version or help) or repl:
             #print(
             #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
             #)

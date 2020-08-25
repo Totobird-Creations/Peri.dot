@@ -3,7 +3,8 @@
 ##########################################
 
 # - Added    : Function default arguments
-# - Added    : Methods for strings
+# - Added    : Methods for types
+# - Added    : More escape codes
 
 # - Modified : Include location
 # - Modified : Assert statement
@@ -16,34 +17,23 @@
 # EXAMPLES                               #
 ##########################################
 
-# Added methods for strings
+# Added methods for handler
 
-var a = 'Hello, World! I like Peri.dot. '
-print(prefix='\n',
-    str(a)
-)
+var try = handler {
+    10 / 0
+}
 
-var a = a.repeat(2)
-print(prefix='\n',
-    str(a)
-)
-
-var a = a.split(' ')
-print(prefix='\n',
-    str(a)
-)
-
-var a = a.join('\n')
-print(prefix='\n',
-    str(a)
-)
-
-var a = a.replace('\n', ' ')
-print(prefix='\n',
-    str(a)
-)
-
-var a = a.slice(0, a.length / 2, 1)
-print(prefix='\n',
-    str(a)
-)
+if (try == Null) {
+    print('\x32Passed\x0')
+} else {
+    print('  \x32File \x1' + try.file + '\x0, \x32In \x1' + try.loc + '\x0')
+    print('    \x32Line \x1' + str(try.line) + '\x0, \x32Column \x1' + str(try.column) + '\x0')
+    print('      \x33' + try.text + '\x0')
+    print('      \x33' + ' '.repeat(try.column) + '^\x0')
+    print('      \x34Look it\'s here!\x0')
+    if (try.msg.length >= 1) {
+        print('\x31\x1' + try.name + '\x0: \x31' + try.msg + '\x0')
+    } else {
+        print('\x31\x1' + try.name + '\x0')
+    }
+}

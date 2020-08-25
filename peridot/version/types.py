@@ -2267,13 +2267,21 @@ class BuiltInFunctionType(BaseFunction):
 
 
 class ExceptionType(TypeObj):
-    def __init__(self, exc, msg, start):
+    def __init__(self, exc, msg, start, end, context):
         super().__init__(type_=TYPES['exception'])
         self.exc = exc
         self.msg = msg
         self.exc_start = start
-        self.line = start.line
-        self.column = start.column
+        self.file = self.exc_start.file
+        self.exc_context = context
+        self.loc = context.display
+        if isinstance(self.loc, tuple):
+            self.loc = self.loc[0]
+        self.line = self.exc_start.line
+        self.column = self.exc_start.column
+        self.exc_end = end
+        lines = self.exc_start.ftext.split('\n')
+        self.text = ' '.join(lines[self.line::-(len(lines) - self.exc_end.column)])
 
     def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
         if type(self) == type(other):
@@ -2295,8 +2303,61 @@ class ExceptionType(TypeObj):
                 None
             ))
 
+    def attribute(self, attribute):
+        if attribute.value == 'name':
+            f = StringType(self.exc).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'msg':
+            f = StringType(self.msg).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'file':
+            f = StringType(self.file).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'loc':
+            f = StringType(self.loc).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'line':
+            f = IntType(self.line).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'column':
+            f = IntType(self.column).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'text':
+            f = StringType(self.text).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', attribute.start, attribute.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
     def copy(self):
-        copy = ExceptionType(self.exc, self.msg, self.exc_start)
+        copy = ExceptionType(self.exc, self.msg, self.exc_start, self.exc_end, self.exc_context)
         copy.id = self.id
         copy.setcontext(self.context)
         copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)

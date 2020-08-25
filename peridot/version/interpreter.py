@@ -993,7 +993,9 @@ class Interpreter():
                 exc = ExceptionType(
                     error.exc,
                     error.msg,
-                    error.start
+                    error.start,
+                    error.end,
+                    context
                 )
 
                 try:

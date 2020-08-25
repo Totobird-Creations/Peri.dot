@@ -2,6 +2,9 @@
 # DEPENDENCIES                           #
 ##########################################
 
+from colorama    import init, Fore, Style, Back
+init()
+
 from .constants  import * # type: ignore
 from .exceptions import * # type: ignore
 from .tokens     import * # type: ignore
@@ -31,7 +34,7 @@ class Position():
 
     def retreat(self, char=None):
         self.index -= 1
-        self.column += 1
+        self.column -= 1
         if char == '\n':
             self.line -= 1
             self.column = len(self.ftext.split('\n')[self.line]) - 1
@@ -252,14 +255,53 @@ class Lexer():
     def makestring(self, quotetype):
         string = ''
         start = self.pos.copy()
+        escstart = self.pos.copy()
 
         chars = {
-            '\\': '\\',
-            'n' : '\n',
-            '\n': '\n',
-            't' : '\t',
-            '\'': '\'',
-            '\"': '\"'
+            '\\' : '\\',
+            'n'  : '\n',
+            '\n' : '\n',
+            't'  : '\t',
+            '\'' : '\'',
+            '\"' : '\"',
+            'x20': Style.NORMAL,
+            'x30': Fore.BLACK,
+            'x31': Fore.RED,
+            'x32': Fore.GREEN,
+            'x33': Fore.YELLOW,
+            'x34': Fore.BLUE,
+            'x35': Fore.MAGENTA,
+            'x36': Fore.CYAN,
+            'x37': Fore.WHITE,
+            'x39': Fore.RESET,
+            'x40': Back.BLACK,
+            'x41': Back.RED,
+            'x42': Back.GREEN,
+            'x43': Back.YELLOW,
+            'x44': Back.BLUE,
+            'x45': Back.MAGENTA,
+            'x46': Back.CYAN,
+            'x47': Back.WHITE,
+            'x49': Back.RESET,
+            'x90': Fore.LIGHTBLACK_EX,
+            'x91': Fore.LIGHTRED_EX,
+            'x92': Fore.LIGHTGREEN_EX,
+            'x93': Fore.LIGHTYELLOW_EX,
+            'x94': Fore.LIGHTBLUE_EX,
+            'x95': Fore.LIGHTMAGENTA_EX,
+            'x96': Fore.LIGHTCYAN_EX,
+            'x97': Fore.LIGHTWHITE_EX,
+            'x100': Back.LIGHTBLACK_EX,
+            'x101': Back.LIGHTRED_EX,
+            'x102': Back.LIGHTGREEN_EX,
+            'x103': Back.LIGHTYELLOW_EX,
+            'x104': Back.LIGHTBLUE_EX,
+            'x105': Back.LIGHTMAGENTA_EX,
+            'x106': Back.LIGHTCYAN_EX,
+            'x107': Back.LIGHTWHITE_EX,
+            'x0' : Style.RESET_ALL,
+            'x1' : Style.BRIGHT,
+            'x2' : Style.DIM
         }
         escaped = False
 
@@ -267,16 +309,34 @@ class Lexer():
 
         while self.char != None and (self.char != quotetype or escaped):
             if escaped:
-                char = chars.get(self.char)
+                char = None
+                escchars = ''
+                for i in list(chars.keys()):
+                    escchars = ''
+                    for j in range(len(i)):
+                        escchars += f'{self.char}'
+                        if i[j] != self.char: break
+                        elif j == len(i) - 1:
+                            char = chars[escchars]
+                            break
+                        self.advance()
+
+                    if char: break
+
+                    for i in range(j):
+                        self.retreat()
+
                 if not char:
                     end = self.pos.copy()
-                    end.advance()
-                    return((None, Syn_EscapeError(f'\'{self.char}\' can not be escaped', start=self.pos, end=end)))
+                    for i in range(len(escchars)):
+                        end.advance()
+                    return((None, Syn_EscapeError(f'\'{escchars}\' can not be escaped', start=escstart, end=end)))
                 string += char
 
                 escaped = False
             else:
                 if self.char == '\\':
+                    escstart = self.pos.copy()
                     escaped = True
                 elif self.char == '\n':
                     end = self.pos.copy()

@@ -1,3 +1,9 @@
+from .tokens import *
+
+def nodesinit(types):
+    global TYPES
+    TYPES = types
+
 ##########################################
 # NODES                                  #
 ##########################################
@@ -10,6 +16,9 @@ class IntNode():
         self.start = self.token.start
         self.end   = self.token.end
 
+    def __repr__(self):
+        return(f'{self.token.value}')
+
 
 class FloatNode():
     def __init__(self, token):
@@ -17,6 +26,9 @@ class FloatNode():
 
         self.start = self.token.start
         self.end   = self.token.end
+
+    def __repr__(self):
+        return(f'{self.token.value}')
 
 
 class StringNode():
@@ -26,6 +38,9 @@ class StringNode():
         self.start = self.token.start
         self.end   = self.token.end
 
+    def __repr__(self):
+        return(f'\'{self.token.value}\'')
+
 
 class ArrayNode():
     def __init__(self, elmnodes, start, end):
@@ -33,6 +48,9 @@ class ArrayNode():
 
         self.start = start
         self.end   = end
+
+    def __repr__(self):
+        return(f'[{", ".join([str(i) for i in self.elmnodes])}]')
 
 
 class DictionaryNode():
@@ -43,6 +61,18 @@ class DictionaryNode():
         self.start = start
         self.end   = end
 
+    def __repr__(self):
+        result = ''
+        first = True
+        keys = self.keynodes
+        values = self.valuenodes
+        for i in range(len(keys)):
+            if not first:
+                result += ', '
+            result += f'{keys[i]}: {values[i]}'
+            first = False
+        return(f'{{{result}}}')
+
 
 class TupleNode():
     def __init__(self, elmnodes, start, end):
@@ -50,6 +80,9 @@ class TupleNode():
 
         self.start = start
         self.end   = end
+
+    def __repr__(self):
+        return(f'({", ".join([str(i) for i in self.elmnodes])})')
 
 
 
@@ -73,6 +106,9 @@ class VarAssignNode():
         self.start = token.start
         self.end = token.end
 
+    def __repr__(self):
+        return(f'{self.valnode}')
+
 
 class VarCreateNode():
     def __init__(self, token, valnode):
@@ -82,6 +118,9 @@ class VarCreateNode():
         self.start = token.start
         self.end = token.end
 
+    def __repr__(self):
+        return(f'{self.valnode}')
+
 
 class VarNullNode():
     def __init__(self, token):
@@ -89,6 +128,9 @@ class VarNullNode():
 
         self.start = token.start
         self.end = token.end
+
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
 
 
 
@@ -107,6 +149,9 @@ class FuncCreateNode():
         else:
             self.end = self.token.end
 
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
+
 
 class FuncCallNode():
     def __init__(self, node, calls):
@@ -116,6 +161,9 @@ class FuncCallNode():
         self.start = node.start
         self.end = calls[-1][2]
 
+    def __repr__(self):
+        return(f'Return value of {self.node}')
+
 
 class ReturnNode():
     def __init__(self, returnnode, start, end):
@@ -123,6 +171,9 @@ class ReturnNode():
 
         self.start = start
         self.end = end
+
+    def __repr__(self):
+        return(f'{self.returnnode}')
 
 
 
@@ -138,6 +189,9 @@ class HandlerNode():
         if len(self.bodynodes) > 0:
             self.end = self.bodynodes[-1].end
 
+    def __repr__(self):
+        return(f'Result of handler')
+
 
 ### FLOW CONTROL
 class IfNode():
@@ -151,6 +205,9 @@ class IfNode():
         else:
             self.end = self.cases[-1][0].end
 
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
+
 
 class SwitchNode():
     def __init__(self, vartoken, varoverwrite, value, cases, elsecase, start, end):
@@ -162,6 +219,9 @@ class SwitchNode():
 
         self.start = start
         self.end = end
+
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
 
 
 class ForLoopNode():
@@ -178,6 +238,9 @@ class ForLoopNode():
         else:
             self.end = self.vartoken.end
 
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
+
 
 class WhileLoopNode():
     def __init__(self, condition, bodynodes):
@@ -191,17 +254,26 @@ class WhileLoopNode():
         else:
             self.end = self.condition.end
 
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
+
 
 class BreakNode():
     def __init__(self, start, end):
         self.start = start
         self.end = end
 
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
+
 
 class ContinueNode():
     def __init__(self, start, end):
         self.start = start
         self.end = end
+
+    def __repr__(self):
+        return(f'{TYPES["nonetype"]}')
 
 
 
@@ -227,6 +299,12 @@ class BinaryOpNode():
         self.start = self.lnode.start
         self.end   = self.rnode.end
 
+    def __repr__(self):
+        if self.optoken.type == TT_KEYWORD:
+            return(f'({self.lnode} {self.optoken.value} {self.rnode})')
+        else:
+            return(f'({self.lnode} {self.optoken.type} {self.rnode})')
+
 
 
 ### MISCELLANIOUS
@@ -241,6 +319,12 @@ class IndicieNode():
         else:
             self.end = self.node.end
 
+    def __repr__(self):
+        indicies = ''
+        for i in self.indicies:
+            indicies += f'[{i}]'
+        return(f'{self.node}{indicies}')
+
 
 class AttributeNode():
     def __init__(self, node, attributes, end=None):
@@ -253,6 +337,12 @@ class AttributeNode():
         else:
             self.end = self.node.end
 
+    def __repr__(self):
+        attributes = ''
+        for i in self.attributes:
+            attributes += f'.{i.value}'
+        return(f'{self.node}{attributes}')
+
 
 
 ### MODULES
@@ -262,3 +352,6 @@ class IncludeNode():
 
         self.start = start
         self.end = end
+
+    def __repr__(self):
+        return(f'Namespace {self.filenode}')

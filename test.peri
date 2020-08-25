@@ -3,6 +3,7 @@
 ##########################################
 
 # - Modified : Include location
+# - Modified : Assert statement
 
 
 
@@ -12,11 +13,14 @@
 # EXAMPLES                               #
 ##########################################
 
-# Fixed invalid arg count error
+# Modified assert statement to auto-generate message
 
-var r = func(a: Null) -> Null {
-    return(a)
+var both = func(a: bool, b: bool) -> bool {
+    return(a and b)
 }
 
-r(True, True)
-assert(True)
+var a = 5
+
+assert(
+    a == 10
+)

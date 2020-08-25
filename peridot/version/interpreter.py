@@ -541,7 +541,7 @@ class Interpreter():
 
             value = res.register(
                 value.call(
-                    callvalue, args
+                    callvalue, args, i[0]
                 )
             )
 

@@ -20,7 +20,7 @@ class Exc_Error():
         self.start = start
         self.end = end
         self.context = context
-        self.caughterrors = self.context.caughterrors
+        #self.caughterrors = self.context.caughterrors
         self.originstart = originstart
         self.originend = originend
         self.origindisplay = origindisplay

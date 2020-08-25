@@ -2,6 +2,8 @@
 # RELEASE INFO                           #
 ##########################################
 
+# - Added    : Classes
+
 # - Modified : Include location
 
 
@@ -10,7 +12,23 @@
 # EXAMPLES                               #
 ##########################################
 
+10 * 10.0
+
+# Added classes
+
+
+#var Operations = class() {
+#    var add = func(a: int, b: int) -> int {
+#        return(a + b)
+#    }
+#}
+#var operations = Operations()
+
+
+
 # Include module name changed from file path to module location
+
+#__peridot__.path = ['/home']
 
 print(str(
     __peridot__.path
@@ -21,6 +39,3 @@ var test = include('testmodule')
 print(str(
     test.add(1, 2)
 ))
-
-var a = 1 + 5
-print(str(a))

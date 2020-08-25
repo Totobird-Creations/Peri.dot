@@ -1,4 +1,5 @@
 import pytest
+from peridot.version.exceptions import Exc_TypeError
 from peridot.version.types import IntType,FloatType,BooleanType,NullType
 from peridot.version.catch import InternalPeridotError
 
@@ -286,14 +287,13 @@ class TestPeridotFloat:
 
 
 class TestPeridotCrossTypes:
-    @pytest.mark.skip(reason="out-of-date and fix is under construction")
     def test_int_add_float(self):
         a = IntType(4)
         b = FloatType(2.3)
-        with pytest.raises(AttributeError):
-            c,err = a.add(b)
+        c,err = a.add(b)
+        assert(c == None)
+        assert(isinstance(err, Exc_TypeError))
 
-    @pytest.mark.skip(reason="out-of-date and fix is under construction")
     def test_int_mult_float(self):
         a = IntType(4)
         b = FloatType(2.3)
@@ -301,7 +301,6 @@ class TestPeridotCrossTypes:
         assert(c == None)
         assert(isinstance(err, Exc_TypeError))
 
-    @pytest.mark.skip(reason="out-of-date and fix is under construction")
     def test_float_mult_int(self):
         b = IntType(4)
         a = FloatType(2.3)
@@ -309,7 +308,6 @@ class TestPeridotCrossTypes:
         assert(c == None)
         assert(isinstance(err, Exc_TypeError))
 
-    @pytest.mark.skip(reason="out-of-date and fix is under construction")
     def test_float_lessthan_int(self):
         a = IntType(2)
         b = FloatType(3.0)
@@ -317,7 +315,6 @@ class TestPeridotCrossTypes:
         assert(c == None)
         assert(isinstance(err, Exc_TypeError))
 
-    @pytest.mark.skip(reason="out-of-date and fix is under construction")
     def test_int_lessthan_float(self):
         a = IntType(2)
         b = FloatType(3.0)

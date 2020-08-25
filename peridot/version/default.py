@@ -1,13 +1,14 @@
 from .types import *
 from .context import SymbolTable
 import xdgappdirs
+from pathlib import Path
 
 def defaultvariables(symbols):
     perisymbols = SymbolTable(symbols)
     perisymbols.assign('path', ArrayType([
         StringType(__file__),
-        StringType(xdgappdirs.user_data_dir('peri.modules', 'TotobirdCreations', version)),
-        StringType(xdgappdirs.site_data_dir('peri.modules', 'TotobirdCreations', version))
+        StringType(str(xdgappdirs.user_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version)),
+        StringType(str(xdgappdirs.site_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version))
     ]))
     symbols.assign('__peridot__', NamespaceType(perisymbols))
 

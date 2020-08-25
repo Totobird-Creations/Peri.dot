@@ -1,6 +1,6 @@
 import pytest
 from peridot.version.types import BooleanType,NullType
-from peridot.version.exceptions import *
+from peridot.version.catch import InternalPeridotError
 
 class TestPeridotBoolean:
     def test_bool(self):
@@ -10,7 +10,7 @@ class TestPeridotBoolean:
         assert(a.type == "Bool")
 
     def test_not_bool(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = BooleanType(1)
 
     def test_bool_and(self):

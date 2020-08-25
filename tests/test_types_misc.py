@@ -1,6 +1,6 @@
 import pytest
 from peridot.version.types import NullType,IntType, StringType,ArrayType
-from peridot.version.exceptions import *
+from peridot.version.catch import InternalPeridotError
 
 
 class TestPeridotMiscTypes:
@@ -17,7 +17,7 @@ class TestPeridotString:
         assert(a.type == "Str")
 
     def test_not_string(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = StringType(5)
 
     def test_string_add(self):
@@ -42,7 +42,7 @@ class TestPeridotArray:
         assert(a.type == "Array")
 
     def test_array_type(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = ArrayType([1, StringType("two"), IntType(3)])
 
     def test_array_copy(self):

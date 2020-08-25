@@ -613,7 +613,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
-                    .setpos(self.start, self.en)
+                    .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
             ))

@@ -1,6 +1,6 @@
 import pytest
 from peridot.version.types import IntType,FloatType,BooleanType,NullType
-from peridot.version.exceptions import *
+from peridot.version.catch import InternalPeridotError
 
 
 class TestPeridotInt:
@@ -11,9 +11,9 @@ class TestPeridotInt:
         assert(a.type == "Int")
 
     def test_not_int(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = IntType(4.2)
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = IntType("String")
 
     def test_int_add(self):
@@ -152,9 +152,9 @@ class TestPeridotFloat:
         assert(a.type == "Float")
 
     def test_not_float(self):
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = FloatType(4)
-        with pytest.raises(TypeError):
+        with pytest.raises(InternalPeridotError):
             a = FloatType("String")
 
     def test_float_add(self):

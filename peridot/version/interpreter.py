@@ -13,7 +13,9 @@ from .default    import defaultvariables # type: ignore
 from .exceptions import * # type: ignore
 from .run        import run, runinit # type: ignore
 from .tokens     import * # type: ignore
-from .types      import NamespaceType, typesinit, TYPES, ArrayType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
+from .types      import NamespaceType, typesinit, TYPES, ArrayType, BuiltInFunctionType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
+
+from .           import perimod
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -1220,11 +1222,11 @@ class Interpreter():
                 )
             )
 
-        if not re.match(r'^([A-z][A-z0-9]*)(\/([A-z][A-z0-9]*))*$', file.value):
+        if not re.match(r'^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$', file.value):
             return(
                 res.failure(
                     Exc_PatternError(
-                        f'\'file\' does not match pattern: /^([A-z][A-z0-9]*)(\/([A-z][A-z0-9]*))*$/',
+                        f'\'file\' does not match pattern: /^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$/',
                         file.start, file.end,
                         context,
                         file.originstart, file.originend, file.origindisplay
@@ -1249,13 +1251,30 @@ class Interpreter():
 
         if not script:
             try:
+                symbols = defaultvariables(SymbolTable(context.symbols))
+                perimod.Context = Context('<file>', symbols, context, [node.start, node.end, [file.originstart], [file.originend], [file.origindisplay]])
+                perimod.Symbols = symbols
+                perimod.Position = node
+                perimod.File = file.value
                 mod = import_module(f'version.modules.{file.value}')
-                result = mod.main(context, node.start, node.end)
+                result = perimod._namespace
+                if result == None:
+                    return(
+                        res.failure(
+                            Exc_IncludeError(
+                                f'Failed to include {file}:\n  Module \'{perimod._error[0]}\', Line {perimod._error[1]}\n{perimod._error[2]}: {perimod._error[3]}',
+                                node.start, node.end,
+                                context
+                            )
+                        )
+                    )
+                for i in list(perimod.BuiltInFuncs.keys()):
+                    BuiltInFunctionType.modules[i] = perimod.BuiltInFuncs[i]
                 result.setpos(node.start, node.end)
                 result.setcontext(context)
                 script = True
 
-            except ImportError:
+            except:
                 return(
                     res.failure(
                         Exc_FileAccessError(

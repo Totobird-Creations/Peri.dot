@@ -1786,14 +1786,26 @@ class BuiltInFunctionType(BaseFunction):
         exec_context = self.context.copy()
 
         method = f'exec_{self.value}'
+        passself = False
         try:
             method = getattr(self, method)
         except AttributeError:
+            passself = True
+            method = f'{self.value}'
             method = BuiltInFunctionType.modules[method]
+
+        try:
+            argnames = method.argnames
+        except AttributeError:
+            argnames = {}
+        try:
+            optnames = method.optnames
+        except AttributeError:
+            optnames = {}
 
         res.register(
             self.checkpopargs(
-                method.argnames, method.optnames, args, opts, rawargs,
+                argnames, optnames, args, opts, rawargs,
                 exec_context
             )
         )
@@ -1801,9 +1813,14 @@ class BuiltInFunctionType(BaseFunction):
         if res.shouldreturn():
             return(res)
 
-        result = res.register(
-            method(exec_context)
-        )
+        if passself:
+            result = res.register(
+                method(self, exec_context)
+            )
+        else:
+            result = res.register(
+                method(exec_context)
+            )
 
         if res.shouldreturn():
             return(res)

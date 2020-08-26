@@ -65,7 +65,8 @@ def improvederrormessage():
     @click.option('-v', '--version', is_flag=True)
     @click.option('-r', '--repl',    is_flag=True)
     @click.argument('filename', default='')
-    def main(help, version, repl, filename):
+    @click.argument('args', nargs=-1)
+    def main(help, version, repl, filename, args):
         if version:
             logo()
 

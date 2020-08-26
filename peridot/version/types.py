@@ -1786,7 +1786,10 @@ class BuiltInFunctionType(BaseFunction):
         exec_context = self.context.copy()
 
         method = f'exec_{self.value}'
-        method = getattr(self, method)
+        try:
+            method = getattr(self, method)
+        except AttributeError:
+            method = BuiltInFunctionType.modules[method]
 
         res.register(
             self.checkpopargs(
@@ -2264,6 +2267,8 @@ class BuiltInFunctionType(BaseFunction):
         )
     exec_slice.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
     exec_slice.optnames = {}
+
+BuiltInFunctionType.modules = {}
 
 
 class ExceptionType(TypeObj):

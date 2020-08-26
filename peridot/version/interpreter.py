@@ -2,8 +2,10 @@
 # DEPENDENCIES                           #
 ##########################################
 
+import importlib
 from sys import exec_prefix
 from pathlib import Path
+from importlib import import_module
 import re
 from .constants  import * # type: ignore
 from .context    import Context, SymbolTable # type: ignore
@@ -1246,26 +1248,35 @@ class Interpreter():
             except PermissionError   as e: pass
 
         if not script:
-            return(
-                res.failure(
-                    Exc_FileAccessError(
-                        f'Module {file} does not exist',
-                        file.start, file.end,
-                        context,
-                        file.originstart, file.originend, file.origindisplay
+            try:
+                mod = import_module(f'version.modules.{file.value}')
+                result = mod.main(context, node.start, node.end)
+                result.setpos(node.start, node.end)
+                result.setcontext(context)
+                script = True
+
+            except ImportError:
+                return(
+                    res.failure(
+                        Exc_FileAccessError(
+                            f'Module {file} does not exist',
+                            file.start, file.end,
+                            context,
+                            file.originstart, file.originend, file.origindisplay
+                        )
                     )
                 )
-            )
 
-        symbols = defaultvariables(SymbolTable())
-        result, exec_context, error = run(file.value, script, symbols)
+        if not script:
+            symbols = defaultvariables(SymbolTable())
+            result, exec_context, error = run(file.value, script, symbols)
 
-        if error:
-            return(
-                res.failure(error)
-            )
+            if error:
+                return(
+                    res.failure(error)
+                )
 
-        result = NamespaceType(symbols).setpos(node.start, node.end).setcontext(exec_context)
+            result = NamespaceType(symbols).setpos(node.start, node.end).setcontext(exec_context)
 
         return(
             res.success(result)

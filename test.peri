@@ -5,6 +5,7 @@
 # - Added    : Function default arguments
 # - Added    : Methods for types
 # - Added    : More escape codes
+# - Added    : Default modules
 
 # - Modified : Include location
 # - Modified : Assert statement
@@ -17,23 +18,10 @@
 # EXAMPLES                               #
 ##########################################
 
-# Added methods for handler
+# Added os default module
 
-var try = handler {
-    10 / 0
-}
+var os = include('os')
 
-if (try == Null) {
-    print('\x32Passed\x0')
-} else {
-    print('  \x32File \x1' + try.file + '\x0, \x32In \x1' + try.loc + '\x0')
-    print('    \x32Line \x1' + str(try.line) + '\x0, \x32Column \x1' + str(try.column) + '\x0')
-    print('      \x33' + try.text + '\x0')
-    print('      \x33' + ' '.repeat(try.column) + '^\x0')
-    print('      \x34Look it\'s here!\x0')
-    if (try.msg.length >= 1) {
-        print('\x31\x1' + try.name + '\x0: \x31' + try.msg + '\x0')
-    } else {
-        print('\x31\x1' + try.name + '\x0')
-    }
-}
+print(str(
+    os.terminalsize()
+))

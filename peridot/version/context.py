@@ -2,7 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from typing import Any
+from typing import Any as _Any
 
 ##########################################
 # CONTEXT                                #
@@ -38,7 +38,7 @@ class SymbolTable():
         self.parent = parent
 
 
-    def access(self, name: str) -> Any:
+    def access(self, name: str) -> _Any:
         value = self.symbols.get(name, None)
 
         if value == None and self.parent:
@@ -49,7 +49,7 @@ class SymbolTable():
         return(value)
 
 
-    def assign(self, name: str, value: Any):
+    def assign(self, name: str, value: _Any):
         self.symbols[name] = value
 
 

@@ -2,10 +2,69 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from .constants  import * # type: ignore
-from .exceptions import * # type: ignore
-from .nodes      import * # type: ignore
-from .tokens     import * # type: ignore
+def _parserinit(conf, tokens, exceptions, constants, nodes):
+    global lang
+    lang = conf
+    global TT_EOF, TT_EOL, TT_KEYWORD, TT_LPAREN, TT_RPAREN, TT_IDENTIFIER, TT_EQUALS, TT_EQEQUALS, TT_BANGEQUALS, TT_LESSTHAN, TT_LTEQUALS, TT_GREATERTHAN, TT_GTEQUALS, TT_PLUS, TT_DASH, TT_ASTRISK, TT_FSLASH, TT_CARAT, TT_LSQUARE, TT_RSQUARE, TT_PERIOD, TT_COMMA, TT_INT, TT_FLOAT, TT_STRING, TT_LCURLY, TT_RCURLY, TT_COLON, TT_ARROW
+    TT_EOF          = tokens.TT_EOF
+    TT_EOL          = tokens.TT_EOL
+    TT_KEYWORD      = tokens.TT_KEYWORD
+    TT_LPAREN       = tokens.TT_LPAREN
+    TT_RPAREN       = tokens.TT_RPAREN
+    TT_IDENTIFIER   = tokens.TT_IDENTIFIER
+    TT_EQUALS       = tokens.TT_EQUALS
+    TT_EQEQUALS     = tokens.TT_EQEQUALS
+    TT_BANGEQUALS   = tokens.TT_BANGEQUALS
+    TT_LESSTHAN     = tokens.TT_LESSTHAN
+    TT_LTEQUALS     = tokens.TT_LTEQUALS
+    TT_GREATERTHAN  = tokens.TT_GREATERTHAN
+    TT_GTEQUALS     = tokens.TT_GTEQUALS
+    TT_PLUS         = tokens.TT_PLUS
+    TT_DASH         = tokens.TT_DASH
+    TT_ASTRISK      = tokens.TT_ASTRISK
+    TT_FSLASH       = tokens.TT_FSLASH
+    TT_CARAT        = tokens.TT_CARAT
+    TT_LSQUARE      = tokens.TT_LSQUARE
+    TT_RSQUARE      = tokens.TT_RSQUARE
+    TT_PERIOD       = tokens.TT_PERIOD
+    TT_COMMA        = tokens.TT_COMMA
+    TT_INT          = tokens.TT_INT
+    TT_FLOAT        = tokens.TT_FLOAT
+    TT_STRING       = tokens.TT_STRING
+    TT_LCURLY       = tokens.TT_LCURLY
+    TT_RCURLY       = tokens.TT_RCURLY
+    TT_COLON        = tokens.TT_COLON
+    TT_ARROW        = tokens.TT_ARROW
+    global Syn_SyntaxError
+    Syn_SyntaxError = exceptions.Syn_SyntaxError
+    global KEYWORDS
+    KEYWORDS        = constants.KEYWORDS
+    global BinaryOpNode, ReturnNode, BreakNode, ContinueNode, IncludeNode, VarNullNode, VarCreateNode, UnaryOpNode, FuncCallNode, IndicieNode, AttributeNode, IntNode, FloatNode, StringNode, TupleNode, VarAssignNode, VarAccessNode, ArrayNode, DictionaryNode, FuncCreateNode, HandlerNode, IfNode, SwitchNode, ForLoopNode, WhileLoopNode
+    BinaryOpNode    = nodes.BinaryOpNode
+    ReturnNode      = nodes.ReturnNode
+    BreakNode       = nodes.BreakNode
+    ContinueNode    = nodes.ContinueNode
+    IncludeNode     = nodes.IncludeNode
+    VarNullNode     = nodes.VarNullNode
+    VarCreateNode   = nodes.VarCreateNode
+    UnaryOpNode     = nodes.UnaryOpNode
+    FuncCallNode    = nodes.FuncCallNode
+    IndicieNode     = nodes.IndicieNode
+    AttributeNode   = nodes.AttributeNode
+    IntNode         = nodes.IntNode
+    FloatNode       = nodes.FloatNode
+    StringNode      = nodes.StringNode
+    TupleNode       = nodes.TupleNode
+    VarAssignNode   = nodes.VarAssignNode
+    VarAccessNode   = nodes.VarAccessNode
+    ArrayNode       = nodes.ArrayNode
+    DictionaryNode  = nodes.DictionaryNode
+    FuncCreateNode  = nodes.FuncCreateNode
+    HandlerNode     = nodes.HandlerNode
+    IfNode          = nodes.IfNode
+    SwitchNode      = nodes.SwitchNode
+    ForLoopNode     = nodes.ForLoopNode
+    WhileLoopNode   = nodes.WhileLoopNode
 
 ##########################################
 # PARSE RESULT                           #
@@ -96,10 +155,12 @@ class Parser():
                 )
 
             if self.curtoken.type != TT_EOL:
+                msg = lang['exceptions']['syntaxerror']['invalideoflnoexp']
+                msg = msg.replace('%s', 'L', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Invalid EOL',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -153,10 +214,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -181,10 +244,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -205,10 +270,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -222,10 +289,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -246,10 +315,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -263,10 +334,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -287,10 +360,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -315,10 +390,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -354,10 +431,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_IDENTIFIER:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', 'identifier', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected identifier not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -400,10 +479,12 @@ class Parser():
         )
 
         if res.error:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', 'identifier, keyword, operator, type', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected identifier, keyword, operator, type not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -443,10 +524,12 @@ class Parser():
         )
 
         if res.error:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', 'identifier, operator, keyword, type', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected identifier, keyword, operator, type not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -581,10 +664,12 @@ class Parser():
                         )
 
                     if res.error:
+                        msg = lang['exceptions']['syntaxerror']['notfound']
+                        msg = msg.replace('%s', '\')\', identifier, operator, keyword, type', 1)
                         return(
                             res.failure(
                                 Syn_SyntaxError(
-                                    'Expected \')\', identifier, keyword, operation, type not found',
+                                    msg,
                                     self.curtoken.start, self.curtoken.end
                                 )
                             )
@@ -636,10 +721,12 @@ class Parser():
                         self.advance()
 
                     if self.curtoken.type != TT_RPAREN:
+                        msg = lang['exceptions']['syntaxerror']['notfound']
+                        msg = msg.replace('%s', '\',\', \')\'', 1)
                         return(
                             res.failure(
                                 Syn_SyntaxError(
-                                    f'Expected \',\', \')\' not found',
+                                    msg,
                                     self.curtoken.start, self.curtoken.end
                                 )
                             )
@@ -663,6 +750,7 @@ class Parser():
 
         elif self.curtoken.type == TT_LSQUARE:
             indicies = []
+            end = self.curtoken.end.copy()
 
             while self.curtoken.type == TT_LSQUARE:
                 res.registeradvancement()
@@ -678,10 +766,12 @@ class Parser():
                     return(res)
 
                 if not self.curtoken.type == TT_RSQUARE:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', '\']\'', 1)
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected \']\' not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -702,16 +792,19 @@ class Parser():
 
         elif self.curtoken.type == TT_PERIOD:
             attributes = []
+            end = self.curtoken.end.copy()
 
             while self.curtoken.type == TT_PERIOD:
                 res.registeradvancement()
                 self.advance()
 
                 if not self.curtoken.type == TT_IDENTIFIER:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', 'identifier', 1)
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected identifier not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -734,10 +827,12 @@ class Parser():
             )
 
         else:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'(\', \'[\', \'.\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'[\', \'.\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -811,10 +906,12 @@ class Parser():
                     )
                 
                 if self.curtoken.type != TT_RPAREN:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', '\',\', \')\'', 1)
                     return(
-                        res.failure(
+                    res.failure(
                             Syn_SyntaxError(
-                                'Expected \',\' \')\' not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -848,10 +945,12 @@ class Parser():
                         )
                     )
 
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\')\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \')\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -968,11 +1067,13 @@ class Parser():
                 )
             )
 
+        msg = lang['exceptions']['syntaxerror']['notfound']
+        msg = msg.replace('%s', 'identifier, keyword, operator, type', 1)
         return(
             res.failure(
                 Syn_SyntaxError(
-                    'Expected identifier, keyword, operator, type not found',
-                    token.start, token.end 
+                    msg,
+                    self.curtoken.start, self.curtoken.end
                 )
             )
         )
@@ -984,10 +1085,12 @@ class Parser():
         start = self.curtoken.start.copy()
 
         if self.curtoken.type != TT_LSQUARE:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'[\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'[\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1013,10 +1116,12 @@ class Parser():
             )
 
             if res.error:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\']\', identifier, keyword, operator, type', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \']\', identifier, keyword, operation, type not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1044,10 +1149,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RSQUARE:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\',\', \']\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \',\', \']\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1074,10 +1181,12 @@ class Parser():
         start = self.curtoken.start.copy()
 
         if self.curtoken.type != TT_LCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'{\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{{\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1103,20 +1212,24 @@ class Parser():
             )
 
             if res.error:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'}\', identifier, keyword, operator, type', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'}}\', identifier, keyword, operation, type not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
                 )
 
             if self.curtoken.type != TT_COLON:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\':\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \':\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1156,10 +1269,12 @@ class Parser():
                     return(res)
 
                 if self.curtoken.type != TT_COLON:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', '\':\'', 1)
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected \':\' not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -1186,10 +1301,12 @@ class Parser():
                     self.advance()
 
             if self.curtoken.type != TT_RCURLY:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\',\', \'}\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \',\', \'}}\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1215,10 +1332,12 @@ class Parser():
         res = ParseResult()
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['funccreate']) and not self.curtoken.matches(TT_KEYWORD, KEYWORDS['lambdacreate']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["funccreate"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["funccreate"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1231,10 +1350,12 @@ class Parser():
         self.advance()
 
         if self.curtoken.type != TT_LPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'(\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'(\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1284,10 +1405,12 @@ class Parser():
                 options[argname.value] = optdefault
 
             else:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\':\', \'=\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \':\', \'=\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1302,10 +1425,12 @@ class Parser():
                     self.advance()
 
                 if self.curtoken.type != TT_IDENTIFIER:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', 'identifier', 1)
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected identifier not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -1343,10 +1468,12 @@ class Parser():
                     options[argname.value] = optdefault
 
                 else:
+                    msg = lang['exceptions']['syntaxerror']['notfound']
+                    msg = msg.replace('%s', '\':\', \'=\'', 1)
                     return(
                         res.failure(
                             Syn_SyntaxError(
-                                f'Expected \':\', \'=\' not found',
+                                msg,
                                 self.curtoken.start, self.curtoken.end
                             )
                         )
@@ -1357,20 +1484,24 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\',\', \')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \')\', \',\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
                 )
 
         elif self.curtoken.type != TT_RPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\')\', identifier', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \')\', identifier not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1384,10 +1515,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_ARROW:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'->\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'->\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1420,10 +1553,12 @@ class Parser():
                 return(res)
         else:
             if self.curtoken.type != TT_LCURLY:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\', identifier', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'(\', identifier not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1448,10 +1583,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RCURLY:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'}\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \')\', identifier not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1483,10 +1620,12 @@ class Parser():
         res = ParseResult()
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['handler']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["handler"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["handler"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1524,10 +1663,13 @@ class Parser():
         elsecase = None
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['if']):
+            
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["if"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["if"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1537,10 +1679,12 @@ class Parser():
         self.advance()
 
         if self.curtoken.type != TT_LPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'(\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \'(\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1561,10 +1705,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_RPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\')\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \')\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1589,10 +1735,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1613,10 +1761,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1664,10 +1814,12 @@ class Parser():
         start = self.curtoken.start
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['case']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["case"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["case"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1677,10 +1829,12 @@ class Parser():
         self.advance()
 
         if self.curtoken.type != TT_LPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'(\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \'(\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1701,10 +1855,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_IDENTIFIER:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', 'identifier', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'identifier\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1716,10 +1872,12 @@ class Parser():
         self.advance()
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['as']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["as"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["as"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1740,10 +1898,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_RPAREN:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\')\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \')\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1757,10 +1917,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_LCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'{\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{{\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1774,10 +1936,12 @@ class Parser():
             self.advance()
 
         if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['when']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'{KEYWORDS["when"]}', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["when"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1789,10 +1953,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1817,10 +1983,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1864,10 +2032,12 @@ class Parser():
             self.advance()
 
         if self.curtoken.type != TT_RCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'}\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'}}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -1896,10 +2066,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1920,10 +2092,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_IDENTIFIER:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', 'identifier', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'identifier\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1935,10 +2109,12 @@ class Parser():
             self.advance()
 
             if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['in']):
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', f'{KEYWORDS["in"]}', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'{KEYWORDS["in"]}\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1959,10 +2135,12 @@ class Parser():
                 self.advance()
 
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -1996,10 +2174,12 @@ class Parser():
             self.advance()
 
             if self.curtoken.type != TT_LPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\'(\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \'(\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -2024,10 +2204,12 @@ class Parser():
                 self.advance()
             
             if self.curtoken.type != TT_RPAREN:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', '\')\'', 1)
                 return(
                     res.failure(
                         Syn_SyntaxError(
-                            f'Expected \')\' not found',
+                            msg,
                             self.curtoken.start, self.curtoken.end
                         )
                     )
@@ -2057,10 +2239,12 @@ class Parser():
 
 
         else:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'{KEYWORDS["forloop"]}\', \'KEYWORDS["whileloop"]\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        f'Expected \'{KEYWORDS["forloop"]}\', \'{KEYWORDS["whileloop"]}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -2073,10 +2257,12 @@ class Parser():
         tokens = []
 
         if self.curtoken.type != TT_LCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'{\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \'{\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )
@@ -2115,10 +2301,12 @@ class Parser():
                 tokens.append(expr)
 
         if self.curtoken.type != TT_RCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', '\'}\'', 1)
             return(
                 res.failure(
                     Syn_SyntaxError(
-                        'Expected \'}\' not found',
+                        msg,
                         self.curtoken.start, self.curtoken.end
                     )
                 )

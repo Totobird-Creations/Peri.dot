@@ -1,10 +1,9 @@
-from .context     import Context, SymbolTable
-from .lexer       import Lexer
-from .parser      import Parser
-
-def runinit(interpreter):
-    global Interpreter
-    Interpreter = interpreter
+def _runinit(lexer, parser, context, interpreter):
+    global Lexer, Parser, Context, Interpreter
+    Lexer = lexer.Lexer
+    Parser = parser.Parser
+    Context = context.Context
+    Interpreter = interpreter.Interpreter
 
 def run(filename, script, symbols):
     lexer = Lexer(filename, script)

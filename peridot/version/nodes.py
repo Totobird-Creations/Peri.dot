@@ -1,8 +1,13 @@
-from .tokens import *
+##########################################
+# DEPENDENCIES                           #
+##########################################
 
-def nodesinit(types):
+def nodesinit(types, tokens):
     global TYPES
-    TYPES = types
+    TYPES      = types.TYPES
+    global TT_KEYWORD
+    TT_KEYWORD = tokens.TT_KEYWORD
+    
 
 ##########################################
 # NODES                                  #

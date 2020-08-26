@@ -2,12 +2,13 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import os
-from colorama import init, Fore, Style
-init()
+import os as _os
+from colorama import init as _init, Fore as _Fore, Style as _Style
+_init()
 
-_HEADER = '\n- RUNTIME ERROR '
-_FOOTER = f''
+def _exceptionsinit(conf):
+    global lang
+    lang = conf
 
 ##########################################
 # INTERPRETER ERRORS                     #
@@ -84,10 +85,10 @@ class Exc_Error():
                 display = self.context.display
                 if isinstance(display, tuple):
                     display = f'{display[0]} <{display[1]}>'
-                result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{" " * (orgstart.column)}{"^" * (orgend.column - orgstart.column)}{Style.RESET_ALL}')
-                result.append(f'  {Fore.MAGENTA}{prefix}║     {Fore.YELLOW}{Style.BRIGHT}{orgstart.lntext}{Style.RESET_ALL}')
-                result.append(f'  {Fore.MAGENTA}{prefix}║   {Fore.GREEN}Line {Style.BRIGHT}{orgstart.line + 1}{Style.RESET_ALL} {Fore.GREEN}Column {Style.BRIGHT}{orgstart.column + 1}{Style.RESET_ALL}')
-                result.append(f'  {Fore.MAGENTA}{prefix}{cornertype}═{Fore.GREEN}File {Style.BRIGHT}{orgstart.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}')
+                result.append(f'  {_Fore.MAGENTA}{prefix}║     {_Fore.YELLOW}{" " * (orgstart.column)}{"^" * (orgend.column - orgstart.column)}{_Style.RESET_ALL}')
+                result.append(f'  {_Fore.MAGENTA}{prefix}║     {_Fore.YELLOW}{_Style.BRIGHT}{orgstart.lntext}{_Style.RESET_ALL}')
+                result.append(f'  {_Fore.MAGENTA}{prefix}║   {_Fore.GREEN}{lang["exceptions"]["line"]} {_Style.BRIGHT}{orgstart.line + 1}{_Style.RESET_ALL} {_Fore.GREEN}{lang["exceptions"]["column"]} {_Style.BRIGHT}{orgstart.column + 1}{_Style.RESET_ALL}')
+                result.append(f'  {_Fore.MAGENTA}{prefix}{cornertype}═{_Fore.GREEN}{lang["exceptions"]["file"]} {_Style.BRIGHT}{orgstart.file}{_Style.RESET_ALL}, {_Fore.GREEN}{lang["exceptions"]["in"]} {_Style.BRIGHT}{display}{_Style.RESET_ALL}')
                 index += 1
         
         if indent == 0:
@@ -97,13 +98,13 @@ class Exc_Error():
 
 
     def asstring(self):
-        size = os.get_terminal_size()
-        result = f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{_HEADER}{"-" * max([size[0] - len(_HEADER) + 1, 0])}{Style.RESET_ALL}\n'
+        size = _os.get_terminal_size()
+        result = f'{_Style.RESET_ALL}\n{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["runtimeheader"]}{"-" * max([size[0] - len(lang["exceptions"]["runtimeheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
 
         ### CODE FOR SHOWING CAUGHT AND HANDLED ERRORS
         #
         #if len(self.caughterrors) >= 1:
-        #    result += f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Caught Errors (Most recent catch last):{Style.RESET_ALL}\n'
+        #    result += f'{_Style.RESET_ALL}{_Fore.BLUE}{_Style.BRIGHT}Caught Errors (Most recent catch last):{_Style.RESET_ALL}\n'
         #    for i in range(len(self.caughterrors)):
         #        if not i % 2:
         #            continue
@@ -112,21 +113,21 @@ class Exc_Error():
         #        if isinstance(display, tuple):
         #            display = f'{display[0]} <{display[1]}>'
         #
-        #        result += f'''  {Fore.GREEN}File {Style.BRIGHT}{error.start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}
-#    {Fore.GREEN}Line {Style.BRIGHT}{error.start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{error.start.column + 1}{Style.RESET_ALL}\n'''
+        #        result += f'''  {_Fore.GREEN}File {_Style.BRIGHT}{error.start.file}{_Style.RESET_ALL}, {_Fore.GREEN}In {_Style.BRIGHT}{display}{_Style.RESET_ALL}
+#    {_Fore.GREEN}Line {_Style.BRIGHT}{error.start.line + 1}{_Style.RESET_ALL}, {_Fore.GREEN}Column {_Style.BRIGHT}{error.start.column + 1}{_Style.RESET_ALL}\n'''
         #        error.originstart = self.fixorigin(error.originstart)
         #        error.originend = self.fixorigin(error.originend)
         #        for i in range(len(error.originstart)):
-        #            result += f'''      {Fore.YELLOW}{Style.BRIGHT}{error.originstart[i].lntext}{Style.RESET_ALL}\n'''
-        #            result += f'''      {Fore.YELLOW}{' ' * error.originstart[i].column}{'^' * (error.originend[i].column - error.originstart[i].column)}{Style.RESET_ALL}\n'''
-        #        result += f'''      {Fore.YELLOW}{Style.BRIGHT}{error.start.lntext}{Style.RESET_ALL}\n'''
-        #        result += f'''      {Fore.YELLOW}{' ' * error.start.column}{'^' * (error.end.column - error.start.column)}{Style.RESET_ALL}\n'''
+        #            result += f'''      {_Fore.YELLOW}{_Style.BRIGHT}{error.originstart[i].lntext}{_Style.RESET_ALL}\n'''
+        #            result += f'''      {_Fore.YELLOW}{' ' * error.originstart[i].column}{'^' * (error.originend[i].column - error.originstart[i].column)}{_Style.RESET_ALL}\n'''
+        #        result += f'''      {_Fore.YELLOW}{_Style.BRIGHT}{error.start.lntext}{_Style.RESET_ALL}\n'''
+        #        result += f'''      {_Fore.YELLOW}{' ' * error.start.column}{'^' * (error.end.column - error.start.column)}{_Style.RESET_ALL}\n'''
         #        if error.msg:
-        #            result += f'''  {Fore.RED}{Style.BRIGHT}{error.exc}{Style.RESET_ALL}: {Fore.RED}{error.msg}{Style.RESET_ALL}\n'''
+        #            result += f'''  {_Fore.RED}{_Style.BRIGHT}{error.exc}{_Style.RESET_ALL}: {_Fore.RED}{error.msg}{_Style.RESET_ALL}\n'''
         #        else:
-        #            result += f'''  {Fore.RED}{Style.BRIGHT}{error.exc}{Style.RESET_ALL}\n'''
+        #            result += f'''  {_Fore.RED}{_Style.BRIGHT}{error.exc}{_Style.RESET_ALL}\n'''
         #        result += '\n'
-        #    result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}\n\n'
+        #    result += f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}{"-" * size[0]}{_Style.RESET_ALL}\n\n'
 
         result += self.traceback()
 
@@ -144,17 +145,17 @@ class Exc_Error():
         if isinstance(display, tuple):
             display = f'{display[0]} <{display[1]}>'
 
-        result += f'  {Fore.GREEN}File {Style.BRIGHT}{self.start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}\n'
-        result += f'    {Fore.GREEN}Line {Style.BRIGHT}{self.start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{self.start.column + 1}{Style.RESET_ALL}\n'
-        result += f'      {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}\n'
-        result += f'      {Fore.YELLOW}{" " * self.start.column}{"^" * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'
+        result += f'  {_Fore.GREEN}{lang["exceptions"]["file"]} {_Style.BRIGHT}{self.start.file}{_Style.RESET_ALL}, {_Fore.GREEN}{lang["exceptions"]["in"]} {_Style.BRIGHT}{display}{_Style.RESET_ALL}\n'
+        result += f'    {_Fore.GREEN}{lang["exceptions"]["line"]} {_Style.BRIGHT}{self.start.line + 1}{_Style.RESET_ALL}, {_Fore.GREEN}{lang["exceptions"]["column"]} {_Style.BRIGHT}{self.start.column + 1}{_Style.RESET_ALL}\n'
+        result += f'      {_Fore.YELLOW}{_Style.BRIGHT}{self.start.lntext}{_Style.RESET_ALL}\n'
+        result += f'      {_Fore.YELLOW}{" " * self.start.column}{"^" * (self.end.column - self.start.column)}{_Style.RESET_ALL}\n'
 
         if self.msg:
-            result += f'\n{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'
+            result += f'\n{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}: {_Fore.RED}{self.msg}{_Style.RESET_ALL}\n'
         else:
-            result += f'\n{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}\n'
+            result += f'\n{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}\n'
 
-        result += f'{Style.RESET_ALL}{Fore.RED}{Style.BRIGHT}{"-" * size[0]}{Style.RESET_ALL}'
+        result += f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["runtimefooter"]}{"-" * max([size[0] - len(lang["exceptions"]["runtimefooter"]) - 1, 0])}{_Style.RESET_ALL}\n'
         return(result)
 
 
@@ -182,78 +183,82 @@ class Exc_Error():
             if isinstance(display, tuple):
                 display = f'{display[0]} <{display[1]}>'
 
-            result += f'  {Fore.GREEN}File {Style.BRIGHT}{start.file}{Style.RESET_ALL}, {Fore.GREEN}In {Style.BRIGHT}{display}{Style.RESET_ALL}\n'
-            result += f'    {Fore.GREEN}Line {Style.BRIGHT}{start.line + 1}{Style.RESET_ALL}, {Fore.GREEN}Column {Style.BRIGHT}{start.column + 1}{Style.RESET_ALL}\n'
-            result += f'      {Fore.YELLOW}{Style.BRIGHT}{start.lntext}{Style.RESET_ALL}\n'''
-            result += f'      {Fore.YELLOW}{" " * start.column}{"^" * (end.column - start.column)}{Style.RESET_ALL}\n'
+            result += f'  {_Fore.GREEN}{lang["exceptions"]["file"]} {_Style.BRIGHT}{start.file}{_Style.RESET_ALL}, {_Fore.GREEN}{lang["exceptions"]["in"]} {_Style.BRIGHT}{display}{_Style.RESET_ALL}\n'
+            result += f'    {_Fore.GREEN}{lang["exceptions"]["line"]} {_Style.BRIGHT}{start.line + 1}{_Style.RESET_ALL}, {_Fore.GREEN}{lang["exceptions"]["column"]} {_Style.BRIGHT}{start.column + 1}{_Style.RESET_ALL}\n'
+            result += f'      {_Fore.YELLOW}{_Style.BRIGHT}{start.lntext}{_Style.RESET_ALL}\n'''
+            result += f'      {_Fore.YELLOW}{" " * start.column}{"^" * (end.column - start.column)}{_Style.RESET_ALL}\n'
 
             pos = context.parententry
             context = context.parent
 
-        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}Traceback (Most recent call last):{Style.RESET_ALL}\n{result}'
+        result = f'{_Style.RESET_ALL}{_Fore.BLUE}{_Style.BRIGHT}{lang["exceptions"]["tracebackheader"]}{_Style.RESET_ALL}\n{result}'
         return(result)
 
 
 
 class Exc_ArgumentError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('ArgumentException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["argumenteerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_AttributeError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('AttributeException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["attributeerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_AssertionError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('AssertionException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["assertionerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_BreakError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('BreakException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["breakerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ContinueError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('ContinueException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["continueerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_FileAccessError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('FileAccessException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["fileaccesserror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_IdentifierError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('IdentifierException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["identifiererror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_IncludeError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('IncludeException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["includeerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_IndexError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('IndexException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["indexerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_IterationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('IterationException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["iterationerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_KeyError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('KeyException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["keyerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_OperationError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('OperationException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["operationerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_PanicError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('PanicException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["panicerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_PatternError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('PatternException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["patternerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
+
+class Exc_ReservedError(Exc_Error):
+    def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
+        super().__init__(f'{lang["exceptions"]["reservederror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ReturnError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('ReturnException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["returnerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ThrowError(Exc_Error):
     def __init__(self, name, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
@@ -261,11 +266,11 @@ class Exc_ThrowError(Exc_Error):
 
 class Exc_TypeError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('TypeException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["typeerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_ValueError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__('ValueException', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["valueerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 
 
@@ -282,27 +287,32 @@ class Syn_Error():
 
 
     def asstring(self):
-        result = f'{Style.RESET_ALL}{Fore.BLUE}{Style.BRIGHT}An error occured while lexing and parsing:{Style.RESET_ALL}\n'
-        result += f'  {Fore.GREEN}File{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.file}{Style.RESET_ALL}\n'
-        result += f'    {Fore.GREEN}Line{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.line}{Style.RESET_ALL}, {Fore.GREEN}Column{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.start.column}{Style.RESET_ALL}\n'
-        result += f'      {Fore.YELLOW}{Style.BRIGHT}{self.start.lntext}{Style.RESET_ALL}\n'
-        result += f'      {" " * self.start.column}{Fore.YELLOW}{"^" * (self.end.column - self.start.column)}{Style.RESET_ALL}\n'
+        size = _os.get_terminal_size()
+        result = f'{_Style.RESET_ALL}\n{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["syntaxheader"]}{"-" * max([size[0] - len(lang["exceptions"]["syntaxheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
+        result += f'{_Style.RESET_ALL}{_Fore.BLUE}{_Style.BRIGHT}An error occured while lexing and parsing:{_Style.RESET_ALL}\n'
+        result += f'  {_Fore.GREEN}File{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.file}{_Style.RESET_ALL}\n'
+        result += f'    {_Fore.GREEN}Line{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.line}{_Style.RESET_ALL}, {_Fore.GREEN}Column{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.column}{_Style.RESET_ALL}\n'
+        result += f'      {_Fore.YELLOW}{_Style.BRIGHT}{self.start.lntext}{_Style.RESET_ALL}\n'
+        result += f'      {" " * self.start.column}{_Fore.YELLOW}{"^" * (self.end.column - self.start.column)}{_Style.RESET_ALL}\n'
 
         if self.msg:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}'''
+            result += f'''{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}: {_Fore.RED}{self.msg}{_Style.RESET_ALL}'''
         else:
-            result += f'''{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}'''
+            result += f'''{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}'''
+
+        result += f'{_Style.RESET_ALL}\n{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["syntaxfooter"]}{"-" * max([size[0] - len(lang["exceptions"]["syntaxfooter"]) - 1, 0])}{_Style.RESET_ALL}\n'
+
         return(result)
 
 
 
 class Syn_EscapeError(Syn_Error):
     def __init__(self, msg, start, end):
-        super().__init__('EscapeException', msg, start, end)
+        super().__init__(lang['exceptions']['escapeerror']['name'], msg, start, end)
 
 class Syn_SyntaxError(Syn_Error):
     def __init__(self, msg, start, end):
-        super().__init__('SyntaxException', msg, start, end)
+        super().__init__(lang['exceptions']['syntaxerror']['name'], msg, start, end)
 
 ##########################################
 # ARGUMENT ERRORS                        #
@@ -317,11 +327,11 @@ class Cmd_CmdError():
 
 
     def asstring(self):
-        result = f'{Fore.BLUE}{Style.BRIGHT}An error occured while reading arguments{Style.RESET_ALL}\n'
-        result += f'  {Fore.GREEN}Argument{Style.RESET_ALL} {Fore.GREEN}{Style.BRIGHT}{self.argnum}{Style.RESET_ALL}\n'
-        result += f'    {Fore.YELLOW}{self.arg}{Style.RESET_ALL}\n'
-        result += f'    {Fore.YELLOW}{"^" * len(self.arg)}{Style.RESET_ALL}\n'
-        result += f'{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.RED}{self.msg}{Style.RESET_ALL}\n'
+        result = f'{_Fore.BLUE}{_Style.BRIGHT}An error occured while reading arguments{_Style.RESET_ALL}\n'
+        result += f'  {_Fore.GREEN}Argument{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.argnum}{_Style.RESET_ALL}\n'
+        result += f'    {_Fore.YELLOW}{self.arg}{_Style.RESET_ALL}\n'
+        result += f'    {_Fore.YELLOW}{"^" * len(self.arg)}{_Style.RESET_ALL}\n'
+        result += f'{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}: {_Fore.RED}{self.msg}{_Style.RESET_ALL}\n'
         return(result)
 
 
@@ -345,7 +355,7 @@ class Cmd_CmdWarning():
 
 
     def asstring(self):
-        result = f'{Fore.RED}{Style.BRIGHT}{self.exc}{Style.RESET_ALL}: {Fore.YELLOW}{self.msg}{Style.RESET_ALL}'
+        result = f'{_Fore.RED}{_Style.BRIGHT}{self.exc}{_Style.RESET_ALL}: {_Fore.YELLOW}{self.msg}{_Style.RESET_ALL}'
         return(result)
 
 

@@ -1,79 +1,176 @@
-from version.catch import *
-from version.types import *
+VERSION       = 'Pre-06'
+MODULEVERSION = 'Pre-06'
 
-@catch
-def improvederrormessage():
-    ##########################################
-    # DEPENDENCIES                           #
-    ##########################################
+lang = {
+    'exceptions' : {
+        'runtimeheader'  : ' RUNTIME ERROR ',
+        'runtimefooter'  : '',
+        'syntaxheader'   : ' SYNTAX ERROR ',
+        'syntaxfooter'   : '',
+        'file'           : 'File',
+        'module'         : 'Module',
+        'in'             : 'In',
+        'line'           : 'Line',
+        'column'         : 'Column',
+        'tracebackheader': 'Traceback (Most recent call last):',
 
-    import sys
-    from pathlib import Path
+            'argumenterror': {
+            'name': 'ArgumentException'
+        },
+        'attributeerror': {
+            'name': 'AttributeException'
+        },
+        'assertionerror': {
+            'name': 'AssertionException'
+        },
+        'breakerror': {
+            'name': 'BreakException',
+            'location': 'Can not break from outside loop'
+        },
+        'continueerror': {
+            'name': 'ContinueException',
+            'location': 'Can not continue from outside loop'
+        },
+        'fileaccesserror': {
+                'name': 'FileAccessException'
+        },
+        'identifiererror': {
+            'name': 'IdentifierException',
+            'notdefined': '\'%s\' is not defined'
+        },
+        'includeerror': {
+            'name': 'IncludeException',
+            'failed': 'Failed to include %s:\n  %s \'%s\', %s %s\n%s: %s',
+            'doesnotexist': 'Module %s does not exist'
+        },
+            'indexerror': {
+            'name': 'IndexException'
+        },
+        'iterationerror': {
+            'name': 'IterationException',
+            'cannot': '%s is not iterable'
+        },
+        'keyerror': {
+            'name': 'KeyException'
+        },
+        'operationerror': {
+            'name': 'OperationException'
+        },
+        'panicerror': {
+            'name': 'PanicException'
+        },
+        'patternerror': {
+            'name': 'PatternException',
+            'nomatch': '%s does not match pattern %s'
+        },
+        'returnerror': {
+            'name': 'ReturnException',
+            'location': 'Can not return from outside function'
+        },
+        'reservederror': {
+            'name': 'ReservedNameException',
+            'reserved': 'Can not assign %s to \'%s\' (reserved)'
+        },
+        'typeerror': {
+            'name': 'TypeException',
+            'cannot': '%s of type %s can not %s %s',
+            'assigntype': 'Can not assign %s to \'%s\' (%s)',
+            'mustbe': '%s must be of type %s, %s given'
+        },
+        'valueerror': {
+            'name': 'ValueException'
+        },
 
-    import click
-    from   colorama  import init, Fore, Style
-    init()
+        'syntaxerror': {
+            'name': 'SyntaxException',
+            'illegalchar': 'Illegal character \'%s\' was found',
+            'invalideofl': 'Invalid EO%s, expected %s',
+            'invalideoflnoexp': 'Invalid EO%s',
+            'notfound': 'Expected %s not found'
+        },
+        'escapeerror': {
+            'name': 'EscapeException',
+            'cannot': '\'%s\' can not be escaped'
+        }
+    }
+}
 
-    from version.context            import Context, SymbolTable
-    from version.default            import defaultinit, defaultvariables
-    from version.exceptions         import Cmd_CmdArgumentError, Cmd_NotSupportedError, Cmd_OutOfDateWarning
-    from version.interpreter        import Interpreter
-    from version.lexer              import Lexer
-    from version.parser             import Parser
-    from version.repl               import Repl
-    from version.run                import run, runinit
-    from version.types              import BooleanType, NullType
+if __name__ == "__main__":
+    import version.catch as catch
 
-    ##########################################
-    # LOGO                                   #
-    ##########################################
+    @catch.catch
+    def improvederrormessage():
+        ##########################################
+        # DEPENDENCIES                           #
+        ##########################################
 
-    VERSION       = 'Pre-06'
-    MODULEVERSION = 'Pre-06'
+        import sys
+        from pathlib import Path
 
-    def logo() -> str:
-        logolines = [
-            f'    _____----_____',
-            f'   / \ PERI.DOT / \   Peri.dot - {VERSION}',
-            f' _/  /\ __     /\  \_  © 2020 Totobird Creations',
-            f'/___/  \__\-,  \ \___\ ',
-            f'\‾‾‾\ \  \'-\‾‾\  /‾‾‾/ ',
-            f' ‾\  \/     ‾‾ \/  /‾  https://github.com/toto-bird/Peri.dot',
-            f'   \ / LANGUAGE \ /',
-            f'    ‾‾‾‾‾----‾‾‾‾‾'
-        ]
-        logolength = 0
-        for i in range(len(logolines)):
-            j = logolines[i]
-            if len(j) > logolength:
-                logolength = len(j)
-        for i in range(len(logolines)):
-            logolines[i] = f' ║ {logolines[i].ljust(logolength, " ")} ║'
-        logolines.insert(0, f' ╔{"═" * (logolength + 2)}╗')
-        logolines.append(f' ╚{"═" * (logolength + 2)}╝')
-        logo = '\n'.join(logolines)
-        logo = f'{Fore.GREEN}{Style.BRIGHT}{logo}{Style.RESET_ALL}'
-        print(logo, end='\n')
-        return(logo)
+        import click
+        from   colorama  import init, Fore, Style
+        init()
 
-    ##########################################
-    # ARGUMENTS                              #
-    ##########################################
+        import version.constants          as constants
+        import version.context            as context
+        import version.default            as default
+        import version.exceptions         as exceptions
+        import version.interpreter        as interpreter
+        import version.lexer              as lexer
+        import version.nodes              as nodes
+        import version.parser             as parser
+        import version.perimod            as perimod
+        import version.repl               as i_repl
+        import version.run                as run
+        import version.tokens             as tokens
+        import version.types              as types
 
-    @click.command()
-    @click.option('-h', '--help',    is_flag=True)
-    @click.option('-v', '--version', is_flag=True)
-    @click.option('-r', '--repl',    is_flag=True)
-    @click.argument('filename', default='')
-    @click.argument('args', nargs=-1)
-    def main(help, version, repl, filename, args):
-        if version:
-            logo()
+        ##########################################
+        # LOGO                                   #
+        ##########################################
+
+        def logo() -> str:
+            logolines = [
+                f'    _____----_____',
+                f'   / \ PERI.DOT / \   Peri.dot - {VERSION}',
+                f' _/  /\ __     /\  \_  © 2020 Totobird Creations',
+                f'/___/  \__\-,  \ \___\ ',
+                f'\‾‾‾\ \  \'-\‾‾\  /‾‾‾/ ',
+                f' ‾\  \/     ‾‾ \/  /‾  https://github.com/toto-bird/Peri.dot',
+                f'   \ / LANGUAGE \ /',
+                f'    ‾‾‾‾‾----‾‾‾‾‾'
+            ]
+            logolength = 0
+            for i in range(len(logolines)):
+                j = logolines[i]
+                if len(j) > logolength:
+                    logolength = len(j)
+            for i in range(len(logolines)):
+                logolines[i] = f' ║ {logolines[i].ljust(logolength, " ")} ║'
+            logolines.insert(0, f' ╔{"═" * (logolength + 2)}╗')
+            logolines.append(f' ╚{"═" * (logolength + 2)}╝')
+            logo = '\n'.join(logolines)
+            logo = f'{Fore.GREEN}{Style.BRIGHT}{logo}{Style.RESET_ALL}'
+            print(logo, end='\n')
+            return(logo)
+
+        ##########################################
+        # ARGUMENTS                              #
+        ##########################################
+
+        @click.command()
+        @click.option('-h', '--help',    is_flag=True)
+        @click.option('-v', '--version', is_flag=True)
+        @click.option('-r', '--repl',    is_flag=True)
+        @click.argument('filename', default='')
+        @click.argument('args', nargs=-1)
+        def main(help, version, repl, filename, args):
+            if version:
+                logo()
 
 
-        if help:
-            print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{__file__} [OPTIONS]* [FILE]?{Style.RESET_ALL}
-
+            if help:
+                print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{__file__} [OPTIONS]* [FILE]?{Style.RESET_ALL}
 
 {Fore.BLUE}{Style.BRIGHT}Options:{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}
@@ -81,41 +178,49 @@ def improvederrormessage():
   {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}\n''')
 
 
-        path = str(Path(filename).parent.resolve())
-        defaultinit(MODULEVERSION, path)
-        runinit(Interpreter)
+            path = str(Path(filename).parent.resolve())
 
-        if filename:
-            script = ''
+            default._defaultinit(MODULEVERSION, path, types, context)
+            exceptions._exceptionsinit(lang)
+            interpreter._interpreterinit(lang, tokens, context, default, constants, types, exceptions, run, perimod)
+            lexer._lexerinit(lang, constants, tokens, exceptions)
+            parser._parserinit(lang, tokens, exceptions, constants, nodes)
+            perimod._perimodinit(types, interpreter)
+            i_repl._replinit(default, context, run)
+            run._runinit(lexer, parser, context, interpreter)
+            types._typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter)
 
-            try:
-                with open(filename, 'r') as f:
-                    script = f.read()
-                    script = '\n'.join(
-                        [
-                            i.lstrip(' ').rstrip(' ').lstrip('\t').rstrip('\t') for i in script.split('\n')
-                        ]
-                    )
+            if filename:
+                script = ''
 
-            except Exception as e:
-                exc = sys.exc_info()
-                print(Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
-                exit(1)
+                try:
+                    with open(filename, 'r') as f:
+                        script = f.read()
+                        script = '\n'.join(
+                            [
+                                i.lstrip(' ').rstrip(' ').lstrip('\t').rstrip('\t') for i in script.split('\n')
+                            ]
+                        )
 
-            symbols = defaultvariables(SymbolTable())
-            result, context, error = run(filename, script, symbols)
+                except Exception as e:
+                    exc = sys.exc_info()
+                    print(exceptions.Cmd_CmdArgumentError(f'{exc[0].__name__}: {str(e)}', 'filename', filename).asstring())
+                    exit(1)
 
-            if error:
-                print(error.asstring())
-                exit(1)
+                symbols = default.defaultvariables(context.SymbolTable())
+                result, exec_context, error = run.run(filename, script, symbols)
 
-
-        if not (filename or version or help) or repl:
-            #print(
-            #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
-            #)
-
-            Repl(MODULEVERSION, path)
+                if error:
+                    print(error.asstring())
+                    exit(1)
 
 
-    main()
+            if not (filename or version or help) or repl:
+                #print(
+                #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
+                #)
+
+                i_repl.Repl(MODULEVERSION, path)
+
+
+        main()

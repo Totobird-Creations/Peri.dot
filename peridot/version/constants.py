@@ -2,14 +2,14 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import string
+import string as _string
 
 ##########################################
 # CONSTANTS                              #
 ##########################################
 
 DIGITS = '1234567890'
-ALPHABET = string.ascii_letters
+ALPHABET = _string.ascii_letters
 ALPHANUMERIC = ALPHABET + DIGITS
 
 KEYWORDS = {

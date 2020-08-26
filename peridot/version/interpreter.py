@@ -2,20 +2,63 @@
 # DEPENDENCIES                           #
 ##########################################
 
-import importlib
-from sys import exec_prefix
-from pathlib import Path
-from importlib import import_module
-import re
-from .constants  import * # type: ignore
-from .context    import Context, SymbolTable # type: ignore
-from .default    import defaultvariables # type: ignore
-from .exceptions import * # type: ignore
-from .run        import run, runinit # type: ignore
-from .tokens     import * # type: ignore
-from .types      import NamespaceType, typesinit, TYPES, ArrayType, BuiltInFunctionType, DictionaryType, ExceptionType, FloatType, FunctionType, IntType, NullType, StringType, TupleType # type: ignore
+from pathlib import Path as _Path
+from importlib import import_module as _import_module
+import re as _re
 
-from .           import perimod
+def _interpreterinit(conf, tokens, context, default, constants, types, exceptions, runu, perimodu):
+    global lang
+    lang = conf
+    global TT_ASTRISK, TT_BANGEQUALS, TT_CARAT, TT_DASH, TT_EQEQUALS, TT_FSLASH, TT_GREATERTHAN, TT_GTEQUALS, TT_KEYWORD, TT_LESSTHAN, TT_LTEQUALS, TT_PLUS
+    TT_ASTRISK          = tokens.TT_ASTRISK
+    TT_BANGEQUALS       = tokens.TT_BANGEQUALS
+    TT_CARAT            = tokens.TT_CARAT
+    TT_DASH             = tokens.TT_DASH
+    TT_EQEQUALS         = tokens.TT_EQEQUALS
+    TT_FSLASH           = tokens.TT_FSLASH
+    TT_GREATERTHAN      = tokens.TT_GREATERTHAN
+    TT_GTEQUALS         = tokens.TT_GTEQUALS
+    TT_KEYWORD          = tokens.TT_KEYWORD
+    TT_LESSTHAN         = tokens.TT_LESSTHAN
+    TT_LTEQUALS         = tokens.TT_LTEQUALS
+    TT_PLUS             = tokens.TT_PLUS
+    global Context, SymbolTable
+    Context             = context.Context
+    SymbolTable         = context.SymbolTable
+    global defaultvariables
+    defaultvariables    = default.defaultvariables
+    global KEYWORDS, RESERVED
+    KEYWORDS            = constants.KEYWORDS
+    RESERVED            = constants.RESERVED
+    global TYPES, NullType, IntType, FloatType, StringType, ArrayType, TupleType, DictionaryType, FunctionType, BuiltInFunctionType, ExceptionType, NamespaceType
+    TYPES               = types.TYPES
+    NullType            = types.NullType
+    IntType             = types.IntType
+    FloatType           = types.FloatType
+    StringType          = types.StringType
+    ArrayType           = types.ArrayType
+    TupleType           = types.TupleType
+    DictionaryType      = types.DictionaryType
+    FunctionType        = types.FunctionType
+    BuiltInFunctionType = types.BuiltInFunctionType
+    ExceptionType       = types.ExceptionType
+    NamespaceType       = types.NamespaceType
+    global Exc_BreakError, Exc_ContinueError, Exc_FileAccessError, Exc_IdentifierError, Exc_IncludeError, Exc_IterationError, Exc_PanicError, Exc_PatternError, Exc_ReservedError, Exc_ReturnError, Exc_TypeError
+    Exc_BreakError      = exceptions.Exc_BreakError
+    Exc_ContinueError   = exceptions.Exc_ContinueError
+    Exc_FileAccessError = exceptions.Exc_FileAccessError
+    Exc_IdentifierError = exceptions.Exc_IdentifierError
+    Exc_IncludeError    = exceptions.Exc_IncludeError
+    Exc_IterationError  = exceptions.Exc_IterationError
+    Exc_PatternError    = exceptions.Exc_PatternError
+    Exc_PanicError      = exceptions.Exc_PanicError
+    Exc_ReservedError   = exceptions.Exc_ReservedError
+    Exc_ReturnError     = exceptions.Exc_ReturnError
+    Exc_TypeError       = exceptions.Exc_TypeError
+    global run
+    run = runu.run
+    global perimod
+    perimod = perimodu
 
 ##########################################
 # RUNTIME RESULT                         #
@@ -139,10 +182,15 @@ class Interpreter():
 
             if type_:
                 if type(elm) != type(type_):
+                    msg = lang['exceptions']['typeerror']['cannot']
+                    msg = msg.replace('%s', TYPES['list'], 1)
+                    msg = msg.replace('%s', type_.type, 1)
+                    msg = msg.replace('%s', 'include', 1)
+                    msg = msg.replace('%s', elm.type, 1)
                     return(
                         res.failure(
                             Exc_TypeError(
-                                f'{TYPES["list"]} of type {type_.type} can not include {elm.type}',
+                                msg,
                                 elm.start, elm.end,
                                 context,
                                 elm.originstart, elm.originend, elm.origindisplay
@@ -219,10 +267,15 @@ class Interpreter():
 
             if keytype:
                 if type(key) != type(keytype):
+                    msg = lang['exceptions']['typeerror']['cannot']
+                    msg = msg.replace('%s', TYPES['dictionary'] + ' keys', 1)
+                    msg = msg.replace('%s', keytype.type, 1)
+                    msg = msg.replace('%s', 'include', 1)
+                    msg = msg.replace('%s', key.type, 1)
                     return(
                         res.failure(
                             Exc_TypeError(
-                                f'{TYPES["dictionary"]} keys of type {keytype.type} can not include {key.type}',
+                                msg,
                                 key.start, key.end,
                                 context,
                                 key.originstart, key.originend, key.origindisplay
@@ -233,11 +286,16 @@ class Interpreter():
                 keytype = key
 
             if valuetype:
+                msg = lang['exceptions']['typeerror']['cannot']
+                msg = msg.replace('%s', TYPES['dictionary'], 1)
+                msg = msg.replace('%s', valuetype.type, 1)
+                msg = msg.replace('%s', 'include', 1)
+                msg = msg.replace('%s', value.type, 1)
                 if type(value) != type(valuetype):
                     return(
                         res.failure(
                             Exc_TypeError(
-                                f'{TYPES["dictionary"]} of type {valuetype.type} can not include {value.type}',
+                                msg,
                                 value.start, value.end,
                                 context,
                                 value.originstart, value.originend, value.origindisplay
@@ -270,10 +328,12 @@ class Interpreter():
         value = context.symbols.access(name)
 
         if not value:
+            msg = lang['exceptions']['identifiererror']['notdefined']
+            msg = msg.replace('%s', name, 1)
             return(
                 res.failure(
                     Exc_IdentifierError(
-                        f'\'{name}\' is not defined',
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -317,10 +377,12 @@ class Interpreter():
         prevvalue = context.symbols.access(name)
 
         if not prevvalue:
+            msg = lang['exceptions']['identifiererror']['notdefined']
+            msg = msg.replace('%s', name, 1)
             return(
                 res.failure(
                     Exc_IdentifierError(
-                        f'\'{name}\' is not defined',
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -328,10 +390,13 @@ class Interpreter():
             )
 
         if name in RESERVED or prevvalue.reserved:
+            msg = lang['exceptions']['reservederror']['reserved']
+            msg = msg.replace('%s', str(value), 1)
+            msg = msg.replace('%s', name, 1)
             return(
                 res.failure(
-                    Exc_TypeError(
-                        f'Can not assign {value.type} to \'{name}\' (reserved)',
+                    Exc_ReservedError(
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -339,11 +404,17 @@ class Interpreter():
             )
 
         if type(prevvalue) != type(value) and not isinstance(prevvalue, NullType):
-            #value.originstart += prevvalue.originstart
+            value.originstart += prevvalue.originstart
+            value.originend += prevvalue.originend
+            value.origindisplay += prevvalue.origindisplay
+            msg = lang['exceptions']['typeerror']['assigntype']
+            msg = msg.replace('%s', value.type, 1)
+            msg = msg.replace('%s', name, 1)
+            msg = msg.replace('%s', prevvalue.type, 1)
             return(
                 res.failure(
                     Exc_TypeError(
-                        f'Can not assign {value.type} to \'{name}\' ({prevvalue.type})',
+                        msg,
                         node.valnode.start, node.valnode.end,
                         context,
                         value.originstart, value.originend, value.origindisplay
@@ -385,10 +456,13 @@ class Interpreter():
 
         if prevvalue:
             if name in RESERVED or prevvalue.reserved:
+                msg = lang['exceptions']['reservederror']['reserved']
+                msg = msg.replace('%s', str(value), 1)
+                msg = msg.replace('%s', name, 1)
                 return(
                     res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {value.type} to \'{name}\' (reserved)',
+                        Exc_ReservedError(
+                            msg,
                             node.start, node.end,
                             context
                         )
@@ -416,10 +490,13 @@ class Interpreter():
 
         if prevvalue:
             if name in RESERVED or prevvalue.reserved:
+                msg = lang['exceptions']['reservederror']['reserved']
+                msg = msg.replace('%s', TYPES['nonetype'], 1)
+                msg = msg.replace('%s', name, 1)
                 return(
                     res.failure(
-                        Exc_TypeError(
-                            f'Can not assign {TYPES["nonetype"]} to \'{name}\' (reserved)',
+                        Exc_ReservedError(
+                            msg,
                             node.start, node.end,
                             context
                         )
@@ -467,10 +544,14 @@ class Interpreter():
                 return(res)
 
             if i.type != TYPES['type'] and not isinstance(i, NullType):
+                msg = lang['exceptions']['typeerror']['mustbe']
+                msg = msg.replace('%s', 'Argument type', 1)
+                msg = msg.replace('%s', f'{TYPES["type"]} or {TYPES["nonetype"]}', 1)
+                msg = msg.replace('%s', i.type, 1)
                 return(
                     res.failure(
                         Exc_TypeError(
-                            f'Argument type must be of type {TYPES["type"]}, {TYPES["nonetype"]}',
+                            msg,
                             i.start, i.end,
                             context
                         )
@@ -510,10 +591,14 @@ class Interpreter():
             return(res)
 
         if returntype.type != TYPES['type'] and not isinstance(returntype, NullType):
+            msg = lang['exceptions']['typeerror']['mustbe']
+            msg = msg.replace('%s', 'Return type', 1)
+            msg = msg.replace('%s', f'{TYPES["type"]} or {TYPES["nonetype"]}', 1)
+            msg = msg.replace('%s', returntype.type, 1)
             return(
                 res.failure(
                     Exc_TypeError(
-                        f'Return type must be of type {TYPES["type"]}, {returntype.type} given',
+                        msg,
                         returntype.start, returntype.end,
                         context
                     )
@@ -595,10 +680,11 @@ class Interpreter():
         res = RTResult()
 
         if not context.parent:
+            msg = lang['exceptions']['returnerror']['location']
             return(
                 res.failure(
                     Exc_ReturnError(
-                        'Can not return from outside function',
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -710,20 +796,26 @@ class Interpreter():
 
         prevvalue = context.symbols.access(varname)
         if not node.varoverwrite and not prevvalue:
+            msg = lang['exceptions']['identifiererror']['notdefined']
+            msg = msg.replace('%s', varname, 1)
             return(
                 res.failure(
                     Exc_IdentifierError(
-                        f'\'{varname}\' is not defined',
+                        msg,
                         node.vartoken.start, node.vartoken.end,
                         context
                     )
                 )
             )
         if type(value) != type(prevvalue) and not node.varoverwrite:
+            msg = lang['exceptions']['typeerror']['assigntype']
+            msg = msg.replace('%s', value.type, 1)
+            msg = msg.replace('%s', varname, 1)
+            msg = msg.replace('%s', prevvalue.type, 1)
             return(
                 res.failure(
                     Exc_TypeError(
-                        f'Can not assign {value.type} to \'{varname}\' ({prevvalue.type})',
+                        msg,
                         value.start, value.end,
                         context,
                         value.originstart, value.originend, value.origindisplay
@@ -821,10 +913,12 @@ class Interpreter():
 
         prevvalue = context.symbols.access(varname)
         if not node.varoverwrite and not prevvalue:
+            msg = lang['exceptions']['identifiererror']['notdefined']
+            msg = msg.replace('%s', varname, 1)
             return(
                 res.failure(
                     Exc_IdentifierError(
-                        f'\'{varname}\' is not defined',
+                        msg,
                         node.vartoken.start, node.vartoken.end,
                         context
                     )
@@ -835,10 +929,14 @@ class Interpreter():
             shouldbreak = False
             for i in loopthrough.value:
                 if type(i) != type(prevvalue) and not node.varoverwrite:
+                    msg = lang['exceptions']['typeerror']['assigntype']
+                    msg = msg.replace('%s', i.type, 1)
+                    msg = msg.replace('%s', varname, 1)
+                    msg = msg.replace('%s', prevvalue.type, 1)
                     return(
                         res.failure(
                             Exc_TypeError(
-                                f'Can not assign {i.type} to \'{varname}\' ({prevvalue.type})',
+                                msg,
                                 i.start, i.end,
                                 context,
                                 i.originstart, i.originend, i.origindisplay
@@ -872,10 +970,12 @@ class Interpreter():
                     break
 
         except TypeError:
+            msg = lang['exceptions']['iterationerror']['cannot']
+            msg = msg.replace('%s', loopthrough.type, 1)
             return(
                 res.failure(
                     Exc_IterationError(
-                        f'{loopthrough.type} is not iterable',
+                        msg,
                         loopthrough.start, loopthrough.end,
                         context
                     )
@@ -940,10 +1040,11 @@ class Interpreter():
         res = RTResult()
 
         if not insideloop:
+            msg = lang['exceptions']['breakerror']['location']
             return(
                 res.failure(
                     Exc_BreakError(
-                        'Can not break from outside loop',
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -959,10 +1060,11 @@ class Interpreter():
         res = RTResult()
 
         if not insideloop:
+            msg = lang['exceptions']['continueerror']['location']
             return(
                 res.failure(
                     Exc_ContinueError(
-                        'Can not continue from outside loop',
+                        msg,
                         node.start, node.end,
                         context
                     )
@@ -1112,6 +1214,9 @@ class Interpreter():
             result, error = left.and_(right)
         elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalor']):
             result, error = left.or_(right)
+        else:
+            result = NullType()
+            error = None
 
         if error:
             return(
@@ -1123,6 +1228,8 @@ class Interpreter():
                 result.setpos(
                     node.start,
                     node.end
+                ).setcontext(
+                    context
                 )
             )
         )
@@ -1211,10 +1318,14 @@ class Interpreter():
             return(res)
 
         if not isinstance(file, StringType):
+            msg = lang['exceptions']['typeerror']['mustbe']
+            msg = msg.replace('%s', '\'file\'', 1)
+            msg = msg.replace('%s', TYPES['string'], 1)
+            msg = msg.replace('%s', file.type, 1)
             return(
                 res.failure(
                     Exc_TypeError(
-                        f'\'file\' must be of type {TYPES["string"]}, {file.type} given',
+                        msg,
                         file.start, file.end,
                         context,
                         file.originstart, file.originend, file.origindisplay
@@ -1222,11 +1333,14 @@ class Interpreter():
                 )
             )
 
-        if not re.match(r'^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$', file.value):
+        if not _re.match(r'^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$', file.value):
+            msg = lang['exceptions']['patternerror']['nomatch']
+            msg = msg.replace('%s', '\'file\'', 1)
+            msg = msg.replace('%s', '/^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$/', 1)
             return(
                 res.failure(
                     Exc_PatternError(
-                        f'\'file\' does not match pattern: /^([A-z][A-z0-9]*)(\.([A-z][A-z0-9]*))*$/',
+                        msg,
                         file.start, file.end,
                         context,
                         file.originstart, file.originend, file.origindisplay
@@ -1240,7 +1354,7 @@ class Interpreter():
 
             try:
                 path = file.value + '.peri'
-                path = Path(i) / path
+                path = _Path(i) / path
                 with open(str(path), 'r') as f:
                     script = f.read()
                 break
@@ -1249,6 +1363,13 @@ class Interpreter():
             except IsADirectoryError as e: pass
             except PermissionError   as e: pass
 
+        result = NullType()
+        result.setcontext(
+            context
+        ).setpos(
+            node.start, node.end
+        )
+
         if not script:
             try:
                 symbols = defaultvariables(SymbolTable(context.symbols))
@@ -1256,13 +1377,21 @@ class Interpreter():
                 perimod.Symbols = symbols
                 perimod.Position = node
                 perimod.File = file.value
-                mod = import_module(f'version.modules.{file.value}')
+                mod = _import_module(f'version.modules.{file.value}')
                 result = perimod._namespace
                 if result == None:
+                    msg = lang['exceptions']['includeerror']['failed']
+                    msg = msg.replace('%s', str(file), 1)
+                    msg = msg.replace('%s', lang['exceptions']['module'], 1)
+                    msg = msg.replace('%s', perimod._error[0], 1)
+                    msg = msg.replace('%s', lang['exceptions']['line'], 1)
+                    msg = msg.replace('%s', str(perimod._error[1]), 1)
+                    msg = msg.replace('%s', perimod._error[2], 1)
+                    msg = msg.replace('%s', perimod._error[3], 1)
                     return(
                         res.failure(
                             Exc_IncludeError(
-                                f'Failed to include {file}:\n  Module \'{perimod._error[0]}\', Line {perimod._error[1]}\n{perimod._error[2]}: {perimod._error[3]}',
+                                msg,
                                 node.start, node.end,
                                 context
                             )
@@ -1275,10 +1404,12 @@ class Interpreter():
                 script = True
 
             except:
+                msg = lang['exceptions']['includeerror']['doesnotexist']
+                msg = msg.replace('%s', str(file), 1)
                 return(
                     res.failure(
                         Exc_FileAccessError(
-                            f'Module {file} does not exist',
+                            msg,
                             file.start, file.end,
                             context,
                             file.originstart, file.originend, file.origindisplay
@@ -1300,6 +1431,3 @@ class Interpreter():
         return(
             res.success(result)
         )
-
-typesinit(Interpreter)
-runinit(Interpreter)

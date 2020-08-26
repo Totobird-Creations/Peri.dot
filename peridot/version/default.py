@@ -1,14 +1,34 @@
-from .types import *
-from .context import SymbolTable
-import xdgappdirs
-from pathlib import Path
+##########################################
+# DEPENDENCIES                           #
+##########################################
+
+def _defaultinit(appversion, file, types, context):
+    global  __file__, version,SymbolTable
+    __file__            = file
+    version             = appversion
+    SymbolTable         = context.SymbolTable
+    global TYPES, ArrayType, BooleanType, BuiltInFunctionType, NamespaceType, NullType, StringType
+    TYPES               = types.TYPES
+    ArrayType           = types.ArrayType
+    BooleanType         = types.BooleanType
+    BuiltInFunctionType = types.BuiltInFunctionType
+    NamespaceType       = types.NamespaceType
+    NullType            = types.NullType
+    StringType          = types.StringType
+
+##########################################
+# DEFAULT VARIABLES                      #
+##########################################
+
+import xdgappdirs as _xdgappdirs
+from pathlib import Path as _Path
 
 def defaultvariables(symbols):
     perisymbols = SymbolTable(symbols)
     perisymbols.assign('path', ArrayType([
         StringType(__file__),
-        StringType(str(xdgappdirs.user_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version)),
-        StringType(str(xdgappdirs.site_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version))
+        StringType(str(_xdgappdirs.user_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version)),
+        StringType(str(_xdgappdirs.site_data_dir('Peridot', 'TotobirdCreations', as_path=True) / 'modules' / version))
     ]))
     symbols.assign('__peridot__', NamespaceType(perisymbols))
 
@@ -32,8 +52,3 @@ def defaultvariables(symbols):
     symbols.assign('tuple' , BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TYPES['tuple']))
 
     return(symbols)
-
-def defaultinit(appversion, file):
-    global version, __file__
-    version = appversion
-    __file__ = file

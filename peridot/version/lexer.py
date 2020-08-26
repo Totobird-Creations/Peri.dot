@@ -2,12 +2,51 @@
 # DEPENDENCIES                           #
 ##########################################
 
-from colorama    import init, Fore, Style, Back
-init()
+from colorama    import init as _init, Fore as _Fore, Style as _Style, Back as _Back
+_init()
 
-from .constants  import * # type: ignore
-from .exceptions import * # type: ignore
-from .tokens     import * # type: ignore
+def _lexerinit(conf, constants, tokens, exceptions):
+    global lang
+    lang            = conf
+    global DIGITS, ALPHABET, ALPHANUMERIC, KEYWORDS
+    DIGITS          = constants.DIGITS
+    ALPHABET        = constants.ALPHABET
+    ALPHANUMERIC    = constants.ALPHANUMERIC
+    KEYWORDS        = constants.KEYWORDS
+    global Token, TT_EOL, TT_PLUS, TT_ASTRISK, TT_FSLASH, TT_CARAT, TT_COMMA, TT_COLON, TT_PERIOD, TT_LPAREN, TT_RPAREN, TT_LCURLY, TT_RCURLY, TT_LSQUARE, TT_RSQUARE, TT_EOF, TT_INT, TT_FLOAT, TT_STRING, TT_ARROW, TT_DASH, TT_EQEQUALS, TT_EQUALS, TT_BANGEQUALS, TT_LTEQUALS, TT_LESSTHAN, TT_GTEQUALS, TT_GREATERTHAN, TT_KEYWORD, TT_IDENTIFIER
+    Token           = tokens.Token
+    TT_EOL          = tokens.TT_EOL
+    TT_PLUS         = tokens.TT_PLUS
+    TT_ASTRISK      = tokens.TT_ASTRISK
+    TT_FSLASH       = tokens.TT_FSLASH
+    TT_CARAT        = tokens.TT_CARAT
+    TT_COMMA        = tokens.TT_COMMA
+    TT_COLON        = tokens.TT_COLON
+    TT_PERIOD       = tokens.TT_PERIOD
+    TT_LPAREN       = tokens.TT_LPAREN
+    TT_RPAREN       = tokens.TT_RPAREN
+    TT_LCURLY       = tokens.TT_LCURLY
+    TT_RCURLY       = tokens.TT_RCURLY
+    TT_LSQUARE      = tokens.TT_LSQUARE
+    TT_RSQUARE      = tokens.TT_RSQUARE
+    TT_EOF          = tokens.TT_EOF
+    TT_INT          = tokens.TT_INT
+    TT_FLOAT        = tokens.TT_FLOAT
+    TT_STRING       = tokens.TT_STRING
+    TT_ARROW        = tokens.TT_ARROW
+    TT_DASH         = tokens.TT_DASH
+    TT_EQEQUALS     = tokens.TT_EQEQUALS
+    TT_EQUALS       = tokens.TT_EQUALS
+    TT_BANGEQUALS   = tokens.TT_BANGEQUALS
+    TT_LTEQUALS     = tokens.TT_LTEQUALS
+    TT_LESSTHAN     = tokens.TT_LESSTHAN
+    TT_GTEQUALS     = tokens.TT_GTEQUALS
+    TT_GREATERTHAN  = tokens.TT_GREATERTHAN
+    TT_KEYWORD      = tokens.TT_KEYWORD
+    TT_IDENTIFIER   = tokens.TT_IDENTIFIER
+    global Syn_SyntaxError, Syn_EscapeError
+    Syn_SyntaxError = exceptions.Syn_SyntaxError
+    Syn_EscapeError = exceptions.Syn_EscapeError
 
 ##########################################
 # POSITION                               #
@@ -223,7 +262,9 @@ class Lexer():
                 char = self.char
                 self.advance()
 
-                return(([], Syn_SyntaxError(f'Illegal character "{char}" was found', start=start, end=self.pos)))
+                msg = lang['exceptions']['syntaxerror']['illegalchar']
+                msg = msg.replace('%s', char, 1)
+                return(([], Syn_SyntaxError(msg, start=start, end=self.pos)))
 
 
         tokens.append(Token(TT_EOL, start=self.pos))
@@ -264,44 +305,44 @@ class Lexer():
             't'  : '\t',
             '\'' : '\'',
             '\"' : '\"',
-            'x20': Style.NORMAL,
-            'x30': Fore.BLACK,
-            'x31': Fore.RED,
-            'x32': Fore.GREEN,
-            'x33': Fore.YELLOW,
-            'x34': Fore.BLUE,
-            'x35': Fore.MAGENTA,
-            'x36': Fore.CYAN,
-            'x37': Fore.WHITE,
-            'x39': Fore.RESET,
-            'x40': Back.BLACK,
-            'x41': Back.RED,
-            'x42': Back.GREEN,
-            'x43': Back.YELLOW,
-            'x44': Back.BLUE,
-            'x45': Back.MAGENTA,
-            'x46': Back.CYAN,
-            'x47': Back.WHITE,
-            'x49': Back.RESET,
-            'x90': Fore.LIGHTBLACK_EX,
-            'x91': Fore.LIGHTRED_EX,
-            'x92': Fore.LIGHTGREEN_EX,
-            'x93': Fore.LIGHTYELLOW_EX,
-            'x94': Fore.LIGHTBLUE_EX,
-            'x95': Fore.LIGHTMAGENTA_EX,
-            'x96': Fore.LIGHTCYAN_EX,
-            'x97': Fore.LIGHTWHITE_EX,
-            'x100': Back.LIGHTBLACK_EX,
-            'x101': Back.LIGHTRED_EX,
-            'x102': Back.LIGHTGREEN_EX,
-            'x103': Back.LIGHTYELLOW_EX,
-            'x104': Back.LIGHTBLUE_EX,
-            'x105': Back.LIGHTMAGENTA_EX,
-            'x106': Back.LIGHTCYAN_EX,
-            'x107': Back.LIGHTWHITE_EX,
-            'x0' : Style.RESET_ALL,
-            'x1' : Style.BRIGHT,
-            'x2' : Style.DIM
+            'x20': _Style.NORMAL,
+            'x30': _Fore.BLACK,
+            'x31': _Fore.RED,
+            'x32': _Fore.GREEN,
+            'x33': _Fore.YELLOW,
+            'x34': _Fore.BLUE,
+            'x35': _Fore.MAGENTA,
+            'x36': _Fore.CYAN,
+            'x37': _Fore.WHITE,
+            'x39': _Fore.RESET,
+            'x40': _Back.BLACK,
+            'x41': _Back.RED,
+            'x42': _Back.GREEN,
+            'x43': _Back.YELLOW,
+            'x44': _Back.BLUE,
+            'x45': _Back.MAGENTA,
+            'x46': _Back.CYAN,
+            'x47': _Back.WHITE,
+            'x49': _Back.RESET,
+            'x90': _Fore.LIGHTBLACK_EX,
+            'x91': _Fore.LIGHTRED_EX,
+            'x92': _Fore.LIGHTGREEN_EX,
+            'x93': _Fore.LIGHTYELLOW_EX,
+            'x94': _Fore.LIGHTBLUE_EX,
+            'x95': _Fore.LIGHTMAGENTA_EX,
+            'x96': _Fore.LIGHTCYAN_EX,
+            'x97': _Fore.LIGHTWHITE_EX,
+            'x100': _Back.LIGHTBLACK_EX,
+            'x101': _Back.LIGHTRED_EX,
+            'x102': _Back.LIGHTGREEN_EX,
+            'x103': _Back.LIGHTYELLOW_EX,
+            'x104': _Back.LIGHTBLUE_EX,
+            'x105': _Back.LIGHTMAGENTA_EX,
+            'x106': _Back.LIGHTCYAN_EX,
+            'x107': _Back.LIGHTWHITE_EX,
+            'x0' : _Style.RESET_ALL,
+            'x1' : _Style.BRIGHT,
+            'x2' : _Style.DIM
         }
         escaped = False
 
@@ -313,6 +354,7 @@ class Lexer():
                 escchars = ''
                 for i in list(chars.keys()):
                     escchars = ''
+                    j = 0
                     for j in range(len(i)):
                         escchars += f'{self.char}'
                         if i[j] != self.char: break
@@ -330,7 +372,9 @@ class Lexer():
                     end = self.pos.copy()
                     for i in range(len(escchars)):
                         end.advance()
-                    return((None, Syn_EscapeError(f'\'{escchars}\' can not be escaped', start=escstart, end=end)))
+                    msg = lang['exceptions']['escapeerror']['cannot']
+                    msg = msg.replace('%s', escchars, 1)
+                    return((None, Syn_EscapeError(msg, start=escstart, end=end)))
                 string += char
 
                 escaped = False
@@ -341,7 +385,10 @@ class Lexer():
                 elif self.char == '\n':
                     end = self.pos.copy()
                     end.advance()
-                    return((None, Syn_SyntaxError(f'Invalid EOL, expected \'{quotetype}\'', start=self.pos, end=end)))
+                    msg = lang['exceptions']['syntaxerror']['invalideofl']
+                    msg = msg.replace('%s', 'L', 1)
+                    msg = msg.replace('%s', f'\'{quotetype}\'', 1)
+                    return((None, Syn_SyntaxError(msg, start=self.pos, end=end)))
                 else:
                     string += self.char
             self.advance()
@@ -349,7 +396,10 @@ class Lexer():
         if not self.char:
             end = self.pos.copy()
             end.advance()
-            return((None, Syn_SyntaxError(f'Invalid EOF, expected \'{quotetype}\'', start=self.pos, end=end)))
+            msg = lang['exceptions']['syntaxerror']['invalideofl']
+            msg = msg.replace('%s', 'F', 1)
+            msg = msg.replace('%s', f'\'{quotetype}\'', 1)
+            return((None, Syn_SyntaxError(msg, start=self.pos, end=end)))
 
         self.advance()
 
@@ -363,9 +413,9 @@ class Lexer():
 
         if self.char == '>':
             self.advance()
-            return((Token(TT_ARROW, string, start=start, end=self.pos), None))
+            return((Token(TT_ARROW, None, start=start, end=self.pos), None))
 
-        return((Token(TT_DASH, string, start=start, end=self.pos), None))
+        return((Token(TT_DASH, None, start=start, end=self.pos), None))
 
 
     def makeequals(self):
@@ -375,9 +425,9 @@ class Lexer():
 
         if self.char == '=':
             self.advance()
-            return((Token(TT_EQEQUALS, string, start=start, end=self.pos), None))
+            return((Token(TT_EQEQUALS, None, start=start, end=self.pos), None))
 
-        return((Token(TT_EQUALS, string, start=start, end=self.pos), None))
+        return((Token(TT_EQUALS, None, start=start, end=self.pos), None))
 
 
     def makebang(self):
@@ -387,9 +437,13 @@ class Lexer():
 
         if self.char == '=':
             self.advance()
-            return((Token(TT_BANGEQUALS, string, start=start, end=self.pos), None))
+            return((Token(TT_BANGEQUALS, None, start=start, end=self.pos), None))
 
-        return((None, Syn_EscapeError(f'Expected \'=\' not found', start=self.pos, end=self.pos.copy())))
+        end = self.pos.copy()
+        end.advance()
+        msg = lang['exceptions']['syntaxerror']['notfound']
+        msg = msg.replace('%s', '\'=\'', 1)
+        return((None, Syn_EscapeError(msg, start=self.pos, end=end)))
 
 
     def makelessthan(self):
@@ -399,9 +453,9 @@ class Lexer():
 
         if self.char == '=':
             self.advance()
-            return((Token(TT_LTEQUALS, string, start=start, end=self.pos), None))
+            return((Token(TT_LTEQUALS, None, start=start, end=self.pos), None))
 
-        return((Token(TT_LESSTHAN, string, start=start, end=self.pos), None))
+        return((Token(TT_LESSTHAN, None, start=start, end=self.pos), None))
 
 
     def makegreaterthan(self):
@@ -411,9 +465,9 @@ class Lexer():
 
         if self.char == '=':
             self.advance()
-            return((Token(TT_GTEQUALS, string, start=start, end=self.pos), None))
+            return((Token(TT_GTEQUALS, None, start=start, end=self.pos), None))
 
-        return((Token(TT_GREATERTHAN, string, start=start, end=self.pos), None))
+        return((Token(TT_GREATERTHAN, None, start=start, end=self.pos), None))
 
 
     def makeidentifier(self):

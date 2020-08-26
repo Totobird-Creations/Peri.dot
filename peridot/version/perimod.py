@@ -1,15 +1,18 @@
+##########################################
+# DEPENDENCIES                           #
+##########################################
+
 import sys as _sys
 
-from .types import TYPES as TypeNames
-from .types import NamespaceType, TypeObj as Type
-from .types import RTResult as _RTResult
-from .catch import InternalPeridotError
+def _perimodinit(types, interpreter):
+    global NamespaceType
+    NamespaceType = types.NamespaceType
+    global _RTResult
+    _RTResult     = interpreter.RTResult
 
-class Exceptions():
-    from .exceptions import Exc_Error, Exc_ArgumentError, Exc_AssertionError, Exc_AttributeError, Exc_BreakError, Exc_ContinueError, Exc_FileAccessError, Exc_IdentifierError, Exc_IncludeError, Exc_IndexError, Exc_IterationError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_PatternError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_ValueError
-
-class Types():
-    from .types import NullType, IntType, FloatType, StringType, BooleanType, ArrayType, DictionaryType, TupleType, FunctionType, BuiltInFunctionType, ExceptionType, IdType, NamespaceType
+##########################################
+# PERIMOD                           #
+##########################################
 
 _namespace = None
 _error = None

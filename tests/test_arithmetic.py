@@ -1,8 +1,39 @@
 import pytest
-from peridot.version.exceptions import Exc_TypeError
-from peridot.version.types import IntType,FloatType,BooleanType,NullType
-from peridot.version.catch import InternalPeridotError
+from pathlib import Path
 
+from peridot.__main__ import lang, MODULEVERSION
+import peridot.version.catch as catch
+import peridot.version.constants          as constants
+import peridot.version.context            as context
+import peridot.version.default            as default
+import peridot.version.exceptions         as exceptions
+import peridot.version.interpreter        as interpreter
+import peridot.version.lexer              as lexer
+import peridot.version.nodes              as nodes
+import peridot.version.parser             as parser
+import peridot.version.perimod            as perimod
+import peridot.version.repl               as i_repl
+import peridot.version.run                as run
+import peridot.version.tokens             as tokens
+import peridot.version.types              as types
+
+default._defaultinit(MODULEVERSION, str(Path(__file__).parent), types, context)
+exceptions._exceptionsinit(lang)
+interpreter._interpreterinit(lang, tokens, context, default, constants, types, exceptions, run, perimod)
+lexer._lexerinit(lang, constants, tokens, exceptions)
+parser._parserinit(lang, tokens, exceptions, constants, nodes)
+perimod._perimodinit(types, interpreter)
+i_repl._replinit(default, context, run)
+run._runinit(lexer, parser, context, interpreter)
+types._typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter)
+
+InternalPeridotError = catch.InternalPeridotError
+
+IntType              = types.IntType
+FloatType            = types.FloatType
+BooleanType          = types.BooleanType
+
+Exc_TypeError        = exceptions.Exc_TypeError
 
 class TestPeridotInt:
     def test_int(self):

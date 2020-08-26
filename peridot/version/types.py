@@ -3,30 +3,51 @@
 ##########################################
 
 from __future__ import annotations
-from sys import exec_prefix
-from types import BuiltinFunctionType
-from typing import Any, BinaryIO,Optional,Tuple, Type
-from uuid import uuid4
-from colorama import init, Fore, Style
-init()
+from typing import Any as _Any, Optional as _Optional, Tuple as _Tuple
+from uuid import uuid4 as _uuid4
 
-from .catch      import InternalPeridotError
-from .context    import Context, SymbolTable
-from .constants  import KEYWORDS
-from .exceptions import Exc_ArgumentError, Exc_AttributeError, Exc_AssertionError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_OperationError, Exc_ValueError # type: ignore
-from .nodes      import ArrayNode, AttributeNode, BinaryOpNode, FuncCallNode, IndicieNode, UnaryOpNode, VarAccessNode, VarAssignNode, VarCreateNode, VarNullNode, nodesinit
-from .tokens     import *
+def _typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter):
+    global InternalPeridotError
+    InternalPeridotError = catch.InternalPeridotError
+    global Exc_ArgumentError, Exc_AssertionError, Exc_AttributeError, Exc_IndexError, Exc_KeyError, Exc_OperationError, Exc_PanicError, Exc_ReturnError, Exc_ThrowError, Exc_TypeError, Exc_ValueError
+    Exc_ArgumentError    = exceptions.Exc_ArgumentError
+    Exc_AssertionError   = exceptions.Exc_AssertionError
+    Exc_AttributeError   = exceptions.Exc_AttributeError
+    Exc_IndexError       = exceptions.Exc_IndexError
+    Exc_KeyError         = exceptions.Exc_KeyError
+    Exc_OperationError   = exceptions.Exc_OperationError
+    Exc_PanicError       = exceptions.Exc_PanicError
+    Exc_ReturnError      = exceptions.Exc_ReturnError
+    Exc_ThrowError       = exceptions.Exc_ThrowError
+    Exc_TypeError        = exceptions.Exc_TypeError
+    Exc_ValueError       = exceptions.Exc_ValueError
+    global Context, SymbolTable
+    Context              = context.Context
+    SymbolTable          = context.SymbolTable
+    global KEYWORDS
+    KEYWORDS             = constants.KEYWORDS
+    global TT_EQEQUALS, TT_BANGEQUALS, TT_LESSTHAN, TT_LTEQUALS, TT_GREATERTHAN, TT_GTEQUALS, TT_KEYWORD
+    TT_EQEQUALS          = tokens.TT_EQEQUALS
+    TT_BANGEQUALS        = tokens.TT_BANGEQUALS
+    TT_LESSTHAN          = tokens.TT_LESSTHAN
+    TT_LTEQUALS          = tokens.TT_LTEQUALS
+    TT_GREATERTHAN       = tokens.TT_GREATERTHAN
+    TT_GTEQUALS          = tokens.TT_GTEQUALS
+    TT_KEYWORD           = tokens.TT_KEYWORD
+    global VarAssignNode, VarCreateNode, VarNullNode, VarAccessNode, FuncCallNode, IndicieNode, AttributeNode, BinaryOpNode, UnaryOpNode
+    VarAssignNode        = nodes.VarAssignNode
+    VarCreateNode        = nodes.VarCreateNode
+    VarNullNode          = nodes.VarNullNode
+    VarAccessNode        = nodes.VarAccessNode
+    FuncCallNode         = nodes.FuncCallNode
+    IndicieNode          = nodes.IndicieNode
+    AttributeNode        = nodes.AttributeNode
+    BinaryOpNode         = nodes.BinaryOpNode
+    UnaryOpNode          = nodes.UnaryOpNode
 
-def uuid():
-    u = '00000000000000000000000000000000'
-    while u == '00000000000000000000000000000000':
-        u = str(uuid4()).replace('-', '')
-
-    return(u)
-
-def typesinit(interpreter):
-    global Interpreter
-    Interpreter = interpreter
+    global _RTResult, Interpreter
+    _RTResult            = interpreter.RTResult
+    Interpreter          = interpreter.Interpreter
 
 ##########################################
 # CONSTANTS                              #
@@ -50,62 +71,12 @@ TYPES = {
     'namespace'    : 'Namespace'
 }
 
-##########################################
-# RUNTIME RESULT                         #
-##########################################
+def _uuid():
+    u = '00000000000000000000000000000000'
+    while u == '00000000000000000000000000000000':
+        u = str(_uuid4()).replace('-', '')
 
-class RTResult():
-    def __init__(self):
-        self.reset()
-
-    def reset(self):
-        self.value = None
-        self.funcvalue = None
-        self.shouldbreak = False
-        self.shouldcontinue = False
-        self.error = None
-
-    def register(self, res):
-        self.error = res.error
-        self.funcvalue = res.funcvalue
-        self.shouldbreak = res.shouldbreak
-        self.shouldcontinue = res.shouldcontinue
-
-        return(res.value)
-
-    def success(self, value):
-        self.reset()
-        self.value = value
-
-        return(self)
-
-    def successreturn(self, value):
-        self.reset()
-        self.funcvalue = value
-
-        return(self)
-
-    def successbreak(self, value):
-        self.reset()
-        self.shouldbreak = value
-
-        return(self)
-
-    def successcontinue(self, value):
-        self.reset()
-        self.shouldcontinue = value
-
-        return(self)
-
-    def failure(self, error):
-        self.error = error
-
-        return(self)
-
-    def shouldreturn(self):
-        return(
-            self.error or self.funcvalue or self.shouldbreak or self.shouldcontinue
-        )
+    return(u)
 
 ##########################################
 # TYPES                                  #
@@ -115,7 +86,7 @@ class TypeObj():
     def __init__(self, value=None, type_=TYPES['invalid']):
         self.value = value
         self.type  = type_
-        self.id = uuid()
+        self.id = _uuid()
 
         self.reserved = False
 
@@ -159,17 +130,17 @@ class TypeObj():
         return(self)
 
 
-    def add(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def add(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be added to', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def subtract(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def subtract(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be subtracted from', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def multiply(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def multiply(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be multiplied', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def divide(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def divide(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be divided', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def raised(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def raised(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be raised', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -188,7 +159,7 @@ class TypeObj():
                     .setcontext(self.context),
                 None
             ))
-    def bangequals(self, other: Any) -> Tuple[BooleanType, None]:
+    def bangequals(self, other: _Any) -> _Tuple[BooleanType, None]:
         eqequals, error = self.eqequals(other)
         if error:
             return((None, error))
@@ -196,22 +167,22 @@ class TypeObj():
 
         return((eqequals, None))
         
-    def lessthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def lessthan(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def ltequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def ltequals(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'<=\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def greaterthan(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def greaterthan(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def gtequals(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def gtequals(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be compared with \'>=\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def and_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def and_(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'and\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def or_(self, other: Any) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def or_(self, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be combined with \'or\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def not_(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def not_(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be inverted', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def call(self, name, args, opts, rawargs) -> Tuple[Any, Optional[Exc_TypeError]]:
-        res = RTResult()
+    def call(self, name, args, opts, rawargs) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        res = _RTResult()
         try:
             self.originstart = self.originstart[0]
             self.originend = self.originend[0]
@@ -227,30 +198,30 @@ class TypeObj():
                 )
             )
         )
-    def istrue(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def istrue(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be interpreted as {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["type"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["string"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["integer"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["floatingpoint"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def tobool(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tobool(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["boolean"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def toarray(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toarray(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["list"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
-    def totuple(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totuple(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["tuple"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
-    def indicie(self, indicie) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def indicie(self, indicie) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         self.originstart += indicie.originstart
         self.originend += indicie.originend
         self.origindisplay += indicie.origindisplay
         return((None, Exc_TypeError(f'{self.type} can not be indexed', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
-    def attribute(self, attribute) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
@@ -265,7 +236,7 @@ class NullType(TypeObj):
     def __init__(self):
         super().__init__(type_=TYPES['nonetype'])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(True)
@@ -281,7 +252,7 @@ class NullType(TypeObj):
                 None
             ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -289,7 +260,7 @@ class NullType(TypeObj):
             None
         ))
 
-    def tobool(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tobool(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BooleanType(False)
                 .setcontext(self.context)
@@ -317,7 +288,7 @@ class IntType(TypeObj):
         super().__init__(value, type_=TYPES['integer'])
 
 
-    def add(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
+    def add(self, other: _Any) -> _Tuple[_Optional[IntType], _Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value + other.value)
@@ -339,7 +310,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
+    def subtract(self, other: _Any) -> _Tuple[_Optional[IntType], _Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value - other.value)
@@ -361,7 +332,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
+    def multiply(self, other: _Any) -> _Tuple[_Optional[IntType], _Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(self.value * other.value)
@@ -383,7 +354,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def divide(self, other: Any) -> Tuple[Optional[IntType], Any]:
+    def divide(self, other: _Any) -> _Tuple[_Optional[IntType], _Any]:
         if isinstance(other, IntType):
             if other.value == 0:
                 return((
@@ -416,7 +387,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def raised(self, other: Any) -> Tuple[Optional[IntType], Optional[Exc_TypeError]]:
+    def raised(self, other: _Any) -> _Tuple[_Optional[IntType], _Optional[Exc_TypeError]]:
         if isinstance(other, IntType):
             return((
                 IntType(
@@ -443,7 +414,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def lessthan(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -467,7 +438,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def ltequals(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -491,7 +462,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def greaterthan(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -515,7 +486,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def gtequals(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -539,7 +510,7 @@ class IntType(TypeObj):
                 )
             ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('int', type_=TYPES['type'], returntype=TYPES['integer'])
                 .setcontext(self.context)
@@ -547,7 +518,7 @@ class IntType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -555,7 +526,7 @@ class IntType(TypeObj):
             None
         ))
 
-    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             IntType(self.value)
                 .setcontext(self.context)
@@ -563,7 +534,7 @@ class IntType(TypeObj):
             None
         ))
 
-    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             FloatType(float(self.value))
                 .setcontext(self.context)
@@ -590,7 +561,7 @@ class FloatType(TypeObj):
         super().__init__(value, type_=TYPES['floatingpoint'])
 
 
-    def add(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
+    def add(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value + other.value)
@@ -612,7 +583,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def subtract(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
+    def subtract(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value - other.value)
@@ -634,7 +605,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def multiply(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
+    def multiply(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(self.value * other.value)
@@ -656,7 +627,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def divide(self, other: Any) -> Tuple[Optional[FloatType], Any]:
+    def divide(self, other: _Any) -> _Tuple[_Optional[FloatType], _Any]:
         if isinstance(other, FloatType):
             if other.value == 0:
                 return((
@@ -689,7 +660,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def raised(self, other: Any) -> Tuple[Optional[FloatType], Optional[Exc_TypeError]]:
+    def raised(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
                 FloatType(
@@ -716,7 +687,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def lessthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def lessthan(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -740,7 +711,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def ltequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def ltequals(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -764,7 +735,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def greaterthan(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def greaterthan(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -788,7 +759,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def gtequals(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def gtequals(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -812,7 +783,7 @@ class FloatType(TypeObj):
                 )
             ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('float', type_=TYPES['type'], returntype=TYPES['floatingpoint'])
                 .setcontext(self.context)
@@ -820,7 +791,7 @@ class FloatType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -828,7 +799,7 @@ class FloatType(TypeObj):
             None
         ))
 
-    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         if int(self.value) != self.value:
             return((None,
                 Exc_ValueError(
@@ -845,7 +816,7 @@ class FloatType(TypeObj):
             None
         ))
 
-    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             FloatType(self.value)
                 .setcontext(self.context)
@@ -871,7 +842,7 @@ class StringType(TypeObj):
         super().__init__(value, type_=TYPES['string'])
 
 
-    def add(self, other: Any) -> Tuple[Optional[StringType], Optional[Exc_TypeError]]:
+    def add(self, other: _Any) -> _Tuple[_Optional[StringType], _Optional[Exc_TypeError]]:
         if isinstance(other, StringType):
             return((
                 StringType(self.value + other.value)
@@ -893,7 +864,7 @@ class StringType(TypeObj):
                 )
             ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('str', type_=TYPES['type'], returntype=TYPES['string'])
                 .setcontext(self.context)
@@ -901,7 +872,7 @@ class StringType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -909,7 +880,7 @@ class StringType(TypeObj):
             None
         ))
 
-    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         try:
             value = int(self.value)
         except:
@@ -929,7 +900,7 @@ class StringType(TypeObj):
             None
         ))
 
-    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         try:
             value = float(self.value)
         except:
@@ -981,7 +952,7 @@ class StringType(TypeObj):
             None
         ))
 
-    def attribute(self, attribute) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         if attribute.value == 'repeat':
             f = BuiltInFunctionType('repeat').setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
@@ -1043,7 +1014,7 @@ class BooleanType(TypeObj):
             raise InternalPeridotError(f'Non bool value receievd ({type(value).__name__})')
         super().__init__(value, type_=TYPES['boolean'])
 
-    def and_(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def and_(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -1067,7 +1038,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def or_(self, other: Any) -> Tuple[Optional[BooleanType], Optional[Exc_TypeError]]:
+    def or_(self, other: _Any) -> _Tuple[_Optional[BooleanType], _Optional[Exc_TypeError]]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -1091,7 +1062,7 @@ class BooleanType(TypeObj):
                 )
             ))
 
-    def not_(self) -> Tuple[BooleanType, None]:
+    def not_(self) -> _Tuple[BooleanType, None]:
         return((
             BooleanType(
                 not self.value
@@ -1101,13 +1072,13 @@ class BooleanType(TypeObj):
             None
         ))
 
-    def istrue(self) -> Tuple[BooleanType, None]:
+    def istrue(self) -> _Tuple[BooleanType, None]:
         return((
             self.value,
             None
         ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('bool', type_=TYPES['type'], returntype=TYPES['boolean'])
                 .setcontext(self.context)
@@ -1115,7 +1086,7 @@ class BooleanType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1123,7 +1094,7 @@ class BooleanType(TypeObj):
             None
         ))
 
-    def toint(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             IntType(int(self.value))
                 .setcontext(self.context)
@@ -1131,7 +1102,7 @@ class BooleanType(TypeObj):
             None
         ))
 
-    def tofloat(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             FloatType(float(self.value))
                 .setcontext(self.context)
@@ -1159,7 +1130,7 @@ class ArrayType(TypeObj):
 
         super().__init__(elements, type_=TYPES['list'])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
         if type(self) == type(other):
             if len(self.value) == len(other.value):
@@ -1178,7 +1149,7 @@ class ArrayType(TypeObj):
             None
         ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('array', type_=TYPES['type'], returntype=TYPES['list'])
                 .setcontext(self.context)
@@ -1186,7 +1157,7 @@ class ArrayType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1281,7 +1252,7 @@ class DictionaryType(TypeObj):
 
         super().__init__(elements, type_=TYPES['dictionary'])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
         if type(self) == type(other):
             selfkeys = list(self.value.keys())
@@ -1305,7 +1276,7 @@ class DictionaryType(TypeObj):
             None
         ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('dictionary', type_=TYPES['type'], returntype=TYPES['dictionary'])
                 .setcontext(self.context)
@@ -1313,7 +1284,7 @@ class DictionaryType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1392,7 +1363,7 @@ class TupleType(TypeObj):
 
         super().__init__(elements, type_=TYPES['tuple'])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
         if type(self) == type(other):
             if len(self.value) == len(other.value):
@@ -1411,7 +1382,7 @@ class TupleType(TypeObj):
             None
         ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TYPES['tuple'])
                 .setcontext(self.context)
@@ -1419,7 +1390,7 @@ class TupleType(TypeObj):
             None
         ))
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1505,7 +1476,7 @@ class BaseFunction(TypeObj):
         return(exec_context)
 
     def checkargs(self, arguments, options, args, opts):
-        res = RTResult()
+        res = _RTResult()
 
         if len(args) != len(list(arguments.keys())):
             try:
@@ -1604,7 +1575,7 @@ class BaseFunction(TypeObj):
             exec_context.symbols.assign(optname, optvalue)
 
     def checkpopargs(self, arguments, options, args, opts, rawargs, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         res.register(
             self.checkargs(
@@ -1624,7 +1595,7 @@ class BaseFunction(TypeObj):
             res.success(None)
         )
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1642,7 +1613,7 @@ class FunctionType(BaseFunction):
         self.returntype = returntype
         self.shouldreturn = shouldreturn
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -1663,7 +1634,7 @@ class FunctionType(BaseFunction):
             ))
 
     def call(self, name, args, opts, rawargs):
-        res = RTResult()
+        res = _RTResult()
         interpreter = Interpreter()
 
         exec_context = self.gencontext((name or self.name, self.id))
@@ -1738,7 +1709,7 @@ class FunctionType(BaseFunction):
 
         return(copy)
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1759,7 +1730,7 @@ class BuiltInFunctionType(BaseFunction):
         else:
             self.value = name
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -1780,7 +1751,7 @@ class BuiltInFunctionType(BaseFunction):
             ))
 
     def call(self, name, args, opts, rawargs):
-        res = RTResult()
+        res = _RTResult()
 
         #exec_context = self.gencontext(('Built-In Function', name))
         exec_context = self.context.copy()
@@ -1829,7 +1800,7 @@ class BuiltInFunctionType(BaseFunction):
             res.success(result)
         )
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -1854,7 +1825,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_throw(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         exc = exec_context.symbols.access('exception')[0]
         
@@ -1874,7 +1845,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_assert(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         condition = exec_context.symbols.access('condition')[0]
         conditiontype = exec_context.symbols.access('condition')[1]
@@ -1941,7 +1912,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_panic(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         message = exec_context.symbols.access('message')[0]
 
@@ -1960,7 +1931,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_print(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         message = exec_context.symbols.access('message')[0]
         prefix = exec_context.symbols.access('prefix')
@@ -1969,7 +1940,7 @@ class BuiltInFunctionType(BaseFunction):
         print(f'{prefix.__clean__()}{message.__clean__()}{suffix.__clean__()}', end='')
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 NullType()
             )
         )
@@ -1978,7 +1949,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_range(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         stop = exec_context.symbols.access('stop')[0]
         start = exec_context.symbols.access('start')
@@ -1998,7 +1969,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 ArrayType(returnlist)
             )
         )
@@ -2007,20 +1978,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_type(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.totype()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2029,20 +2000,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_str(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.tostr()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2051,20 +2022,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_int(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.toint()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2073,20 +2044,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_float(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.tofloat()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2095,20 +2066,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_bool(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.tobool()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2117,20 +2088,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_array(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.toarray()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2139,20 +2110,20 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_tuple(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         value = exec_context.symbols.access('obj')[0]
         result, error = value.totuple()
 
         if error:
             return(
-                RTResult().failure(
+                _RTResult().failure(
                     error
                 )
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 result
             )
         )
@@ -2161,11 +2132,11 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_id(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         obj = exec_context.symbols.access('obj')[0]
         return(
-            RTResult().success(
+            _RTResult().success(
                 IdType(obj.id)
             )
         )
@@ -2175,7 +2146,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_repeat(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         count = exec_context.symbols.access('count')[0]
         if count.value < 0:
@@ -2190,7 +2161,7 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
         return(
-            RTResult().success(
+            _RTResult().success(
                 StringType(self.editvalue.value * count.value)
             )
         )
@@ -2199,12 +2170,12 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_split(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         separator = exec_context.symbols.access('separator')[0]
         if len(separator.value) <= 0:
             return(
-                RTResult().success(
+                _RTResult().success(
                     ArrayType(list(self.editvalue.value))
                         .setpos(self.start, self.end)
                         .setcontext(exec_context)
@@ -2212,7 +2183,7 @@ class BuiltInFunctionType(BaseFunction):
             )
         else:
             return(
-                RTResult().success(
+                _RTResult().success(
                     ArrayType([StringType(i) for i in self.editvalue.value.split(separator.value)])
                 )
             )
@@ -2221,7 +2192,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_join(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         combiner = exec_context.symbols.access('combiner')[0]
         if not all(i.type == TYPES['string'] for i in self.editvalue.value):
@@ -2236,7 +2207,7 @@ class BuiltInFunctionType(BaseFunction):
                 )
             )
         return(
-            RTResult().success(
+            _RTResult().success(
                 StringType(combiner.value.join(i.value for i in self.editvalue.value))
             )
         )
@@ -2245,12 +2216,12 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_replace(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         separator = exec_context.symbols.access('separator')[0]
         combiner = exec_context.symbols.access('combiner')[0]
         return(
-            RTResult().success(
+            _RTResult().success(
                 StringType(self.editvalue.value.replace(separator.value, combiner.value))
             )
         )
@@ -2259,7 +2230,7 @@ class BuiltInFunctionType(BaseFunction):
 
 
     def exec_slice(self, exec_context):
-        res = RTResult()
+        res = _RTResult()
 
         start = exec_context.symbols.access('start')[0]
         stop = exec_context.symbols.access('stop')[0]
@@ -2278,7 +2249,7 @@ class BuiltInFunctionType(BaseFunction):
             )
 
         return(
-            RTResult().success(
+            _RTResult().success(
                 type(self.editvalue)(self.editvalue.value[start.value:stop.value:step.value])
             )
         )
@@ -2305,7 +2276,7 @@ class ExceptionType(TypeObj):
         lines = self.exc_start.ftext.split('\n')
         self.text = ' '.join(lines[self.line::-(len(lines) - self.exc_end.column)])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -2386,7 +2357,7 @@ class ExceptionType(TypeObj):
 
         return(copy)
 
-    def tostr(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
                 .setcontext(self.context)
@@ -2394,7 +2365,7 @@ class ExceptionType(TypeObj):
             None
         ))
 
-    def totuple(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totuple(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             TupleType((
                 StringType(self.exc)
@@ -2420,7 +2391,7 @@ class IdType(TypeObj):
     def __init__(self, value):
         super().__init__(value, type_=TYPES['id'])
 
-    def eqequals(self: Any, other: Any) -> Tuple[BooleanType, None]:
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         if type(self) == type(other):
             return((
                 BooleanType(
@@ -2440,7 +2411,7 @@ class IdType(TypeObj):
                 None
             ))
 
-    def totype(self) -> Tuple[Any, Optional[Exc_TypeError]]:
+    def totype(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             BuiltInFunctionType('id', type_=TYPES['type'], returntype=TYPES['id'])
                 .setcontext(self.context)
@@ -2518,10 +2489,3 @@ class NamespaceType(TypeObj):
 
     def __repr__(self):
         return(f'<Namespace: {len(list(self.symbols.symbols.keys()))} objects>')
-
-
-def runinit(obj):
-    global run
-    run = obj
-
-nodesinit(TYPES)

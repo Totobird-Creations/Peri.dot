@@ -425,8 +425,7 @@ class Interpreter():
         if res.shouldreturn():
             return(res)
 
-        if isinstance(value, FunctionType):
-            value.name = name
+        value.name = name
 
         context.symbols.assign(name, value)
 
@@ -469,8 +468,7 @@ class Interpreter():
                     )
                 )
 
-        if isinstance(value, FunctionType):
-            value.name = name
+        value.name = name
 
         context.symbols.assign(name, value)
 
@@ -503,19 +501,17 @@ class Interpreter():
                     )
                 )
 
+        value = NullType().setpos(node.start, node.end).setcontext(context)
+
+        value.name = name
+
         context.symbols.assign(
             name.value,
-            NullType()
-                .setpos(node.start, node.end)
-                .setcontext(context)
+            value
         )
 
         return(
-            res.success(
-                NullType()
-                    .setpos(node.start, node.end)
-                    .setcontext(context)
-            )
+            res.success(value)
         )
 
 
@@ -1403,7 +1399,7 @@ class Interpreter():
                 result.setcontext(context)
                 script = True
 
-            except PermissionError:
+            except:
                 msg = lang['exceptions']['includeerror']['doesnotexist']
                 msg = msg.replace('%s', str(file), 1)
                 return(

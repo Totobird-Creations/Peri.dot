@@ -7,14 +7,18 @@ def _defaultinit(appversion, file, types, context):
     __file__            = file
     version             = appversion
     SymbolTable         = context.SymbolTable
-    global TYPES, ArrayType, BooleanType, BuiltInFunctionType, NamespaceType, NullType, StringType
+    global TYPES, ArrayType, BooleanType, BuiltInFunctionType, FloatType, IdType, IntType, NamespaceType, NullType, StringType, TupleType
     TYPES               = types.TYPES
     ArrayType           = types.ArrayType
     BooleanType         = types.BooleanType
     BuiltInFunctionType = types.BuiltInFunctionType
+    FloatType           = types.FloatType
+    IdType              = types.IdType
+    IntType             = types.IntType
     NamespaceType       = types.NamespaceType
     NullType            = types.NullType
     StringType          = types.StringType
+    TupleType           = types.TupleType
 
 ##########################################
 # DEFAULT VARIABLES                      #
@@ -42,13 +46,13 @@ def defaultvariables(symbols):
     symbols.assign('print' , BuiltInFunctionType('print'))
     symbols.assign('range' , BuiltInFunctionType('range'))
 
-    symbols.assign('type'  , BuiltInFunctionType('type', type_=TYPES['type'], returntype=TYPES['type']))
-    symbols.assign('id'    , BuiltInFunctionType('id', type_=TYPES['type'], returntype=TYPES['id']))
-    symbols.assign('str'   , BuiltInFunctionType('str', type_=TYPES['type'], returntype=TYPES['string']))
-    symbols.assign('int'   , BuiltInFunctionType('int', type_=TYPES['type'], returntype=TYPES['integer']))
-    symbols.assign('float' , BuiltInFunctionType('float', type_=TYPES['type'], returntype=TYPES['floatingpoint']))
-    symbols.assign('bool'  , BuiltInFunctionType('bool', type_=TYPES['type'], returntype=TYPES['boolean']))
-    symbols.assign('array' , BuiltInFunctionType('array', type_=TYPES['type'], returntype=TYPES['list']))
-    symbols.assign('tuple' , BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TYPES['tuple']))
+    symbols.assign('type'  , BuiltInFunctionType('type', type_=TYPES['type'], returntype=BuiltInFunctionType))
+    symbols.assign('id'    , BuiltInFunctionType('id', type_=TYPES['type'], returntype=IdType))
+    symbols.assign('str'   , BuiltInFunctionType('str', type_=TYPES['type'], returntype=StringType))
+    symbols.assign('int'   , BuiltInFunctionType('int', type_=TYPES['type'], returntype=IntType))
+    symbols.assign('float' , BuiltInFunctionType('float', type_=TYPES['type'], returntype=FloatType))
+    symbols.assign('bool'  , BuiltInFunctionType('bool', type_=TYPES['type'], returntype=BooleanType))
+    symbols.assign('array' , BuiltInFunctionType('array', type_=TYPES['type'], returntype=ArrayType))
+    symbols.assign('tuple' , BuiltInFunctionType('tuple', type_=TYPES['type'], returntype=TupleType))
 
     return(symbols)

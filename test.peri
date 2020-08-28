@@ -18,44 +18,15 @@
 # EXAMPLES                               #
 ##########################################
 
-var sys = include('sys')
+var file = include('file')
 
-var terminalsize = sys.terminalsize()
+var f = file.open('testmodule.peri', mode='r')
+print(str(f))
 
-# Clear Screen
+var text = f.read()
+print(text)
 
-var line = ' '.repeat(terminalsize[0])
-var clearscreen = ''
-for (var i in range(terminalsize[1])) {
-    clearscreen = '\n' + clearscreen + line
-}
+f.write(text + '\n# Hmm?')
 
-print('\033[0m' + clearscreen)
 
-# Colour Theme
-
-print('\033[30m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[90m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[39m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[37m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[97m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[31m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[91m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[32m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[92m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[33m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[93m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[34m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[94m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[35m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[95m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-
-print('\033[36m' + '█'.repeat(terminalsize[0]) + '\033[0m')
-print('\033[96m' + '█'.repeat(terminalsize[0]) + '\033[0m')
+f.close()

@@ -1454,7 +1454,7 @@ class Parser():
 
                     arguments[argname.value] = argtype
 
-                if self.curtoken.type == TT_EQUALS:
+                elif self.curtoken.type == TT_EQUALS:
                     res.registeradvancement()
                     self.advance()
 

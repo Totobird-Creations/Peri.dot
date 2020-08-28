@@ -28,7 +28,10 @@ class Exc_Error():
 
 
     def fixorigin(self, origin, first=True):
-        origin = [i for i in origin if i not in (None, [])] 
+        try:
+            origin = [i for i in origin if i not in (None, [])] 
+        except TypeError:
+            return([origin])
         result = []
 
         if not first and len(origin) == 0:
@@ -99,7 +102,7 @@ class Exc_Error():
 
     def asstring(self):
         size = _os.get_terminal_size()
-        result = f'{_Style.RESET_ALL}\n{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["runtimeheader"]}{"-" * max([size[0] - len(lang["exceptions"]["runtimeheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
+        result = f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["runtimeheader"]}{"-" * max([size[0] - len(lang["exceptions"]["runtimeheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
 
         ### CODE FOR SHOWING CAUGHT AND HANDLED ERRORS
         #
@@ -288,7 +291,7 @@ class Syn_Error():
 
     def asstring(self):
         size = _os.get_terminal_size()
-        result = f'{_Style.RESET_ALL}\n{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["syntaxheader"]}{"-" * max([size[0] - len(lang["exceptions"]["syntaxheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
+        result = f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}-{lang["exceptions"]["syntaxheader"]}{"-" * max([size[0] - len(lang["exceptions"]["syntaxheader"]) - 1, 0])}{_Style.RESET_ALL}\n'
         result += f'{_Style.RESET_ALL}{_Fore.BLUE}{_Style.BRIGHT}An error occured while lexing and parsing:{_Style.RESET_ALL}\n'
         result += f'  {_Fore.GREEN}File{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.file}{_Style.RESET_ALL}\n'
         result += f'    {_Fore.GREEN}Line{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.line}{_Style.RESET_ALL}, {_Fore.GREEN}Column{_Style.RESET_ALL} {_Fore.GREEN}{_Style.BRIGHT}{self.start.column}{_Style.RESET_ALL}\n'

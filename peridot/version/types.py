@@ -79,6 +79,7 @@ def _uuid():
     return(u)
 
 class PeriSpace(): pass
+class PyriObj(): pass
 
 def toperidot(value, start, end, context):
     if value == None:
@@ -358,6 +359,7 @@ class NullType(TypeObj):
 
     def __repr__(self):
         return(f'Null')
+NullType.type = TYPES['nonetype']
 
 
 
@@ -632,6 +634,7 @@ class IntType(TypeObj):
         copy.id = self.id
 
         return(copy)
+IntType.type = TYPES['integer']
 
 
 class FloatType(TypeObj):
@@ -911,6 +914,7 @@ class FloatType(TypeObj):
         copy.id = self.id
 
         return(copy)
+FloatType.type = TYPES['floatingpoint']
 
 
 
@@ -1084,6 +1088,7 @@ class StringType(TypeObj):
 
     def __repr__(self):
         return(f'\'{self.value}\'')
+StringType.type = TYPES['string']
 
 
 
@@ -1197,6 +1202,7 @@ class BooleanType(TypeObj):
         copy.id = self.id
 
         return(copy)
+BooleanType.type = TYPES['boolean']
 
 
 class ArrayType(TypeObj):
@@ -1313,6 +1319,7 @@ class ArrayType(TypeObj):
 
     def __repr__(self):
         return(f'[{", ".join([i.__repr__() for i in self.value])}]')
+ArrayType.type = TYPES['list']
 
 
 class DictionaryType(TypeObj):
@@ -1434,6 +1441,7 @@ class DictionaryType(TypeObj):
             result += f'{keys[i]}: {values[keys[i]]}'
             first = False
         return(f'{{{result}}}')
+DictionaryType.type = TYPES['dictionary']
 
 
 class TupleType(TypeObj):
@@ -1532,6 +1540,7 @@ class TupleType(TypeObj):
 
     def __repr__(self):
         return(f'({", ".join([str(i) for i in self.value])})')
+TupleType.type = TYPES['tuple']
 
 
 
@@ -1541,7 +1550,8 @@ class BaseFunction(TypeObj):
             raise InternalPeridotError(f'Non str value receievd ({type(name).__name__})')
 
         super().__init__(type_=type_)
-        self.name = name or '<Anonymous>'
+        if name:
+            self.name = name
 
     def gencontext(self, display):
         self.display = display
@@ -1583,17 +1593,30 @@ class BaseFunction(TypeObj):
             argument = args[i]
 
             if argumenttype != NullType:
-                if argumenttype != argument.type:
-                    return(
-                        res.failure(
-                            Exc_TypeError(
-                                f'\'{argtypekey}\' must be of type {argumenttype}, {argument.type} given',
-                                argument.start, argument.end,
-                                self.context,
-                                argument.originstart, argument.originend, argument.origindisplay
+                try:
+                    if not isinstance(argument, argumenttype):
+                        return(
+                            res.failure(
+                                Exc_TypeError(
+                                    f'\'{argtypekey}\' must be of type {argumenttype.type}, {argument.type} given',
+                                    argument.start, argument.end,
+                                    self.context,
+                                    argument.originstart, argument.originend, argument.origindisplay
+                                )
                             )
                         )
-                    )
+                except TypeError:
+                    if argument.type != argumenttype:
+                        return(
+                            res.failure(
+                                Exc_TypeError(
+                                    f'\'{argtypekey}\' must be of type {argumenttype}, {argument.type} given',
+                                    argument.start, argument.end,
+                                    self.context,
+                                    argument.originstart, argument.originend, argument.origindisplay
+                                )
+                            )
+                        )
 
         for i in range(len(list(opts.keys()))):
             optkey = list(opts.keys())[i]
@@ -1603,7 +1626,7 @@ class BaseFunction(TypeObj):
                 return(
                     res.failure(
                         Exc_ArgumentError(
-                            f'\'{self.name}\' has not option \'{optkey}\'',
+                            f'\'{self.name}\' has no option \'{optkey}\'',
                             opts[optkey].start, opts[optkey].end,
                             self.context,
                             opts[optkey].originstart, opts[optkey].originend, opts[optkey].origindisplay
@@ -1638,7 +1661,7 @@ class BaseFunction(TypeObj):
             value = value[0]
 
         if isinstance(value, NullType):
-            return(None)
+            v = None
 
         elif isinstance(value, ArrayType):
             v = []
@@ -1646,13 +1669,11 @@ class BaseFunction(TypeObj):
                 v.append(
                     self.topython(i)
                 )
-            return(v)
 
         elif isinstance(value, DictionaryType):
             v = {}
             for i in value.value.keys():
                 v[self.topython(i)] = self.topython(value.value[i])
-            return(v)
 
         elif isinstance(value, TupleType):
             v = []
@@ -1660,16 +1681,14 @@ class BaseFunction(TypeObj):
                 v.append(
                     self.topython(i)
                 )
-            return(tuple(v))
+            v = tuple(v)
 
         elif isinstance(value, BaseFunction):
             return(value.call)
 
         elif isinstance(value, ExceptionType):
             exec(f'class PeriExc_{value.exc}(BaseException): pass')
-            return(
-                eval(f'Peri_{value.exc}')
-            )
+            v = eval(f'Peri_{value.exc}')
 
         elif isinstance(value, NamespaceType):
             v = PeriSpace()
@@ -1677,10 +1696,18 @@ class BaseFunction(TypeObj):
                 try:
                     exec(f'v.{i} = value.symbols.symbols[i]')
                 except: pass
-            return(v)
 
         else:
-            return(value.value)
+            v = value.value
+
+        ret = PyriObj()
+        ret.value = v
+        ret.start = value.start
+        ret.end   = value.end
+        ret.originstart   = value.originstart
+        ret.originend     = value.originend
+        ret.origindisplay = value.origindisplay
+        return(ret)
 
     def popargs(self, arguments, options, args, opts, rawargs, exec_context):
         keys = list(arguments.keys())
@@ -1740,6 +1767,7 @@ class BaseFunction(TypeObj):
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
         ))
+BaseFunction.type = TYPES['builtinfunc']
 
 
 class FunctionType(BaseFunction):
@@ -1857,6 +1885,7 @@ class FunctionType(BaseFunction):
 
     def __repr__(self):
         return(f'<{TYPES["function"]} {self.name} <{self.id}>>')
+FunctionType.type = TYPES['function']
 
 
 class BuiltInFunctionType(BaseFunction):
@@ -2405,7 +2434,7 @@ class BuiltInFunctionType(BaseFunction):
         )
     exec_slice.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
     exec_slice.optnames = {}
-
+BuiltInFunctionType.type = TYPES['builtinfunc']
 BuiltInFunctionType.modules = {}
 
 
@@ -2535,6 +2564,7 @@ class ExceptionType(TypeObj):
 
     def __repr__(self):
         return(f'<{self.exc}:{self.msg}, {self.line + 1}:{self.column + 1}>')
+ExceptionType.type = TYPES['exception']
 
 
 class IdType(TypeObj):
@@ -2595,6 +2625,7 @@ class IdType(TypeObj):
 
     def __repr__(self):
         return(f'<Id {self.value}>')
+IdType.type = TYPES['id']
 
 
 class NamespaceType(TypeObj):
@@ -2639,3 +2670,4 @@ class NamespaceType(TypeObj):
 
     def __repr__(self):
         return(f'<Namespace: {len(list(self.symbols.symbols.keys()))} objects>')
+NamespaceType.type = TYPES['namespace']

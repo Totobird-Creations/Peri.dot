@@ -3,20 +3,17 @@ import sys
 import datetime as dt
 
 from ..        import perimod
-from ..perimod import Type, Types, TypeNames
-from ..perimod import Exceptions
-from ..perimod import InternalPeridotError
 from ..perimod import success, failure
 
-class DatetimeType(Type):
+class DatetimeType(perimod.Type):
     def __init__(self, value=None):
         if not isinstance(value, dt.datetime):
-            raise InternalPeridotError(f'Non datetime value receievd ({type(value).__name__})')
-        super().__init__(value, type_='Datetime')
+            raise perimod.InternalPeridotError(f'Non datetime value receievd ({type(value).__name__})')
+        super().__init__(value, type_='DatetimeType')
 
     def tostr(self):
         return((
-            Types.StringType(self.__clean__())
+            perimod.StringType(self.__clean__())
                 .setcontext(self.context)
                 .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
             None
@@ -24,14 +21,16 @@ class DatetimeType(Type):
 
     def attribute(self, attribute):
         if attribute.value == 'strftime':
-            f = Types.BuiltInFunctionType('strftime').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f = perimod.BuiltInFunctionType(f'{perimod._file}_strftime')
+            f.setcontext(self.context)
+            f.setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
                 None
             ))
         else:
-            return((None, Exceptions.Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, perimod.Exc.TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = DatetimeType(self.value)
@@ -54,21 +53,14 @@ class DatetimeType(Type):
 
 
 @perimod.module
-def main():
-    # Setup
-    context = perimod.Context
-    symbols = perimod.Symbols
-    pos     = perimod.Position
-
-
-
+def main(context, pos):
     # Types
-    def datetime(self, exec_context):
+    def datetime(self, exec_context, args, opts):
         year        = exec_context.symbols.access('y')
         try:
             dt.datetime(year=year.value, month=1, day=1)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Year must be in range: 1..9999',
                 year.start, year.end,
                 exec_context,
@@ -79,7 +71,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=1)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Month must be in range: 1..12',
                 month.start, month.end,
                 exec_context,
@@ -90,7 +82,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=date.value)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Date must be in range: 1..(28~31)',
                 date.start, date.end,
                 exec_context,
@@ -101,7 +93,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=date.value, hour=hour.value)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Hour must be in range: 0..23',
                 hour.start, hour.end,
                 exec_context,
@@ -112,7 +104,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=date.value, hour=hour.value, minute=minute.value)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Minute must be in range: 0..59',
                 minute.start, minute.end,
                 exec_context,
@@ -123,7 +115,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=date.value, hour=hour.value, minute=minute.value, second=second.value)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Second must be in range: 0..59',
                 second.start, second.end,
                 exec_context,
@@ -134,7 +126,7 @@ def main():
         try:
             dt.datetime(year=year.value, month=month.value, day=date.value, hour=hour.value, minute=minute.value, second=second.value, microsecond=microsecond.value)
         except ValueError:
-            return(failure(Exceptions.Exc_ValueError(
+            return(failure(perimod.Exc.Exc_ValueError(
                 f'Microsecond must be in range: 0..999999',
                 microsecond.start, microsecond.end,
                 exec_context,
@@ -151,54 +143,39 @@ def main():
             )
         ))
     datetime.optnames = {
-        'y': Types.IntType(1), # Year
-        'm': Types.IntType(1), # Month
-        'd': Types.IntType(1), # Date
-        'H': Types.IntType(0), # Hour
-        'M': Types.IntType(0), # Minute
-        'S': Types.IntType(0), # Second
-        'f': Types.IntType(0)  # Microsecond
+        'y': perimod.IntType(1), # Year
+        'm': perimod.IntType(1), # Month
+        'd': perimod.IntType(1), # Date
+        'H': perimod.IntType(0), # Hour
+        'M': perimod.IntType(0), # Minute
+        'S': perimod.IntType(0), # Second
+        'f': perimod.IntType(0)  # Microsecond
     }
-
-    perimod.BuiltInFuncs['datetime'] = datetime
-    terminalsize = Types.BuiltInFunctionType('datetime', type_=TypeNames['type'], returntype=TypeNames['type']).setcontext(context).setpos(pos.start, pos.end)
-    symbols.assign('datetime', terminalsize)
+    perimod.assign('datetime', datetime)
 
 
 
-    # Functions
-    def strftime(self, exec_context):
-        format = exec_context.symbols.access('format')[0]
+    # Type Attributes
+    def strftime(self, exec_context, args, opts):
+        format = args['format']
 
         string = self.editvalue.value.strftime(format.value)
 
         return(success(
-            Types.StringType(string)
+            perimod.StringType(string)
         ))
     strftime.argnames = {
-        'format': TypeNames['string']
+        'format': perimod.StringType
     }
+    perimod.typeattr(strftime)
 
-    perimod.BuiltInFuncs['strftime'] = strftime
 
 
+    # Functions
     def now(self, exec_context):
         return(success(
             DatetimeType(
                 dt.datetime.now()
             )
         ))
-
-    perimod.BuiltInFuncs['now'] = now
-    now = Types.BuiltInFunctionType('now').setcontext(context).setpos(pos.start, pos.end)
-    symbols.assign('now', now)
-
-
-
-    # Variables
-    symbols.assign(
-        'args',
-        Types.ArrayType(
-            [Types.StringType(i) for i in sys.argv]
-        )
-    )
+    perimod.assign('now', now)

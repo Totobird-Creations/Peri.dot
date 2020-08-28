@@ -14,7 +14,7 @@ lang = {
         'column'         : 'Column',
         'tracebackheader': 'Traceback (Most recent call last):',
 
-            'argumenterror': {
+        'argumenterror': {
             'name': 'ArgumentException'
         },
         'attributeerror': {
@@ -168,14 +168,13 @@ if __name__ == "__main__":
             if version:
                 logo()
 
-
             if help:
-                print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{__file__} [OPTIONS]* [FILE]?{Style.RESET_ALL}
+                print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{sys.argv[0]} [OPTIONS]* [FILE]? [ARGS]*{Style.RESET_ALL}
 
 {Fore.BLUE}{Style.BRIGHT}Options:{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-v{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--version{Style.RESET_ALL} - {Fore.GREEN}Display logo and version.{Style.RESET_ALL}
-  {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}\n''')
+  {Fore.GREEN}{Style.BRIGHT}-r{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--repl{Style.RESET_ALL}    - {Fore.GREEN}Enter the repl.{Style.RESET_ALL}''')
 
 
             path = str(Path(filename).parent.resolve())
@@ -220,7 +219,7 @@ if __name__ == "__main__":
                 #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
                 #)
 
-                i_repl.Repl(MODULEVERSION, path)
+                i_repl.Repl()
 
 
         main()

@@ -198,7 +198,7 @@ class Exc_Error():
 
 class Exc_ArgumentError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
-        super().__init__(f'{lang["exceptions"]["argumenteerror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
+        super().__init__(f'{lang["exceptions"]["argumenterror"]["name"]}', msg, start, end, context, originstart, originend, origindisplay)
 
 class Exc_AttributeError(Exc_Error):
     def __init__(self, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):

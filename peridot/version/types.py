@@ -78,6 +78,85 @@ def _uuid():
 
     return(u)
 
+class PeriSpace(): pass
+
+def toperidot(value, start, end, context):
+    if value == None:
+        return(
+            NullType()
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == int:
+        return(
+            IntType(value)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == float:
+        return(
+            FloatType(value)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == str:
+        return(
+            StringType(value)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == bool:
+        return(
+            BooleanType(value)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == list:
+        v = []
+        for i in value:
+            v.append(
+                toperidot(i, start, end, context)
+            )
+        return(
+            ArrayType(v)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == dict:
+        v = {}
+        for i in value.keys():
+            key = toperidot(i, start, end, context)
+            v[i] = toperidot(value[i], start, end, context)
+        return(
+            DictionaryType(v)
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif type(value) == tuple:
+        v = []
+        for i in value:
+            v.append(
+                toperidot(i, start, end, context)
+            )
+        return(
+            TupleType(tuple(v))
+                .setpos(start, end)
+                .setcontext(context)
+        )
+
+    elif isinstance(value, TypeObj):
+        return(value)
+
+    else:
+        raise TypeError(f'{value} is not a valid peridot type')
+
 ##########################################
 # TYPES                                  #
 ##########################################
@@ -87,6 +166,7 @@ class TypeObj():
         self.value = value
         self.type  = type_
         self.id = _uuid()
+        self.name = '<Anonymous>'
 
         self.reserved = False
 
@@ -1491,7 +1571,8 @@ class BaseFunction(TypeObj):
                     Exc_ArgumentError(
                         f'\'{self.name}\' takes {len(list(arguments.keys()))} arguments, {len(args)} given',
                         self.start, self.end,
-                        self.context
+                        self.context,
+                        self.originstart, self.originend, self.origindisplay
                     )
                 )
             )
@@ -1552,8 +1633,58 @@ class BaseFunction(TypeObj):
             res.success(None)
         )
 
+    def topython(self, value):
+        if isinstance(value, tuple):
+            value = value[0]
+
+        if isinstance(value, NullType):
+            return(None)
+
+        elif isinstance(value, ArrayType):
+            v = []
+            for i in value.value:
+                v.append(
+                    self.topython(i)
+                )
+            return(v)
+
+        elif isinstance(value, DictionaryType):
+            v = {}
+            for i in value.value.keys():
+                v[self.topython(i)] = self.topython(value.value[i])
+            return(v)
+
+        elif isinstance(value, TupleType):
+            v = []
+            for i in value.value:
+                v.append(
+                    self.topython(i)
+                )
+            return(tuple(v))
+
+        elif isinstance(value, BaseFunction):
+            return(value.call)
+
+        elif isinstance(value, ExceptionType):
+            exec(f'class PeriExc_{value.exc}(BaseException): pass')
+            return(
+                eval(f'Peri_{value.exc}')
+            )
+
+        elif isinstance(value, NamespaceType):
+            v = PeriSpace()
+            for i in value.symbols.symbols.keys():
+                try:
+                    exec(f'v.{i} = value.symbols.symbols[i]')
+                except: pass
+            return(v)
+
+        else:
+            return(value.value)
+
     def popargs(self, arguments, options, args, opts, rawargs, exec_context):
         keys = list(arguments.keys())
+        returnargs = {}
         for i in range(len(keys)):
             argname = keys[i]
             argvalue = args[i]
@@ -1562,7 +1693,9 @@ class BaseFunction(TypeObj):
                 argvalue = (args[i], rawargs[i])
 
             exec_context.symbols.assign(argname, argvalue)
+            returnargs[argname] = self.topython(argvalue)
 
+        returnopts = {}
         keys = list(options.keys())
         for i in range(len(keys)):
             optname = keys[i]
@@ -1573,6 +1706,11 @@ class BaseFunction(TypeObj):
             optvalue.setcontext(exec_context)
 
             exec_context.symbols.assign(optname, optvalue)
+            returnopts[optname] = self.topython(optvalue)
+
+        return((returnargs, returnopts))
+
+        
 
     def checkpopargs(self, arguments, options, args, opts, rawargs, exec_context):
         res = _RTResult()
@@ -1589,10 +1727,10 @@ class BaseFunction(TypeObj):
         if res.shouldreturn():
             return(res)
 
-        self.popargs(arguments, options, args, opts, rawargs, exec_context)
+        ret = self.popargs(arguments, options, args, opts, rawargs, exec_context)
 
         return(
-            res.success(None)
+            res.success(ret)
         )
 
     def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
@@ -1774,7 +1912,7 @@ class BuiltInFunctionType(BaseFunction):
         except AttributeError:
             optnames = {}
 
-        res.register(
+        ret = res.register(
             self.checkpopargs(
                 argnames, optnames, args, opts, rawargs,
                 exec_context
@@ -1784,9 +1922,18 @@ class BuiltInFunctionType(BaseFunction):
         if res.shouldreturn():
             return(res)
 
+        args, opts = ret
+
         if passself:
             result = res.register(
-                method(self, exec_context)
+                method(self, exec_context, args, opts)
+            )
+            if res.shouldreturn():
+                return(res)
+            result = toperidot(
+                result,
+                self.start, self.end,
+                self.context
             )
         else:
             result = res.register(
@@ -1821,7 +1968,10 @@ class BuiltInFunctionType(BaseFunction):
         return(copy)
 
     def __repr__(self):
-        return(f'<{self.type} {self.name}>')
+        try:
+            return(f'<{self.type} {self.returntype}>')
+        except:
+            return(f'<{self.type} {self.name}>')
 
 
     def exec_throw(self, exec_context):

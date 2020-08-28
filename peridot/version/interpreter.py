@@ -1373,10 +1373,10 @@ class Interpreter():
         if not script:
             try:
                 symbols = defaultvariables(SymbolTable(context.symbols))
-                perimod.Context = Context('<file>', symbols, context, [node.start, node.end, [file.originstart], [file.originend], [file.origindisplay]])
-                perimod.Symbols = symbols
-                perimod.Position = node
-                perimod.File = file.value
+                perimod._context = Context('<file>', symbols, context, [node.start, node.end, [file.originstart], [file.originend], [file.origindisplay]])
+                perimod._symbols = symbols
+                perimod._position = node
+                perimod._file = file.value
                 mod = _import_module(f'version.modules.{file.value}')
                 result = perimod._namespace
                 if result == None:
@@ -1397,13 +1397,13 @@ class Interpreter():
                             )
                         )
                     )
-                for i in list(perimod.BuiltInFuncs.keys()):
-                    BuiltInFunctionType.modules[i] = perimod.BuiltInFuncs[i]
+                for i in list(perimod._builtinfuncs.keys()):
+                    BuiltInFunctionType.modules[i] = perimod._builtinfuncs[i]
                 result.setpos(node.start, node.end)
                 result.setcontext(context)
                 script = True
 
-            except:
+            except PermissionError:
                 msg = lang['exceptions']['includeerror']['doesnotexist']
                 msg = msg.replace('%s', str(file), 1)
                 return(

@@ -1,8 +1,8 @@
 import os
 import sys
 
-from ..        import perimod
-from ..perimod import success, failure
+import perimod
+from perimod import success, failure
 
 @perimod.module
 def main(context, pos):

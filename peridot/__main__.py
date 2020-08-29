@@ -119,11 +119,11 @@ if __name__ == "__main__":
         import version.lexer              as lexer
         import version.nodes              as nodes
         import version.parser             as parser
-        import version.perimod            as perimod
         import version.repl               as i_repl
         import version.run                as run
         import version.tokens             as tokens
         import version.types              as types
+        import perimod
 
         ##########################################
         # LOGO                                   #

@@ -287,6 +287,10 @@ class Lexer():
                 num += self.char
             self.advance()
 
+        self.retreat()
+        if self.char != '.':
+            self.advance()
+
         if dots == 0:
             return(Token(TT_INT, int(num), start=start, end=self.pos))
         else:

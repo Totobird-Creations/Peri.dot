@@ -11,11 +11,11 @@ import peridot.version.interpreter        as interpreter
 import peridot.version.lexer              as lexer
 import peridot.version.nodes              as nodes
 import peridot.version.parser             as parser
-import peridot.version.perimod            as perimod
 import peridot.version.repl               as i_repl
 import peridot.version.run                as run
 import peridot.version.tokens             as tokens
 import peridot.version.types              as types
+import perimod
 
 default._defaultinit(MODULEVERSION, str(Path(__file__).parent), types, context)
 exceptions._exceptionsinit(lang)

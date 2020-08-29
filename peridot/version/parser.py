@@ -1251,6 +1251,10 @@ class Parser():
             if res.error:
                 return(res)
 
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
             while self.curtoken.type == TT_COMMA:
                 res.registeradvancement()
                 self.advance()

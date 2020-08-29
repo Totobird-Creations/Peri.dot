@@ -3,12 +3,17 @@ name = "peridot"
 version = "06-pre"
 description = "A strongly typed interpreted language, with type inference, implemented in Python."
 authors = ["Totobird", "Snowkeep"]
+license = 'BSD 3-Clause'
+readme = 'README.md'
+repository = 'https://github.com/toto-bird/Peri.dot'
+documentation = 'https://toto-bird.github.io/Peri.dot-lang/'
 
 [tool.poetry.dependencies]
 python = "^3.8"
 click = "7.1.2"
 colorama = "0.4.3"
 xdgappdirs = "^1.4.5"
+perimod = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"

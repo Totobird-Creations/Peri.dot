@@ -2,8 +2,8 @@ import os
 import sys
 import datetime as dt
 
-from ..        import perimod
-from ..perimod import success, failure
+import perimod
+from perimod import success, failure
 
 class DatetimeType(perimod.Type):
     def __init__(self, value=None):

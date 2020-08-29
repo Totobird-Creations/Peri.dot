@@ -5,6 +5,7 @@
 from __future__ import annotations
 from typing import Any as _Any, Optional as _Optional, Tuple as _Tuple
 from uuid import uuid4 as _uuid4
+from fractions import Fraction as _Fraction
 
 def _typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter):
     global InternalPeridotError
@@ -624,6 +625,17 @@ class IntType(TypeObj):
             None
         ))
 
+    def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if attribute.value == 'as_ratio':
+            f = BuiltInFunctionType('as_ratio').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
     def copy(self):
         copy = IntType(self.value)
         copy.setcontext(self.context)
@@ -907,6 +919,17 @@ class FloatType(TypeObj):
             None
         ))
 
+    def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if attribute.value == 'as_ratio':
+            f = BuiltInFunctionType('as_ratio').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+
     def copy(self):
         copy = FloatType(self.value)
         copy.setcontext(self.context)
@@ -1037,15 +1060,43 @@ class StringType(TypeObj):
         ))
 
     def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        if attribute.value == 'repeat':
-            f = BuiltInFunctionType('repeat').setcontext(self.context).setpos(attribute.start, attribute.end)
+        if attribute.value == 'lalign':
+            f = BuiltInFunctionType('lalign').setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
                 None
             ))
-        elif attribute.value == 'split':
-            f = BuiltInFunctionType('split').setcontext(self.context).setpos(attribute.start, attribute.end)
+        elif attribute.value == 'calign':
+            f = BuiltInFunctionType('calign').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'ralign':
+            f = BuiltInFunctionType('ralign').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'length':
+            f = IntType(len(self.value)).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'to_lower':
+            f = BuiltInFunctionType('to_lower').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'repeat':
+            f = BuiltInFunctionType('repeat').setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
@@ -1065,8 +1116,8 @@ class StringType(TypeObj):
                 f,
                 None
             ))
-        elif attribute.value == 'length':
-            f = IntType(len(self.value)).setcontext(self.context).setpos(attribute.start, attribute.end)
+        elif attribute.value == 'split':
+            f = BuiltInFunctionType('split').setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
@@ -1421,6 +1472,28 @@ class DictionaryType(TypeObj):
             value,
             None
         ))
+
+    def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if attribute.value == 'keys':
+            f = TupleType(tuple(
+                self.value.keys()
+            ))
+            f.setcontext(self.context).setpos(attribute.start, attribute.end)
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'values':
+            f = TupleType(tuple(
+                self.value.values()
+            ))
+            f.setcontext(self.context).setpos(attribute.start, attribute.end)
+            return((
+                f,
+                None
+            ))
+        else:
+            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = DictionaryType(self.value.copy())
@@ -1843,11 +1916,11 @@ class FunctionType(BaseFunction):
             )
 
         if not self.returntype == NullType:
-            if self.returntype.returntype != result.type:
+            if self.returntype.returntype.type != result.type:
                 return(
                     res.failure(
                         Exc_TypeError(
-                            f'Return value of \'{self.name}\' must be of type {self.returntype.returntype}, {result.type} returned',
+                            f'Return value of \'{self.name}\' must be of type {self.returntype.returntype.type}, {result.type} returned',
                             result.start, result.end,
                             exec_context,
                             result.originstart, result.originend, result.origindisplay
@@ -2323,6 +2396,182 @@ class BuiltInFunctionType(BaseFunction):
     exec_id.optnames = {}
 
 
+
+    def exec_as_ratio(self, exec_context):
+        res = _RTResult()
+
+        fraction = _Fraction(str(
+            self.editvalue.value
+        ))
+
+        return(
+            _RTResult().success(
+                TupleType((
+                    IntType(fraction.numerator)
+                        .setcontext(exec_context)
+                        .setpos(self.editvalue.start, self.editvalue.end)
+                        .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay),
+                    IntType(fraction.denominator)
+                        .setcontext(exec_context)
+                        .setpos(self.editvalue.start, self.editvalue.end)
+                        .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+                ))
+                    .setcontext(exec_context)
+                    .setpos(self.editvalue.start, self.editvalue.end)
+                    .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+            )
+        )
+
+
+
+    def exec_to_lower(self, exec_context):
+        res = _RTResult()
+
+        return(
+            _RTResult().success(
+                StringType(
+                    self.editvalue.value.casefold()
+                )
+                    .setcontext(exec_context)
+                    .setpos(self.editvalue.start, self.editvalue.end)
+                    .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+            )
+        )
+
+    def exec_lalign(self, exec_context):
+        res = _RTResult()
+
+        minwidth = exec_context.symbols.access('minwidth')[0]
+        fillchar = exec_context.symbols.access('fillchar')
+
+        if minwidth.value < 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'minwidth\' must be more than 0',
+                        minwidth.start, minwidth.end,
+                        exec_context,
+                        minwidth.originstart, minwidth.originend, minwidth.origindisplay
+                    )
+                )
+            )
+
+        if len(fillchar.value) != 1:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'fillchar\' must be of length 1',
+                        fillchar.start, fillchar.end,
+                        exec_context,
+                        fillchar.originstart, fillchar.originend, fillchar.origindisplay
+                    )
+                )
+            )
+
+        return(
+            _RTResult().success(
+                StringType(
+                    self.editvalue.value.ljust(
+                        minwidth.value, fillchar.value
+                    )
+                )
+                    .setcontext(exec_context)
+                    .setpos(self.editvalue.start, self.editvalue.end)
+                    .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+            )
+        )
+    exec_lalign.argnames = {'minwidth': TYPES['integer']}
+    exec_lalign.optnames = {'fillchar': StringType(' ')}
+
+    def exec_calign(self, exec_context):
+        res = _RTResult()
+
+        minwidth = exec_context.symbols.access('minwidth')[0]
+        fillchar = exec_context.symbols.access('fillchar')
+
+        if minwidth.value < 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'minwidth\' must be more than 0',
+                        minwidth.start, minwidth.end,
+                        exec_context,
+                        minwidth.originstart, minwidth.originend, minwidth.origindisplay
+                    )
+                )
+            )
+
+        if len(fillchar.value) != 1:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'fillchar\' must be of length 1',
+                        fillchar.start, fillchar.end,
+                        exec_context,
+                        fillchar.originstart, fillchar.originend, fillchar.origindisplay
+                    )
+                )
+            )
+
+        return(
+            _RTResult().success(
+                StringType(
+                    self.editvalue.value.center(
+                        minwidth.value, fillchar.value
+                    )
+                )
+                    .setcontext(exec_context)
+                    .setpos(self.editvalue.start, self.editvalue.end)
+                    .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+            )
+        )
+    exec_calign.argnames = {'minwidth': TYPES['integer']}
+    exec_calign.optnames = {'fillchar': StringType(' ')}
+
+    def exec_ralign(self, exec_context):
+        res = _RTResult()
+
+        minwidth = exec_context.symbols.access('minwidth')[0]
+        fillchar = exec_context.symbols.access('fillchar')
+
+        if minwidth.value < 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'minwidth\' must be more than 0',
+                        minwidth.start, minwidth.end,
+                        exec_context,
+                        minwidth.originstart, minwidth.originend, minwidth.origindisplay
+                    )
+                )
+            )
+
+        if len(fillchar.value) != 1:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'fillchar\' must be of length 1',
+                        fillchar.start, fillchar.end,
+                        exec_context,
+                        fillchar.originstart, fillchar.originend, fillchar.origindisplay
+                    )
+                )
+            )
+
+        return(
+            _RTResult().success(
+                StringType(
+                    self.editvalue.value.rjust(
+                        minwidth.value, fillchar.value
+                    )
+                )
+                    .setcontext(exec_context)
+                    .setpos(self.editvalue.start, self.editvalue.end)
+                    .setorigin(self.editvalue.originstart, self.editvalue.originend, self.editvalue.origindisplay)
+            )
+        )
+    exec_ralign.argnames = {'minwidth': TYPES['integer']}
+    exec_ralign.optnames = {'fillchar': StringType(' ')}
 
     def exec_repeat(self, exec_context):
         res = _RTResult()

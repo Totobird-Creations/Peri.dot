@@ -1,7 +1,7 @@
 import io
 
-from ..        import perimod
-from ..perimod import success, failure
+import perimod
+from perimod import success, failure
 
 pyopen = open
 

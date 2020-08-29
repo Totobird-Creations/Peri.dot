@@ -1,6 +1,6 @@
-# Peri.dot ([Pre-06](https://github.com/toto-bird/Peri.dot/releases/tag/pre-06))
+# Peri.dot ([1.0.0](https://github.com/toto-bird/Peri.dot/releases/tag/1.0.0))
 
-![Peri.dot Logo](logo.png)
+![Peri.dot Logo](https://raw.githubusercontent.com/toto-bird/Peri.dot/master/logo.png)
 
 Peri.dot is a strongly typed interpreted language, with type inference, implemented in Python. The file extension is ".peri"
 
@@ -11,15 +11,13 @@ This project uses [poetry](https://python-poetry.org/) for dependency management
 
 
 ```bash
-git clone https://github.com/toto-bird/Peri.dot.git
-cd Peri.dot
-poetry install
+pip install peridot
 ```
 
 ## Usage 
 
 ```bash
-python peridot file.peri
+peridot file.peri
 ```
 
 ## Documentation

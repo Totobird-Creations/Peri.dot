@@ -18,12 +18,8 @@
 # EXAMPLES                               #
 ##########################################
 
-var ps = include('periscope')
+var file = include('file')
 
-var div = func(a: int, b: int) -> int {
-    return(ps.skip)
-    assert(b != 0)
-    return(a / b)
-}
-
-div(1, 0)
+var f    = file.open('testmodule.peri', mode='r')
+var text = f.read()
+print(text)

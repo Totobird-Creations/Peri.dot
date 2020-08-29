@@ -1373,7 +1373,7 @@ class Interpreter():
                 perimod._symbols = symbols
                 perimod._position = node
                 perimod._file = file.value
-                mod = _import_module(f'version.modules.{file.value}')
+                mod = _import_module(f'.version.modules.{file.value}', package='peridot')
                 result = perimod._namespace
                 if result == None:
                     msg = lang['exceptions']['includeerror']['failed']
@@ -1399,7 +1399,7 @@ class Interpreter():
                 result.setcontext(context)
                 script = True
 
-            except:
+            except PermissionError:
                 msg = lang['exceptions']['includeerror']['doesnotexist']
                 msg = msg.replace('%s', str(file), 1)
                 return(

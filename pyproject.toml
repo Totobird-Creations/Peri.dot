@@ -1,12 +1,16 @@
 [tool.poetry]
 name = "peridot"
-version = "06-pre"
+version = "1.0.0"
 description = "A strongly typed interpreted language, with type inference, implemented in Python."
 authors = ["Totobird", "Snowkeep"]
 license = 'BSD 3-Clause'
 readme = 'README.md'
+homepage = 'https://toto-bird.github.io/Peri.dot-lang'
 repository = 'https://github.com/toto-bird/Peri.dot'
-documentation = 'https://toto-bird.github.io/Peri.dot-lang/'
+documentation = 'https://toto-bird.github.io/Peri.dot-lang/docs'
+
+[tool.poetry.scripts]
+peridot = 'peridot.__main__'
 
 [tool.poetry.dependencies]
 python = "^3.8"

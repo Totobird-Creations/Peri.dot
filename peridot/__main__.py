@@ -1,5 +1,5 @@
-VERSION       = 'Pre-06'
-MODULEVERSION = 'Pre-06'
+VERSION       = '1.0.0'
+MODULEVERSION = '1.0.0'
 
 lang = {
     'exceptions' : {
@@ -95,8 +95,8 @@ lang = {
     }
 }
 
-if __name__ == "__main__":
-    import version.catch as catch
+def main():
+    from .version import catch as catch
 
     @catch.catch
     def improvederrormessage():
@@ -111,18 +111,18 @@ if __name__ == "__main__":
         from   colorama  import init, Fore, Style
         init()
 
-        import version.constants          as constants
-        import version.context            as context
-        import version.default            as default
-        import version.exceptions         as exceptions
-        import version.interpreter        as interpreter
-        import version.lexer              as lexer
-        import version.nodes              as nodes
-        import version.parser             as parser
-        import version.repl               as i_repl
-        import version.run                as run
-        import version.tokens             as tokens
-        import version.types              as types
+        from .version import constants          as constants
+        from .version import context            as context
+        from .version import default            as default
+        from .version import exceptions         as exceptions
+        from .version import interpreter        as interpreter
+        from .version import lexer              as lexer
+        from .version import nodes              as nodes
+        from .version import parser             as parser
+        from .version import repl               as i_repl
+        from .version import run                as run
+        from .version import tokens             as tokens
+        from .version import types              as types
         import perimod
 
         ##########################################
@@ -223,3 +223,6 @@ if __name__ == "__main__":
 
 
         main()
+
+if __name__ == "__main__":
+    main()

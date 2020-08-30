@@ -3,4 +3,4 @@ if [ "$pkgcheck" != "Name: colorama" ]; then
     poetry install
 fi
 
-python peridot test.peri
+peridot test.peri

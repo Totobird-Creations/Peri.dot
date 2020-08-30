@@ -1,4 +1,4 @@
-VERSION       = '1.0.0'
+VERSION       = '1.1.0'
 MODULEVERSION = '1.0.0'
 
 lang = {
@@ -185,7 +185,7 @@ def main():
             lexer._lexerinit(lang, constants, tokens, exceptions)
             parser._parserinit(lang, tokens, exceptions, constants, nodes)
             perimod._perimodinit(catch, types, interpreter, exceptions)
-            i_repl._replinit(default, context, run)
+            i_repl._replinit(VERSION, default, context, run, lexer, parser, interpreter)
             run._runinit(lexer, parser, context, interpreter)
             types._typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter)
 
@@ -219,7 +219,7 @@ def main():
                 #    Cmd_OutOfDateWarning(f'\n  The REPL is currently out of date and does not have the same functionality as running a file.\n    Proceed with caution as it may crash or have bugs.\n\n    {Style.BRIGHT}PLEASE DO NOT REPORT ANY INTERNAL ERRORS CAUSED BY THE REPL ON GITHUB').asstring()
                 #)
 
-                i_repl.Repl()
+                i_repl.PromptToolkitRepl()
 
 
         main()

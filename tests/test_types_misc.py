@@ -11,7 +11,6 @@ import peridot.version.interpreter        as interpreter
 import peridot.version.lexer              as lexer
 import peridot.version.nodes              as nodes
 import peridot.version.parser             as parser
-import peridot.version.repl               as i_repl
 import peridot.version.run                as run
 import peridot.version.tokens             as tokens
 import peridot.version.types              as types
@@ -23,7 +22,6 @@ interpreter._interpreterinit(lang, tokens, context, default, constants, types, e
 lexer._lexerinit(lang, constants, tokens, exceptions)
 parser._parserinit(lang, tokens, exceptions, constants, nodes)
 perimod._perimodinit(catch, types, interpreter, exceptions)
-i_repl._replinit(default, context, run)
 run._runinit(lexer, parser, context, interpreter)
 types._typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter)
 

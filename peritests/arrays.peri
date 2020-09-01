@@ -1,0 +1,221 @@
+var periscope = include('periscope')
+
+
+var pscope_add = func() -> Null {
+
+    var try = handler {[1, 2, 3, 4] + [1, 2, 3, 4]}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_sub = func() -> Null {
+
+    var try = handler {True - 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_mul = func() -> Null {
+
+    var try = handler {True * 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_div = func() -> Null {
+
+    var try = handler {True / 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_pow = func() -> Null {
+
+    var try = handler {True ^ 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_equals = func() -> Null {
+
+    assert(True == True == True)
+    assert(True == False == False)
+    assert(True == 10 == False)
+
+    return(Null)
+}
+
+
+var pscope_notequals = func() -> Null {
+
+    assert(True != True == False)
+    assert(True != False == True)
+    assert(True != 10 == True)
+
+    return(Null)
+}
+
+
+var pscope_lessthan = func() -> Null {
+
+    var try = handler {True < 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_ltequals = func() -> Null {
+
+    var try = handler {True <= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_greaterthan = func() -> Null {
+
+    var try = handler {True > 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_gtequals = func() -> Null {
+
+    var try = handler {True >= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_and = func() -> Null {
+
+    assert((False and False) == False)
+    assert((True and False) == False)
+    assert((True and True) == True)
+
+    var try = handler {True and 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_or = func() -> Null {
+
+    assert((False or False) == False)
+    assert((True or False) == True)
+    assert((True or True) == True)
+
+    var try = handler {True or 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_not = func() -> Null {
+
+    assert((not False) == True)
+    assert((not True) == False)
+
+    return(Null)
+}
+
+
+var pscope_call = func() -> Null {
+
+    var try = handler {True()}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tostr = func() -> Null {
+
+    assert(str(True) == 'True')
+    assert(str(False) == 'False')
+
+    return(Null)
+}
+
+
+var pscope_toint = func() -> Null {
+
+    var try = handler {int(True)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tofloat = func() -> Null {
+
+    var try = handler {float(True)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tobool = func() -> Null {
+    return(periscope.skip(
+        'Booleans should be able to convert to boolean'
+    ))
+
+    assert(bool(True) == True)
+    assert(bool(False) == False)
+
+    return(Null)
+}
+
+
+var pscope_toarray = func() -> Null {
+
+    var try = handler {array(True)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_totuple = func() -> Null {
+
+    var try = handler {tuple(True)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_indicie = func() -> Null {
+
+    var try = handler {True[0]}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_attribute = func() -> Null {
+
+    var try = handler {True.attribute}
+    assert(try.name == 'AttributeException')
+
+    return(Null)
+}

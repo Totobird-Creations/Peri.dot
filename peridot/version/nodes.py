@@ -2,7 +2,7 @@
 # DEPENDENCIES                           #
 ##########################################
 
-def nodesinit(types, tokens):
+def _nodesinit(types, tokens):
     global TYPES
     TYPES      = types.TYPES
     global TT_KEYWORD

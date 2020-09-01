@@ -298,13 +298,10 @@ class TypeObj():
         return((None, Exc_TypeError(f'{self.type} can not be converted to {TYPES["tuple"]}', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def indicie(self, indicie) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        self.originstart += indicie.originstart
-        self.originend += indicie.originend
-        self.origindisplay += indicie.origindisplay
         return((None, Exc_TypeError(f'{self.type} can not be indexed', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+        return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def __clean__(self):
         return(self.__repr__())
@@ -1225,22 +1222,6 @@ class BooleanType(TypeObj):
     def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             StringType(self.__clean__())
-                .setcontext(self.context)
-                .setpos(self.start, self.end),
-            None
-        ))
-
-    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            IntType(int(self.value))
-                .setcontext(self.context)
-                .setpos(self.start, self.end),
-            None
-        ))
-
-    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            FloatType(float(self.value))
                 .setcontext(self.context)
                 .setpos(self.start, self.end),
             None

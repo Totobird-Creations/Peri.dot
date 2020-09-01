@@ -98,6 +98,7 @@ lang = {
 def main():
     from .version import catch as catch
 
+    catch.location(f'Peri.dot {VERSION}')
     @catch.catch
     def improvederrormessage():
         ##########################################
@@ -169,7 +170,7 @@ def main():
                 logo()
 
             if help:
-                print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{sys.argv[0]} [OPTIONS]* [FILE]? [ARGS]*{Style.RESET_ALL}
+                print(f'''{Fore.YELLOW}Usage{Style.RESET_ALL}: {Fore.YELLOW}{Style.BRIGHT}{Path(sys.argv[0]).name} [OPTIONS]* [FILE]? [ARGS]*{Style.RESET_ALL}
 
 {Fore.BLUE}{Style.BRIGHT}Options:{Style.RESET_ALL}
   {Fore.GREEN}{Style.BRIGHT}-h{Style.RESET_ALL}, {Fore.GREEN}{Style.BRIGHT}--help{Style.RESET_ALL}    - {Fore.GREEN}Display this help message.{Style.RESET_ALL}
@@ -183,6 +184,7 @@ def main():
             exceptions._exceptionsinit(lang)
             interpreter._interpreterinit(lang, tokens, context, default, constants, types, exceptions, run, perimod)
             lexer._lexerinit(lang, constants, tokens, exceptions)
+            nodes._nodesinit(types, tokens)
             parser._parserinit(lang, tokens, exceptions, constants, nodes)
             perimod._perimodinit(catch, types, interpreter, exceptions)
             i_repl._replinit(VERSION, default, context, run, lexer, parser, interpreter)

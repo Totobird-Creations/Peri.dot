@@ -67,6 +67,7 @@ def _interpreterinit(conf, tokens, context, default, constants, types, exception
 class RTResult():
     def __init__(self):
         self.reset()
+        self.testreturn = None
 
     def reset(self):
         self.value = None
@@ -80,6 +81,7 @@ class RTResult():
         self.funcvalue = res.funcvalue
         self.shouldbreak = res.shouldbreak
         self.shouldcontinue = res.shouldcontinue
+        self.testreturn = res.testreturn
 
         return(res.value)
 
@@ -696,10 +698,15 @@ class Interpreter():
                 )
             )
 
+            res.testreturn = value
+
             if res.shouldreturn():
                 return(res)
+
         else:
             value = NullType()
+
+        res.testreturn = value
 
         return(
             res.successreturn(value)
@@ -1140,7 +1147,10 @@ class Interpreter():
         error = None
 
         if node.optoken.type == TT_DASH:
-            result, error = result.multiply(IntType(-1))
+            if isinstance(result, IntType):
+                result, error = result.multiply(IntType(-1))
+            else:
+                result, error = result.multiply(FloatType(-1.0))
         elif node.optoken.matches(TT_KEYWORD, KEYWORDS['logicalnot']):
             result, error = result.not_()
 

@@ -2,24 +2,15 @@
 # RELEASE INFO                           #
 ##########################################
 
-# - Added    : Function default arguments
-# - Added    : Methods for types
-# - Added    : More escape codes
-# - Added    : Default modules
-
-# - Modified : Include location
-# - Modified : Assert statement
-
-
-a9 = 10
+# - Added : Periscope Testing Framework
 
 
 ##########################################
 # EXAMPLES                               #
 ##########################################
 
-var file = include('file')
+var periscope = include('periscope')
 
-var f    = file.open('testmodule.peri', mode='r')
-var text = f.read()
-print(text)
+var pscope_func = func() -> int {
+    10 / 0
+}

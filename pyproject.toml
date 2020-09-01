@@ -11,6 +11,7 @@ documentation = 'https://toto-bird.github.io/Peri.dot-lang/docs'
 
 [tool.poetry.scripts]
 peridot = 'peridot:main'
+periscope = 'periscope:main'
 
 [tool.poetry.dependencies]
 python = "^3.8"

@@ -10,6 +10,10 @@ class InternalPeridotError(BaseException): pass
 _HEADER = '\n- INTERNAL ERROR '
 _FOOTER = f'{_Fore.BLUE}{_Style.BRIGHT}Please report this error on github\n  (https://github.com/toto-bird/Peri.dot/issues/new){_Style.RESET_ALL}'
 
+def location(location):
+    global LOCATION
+    LOCATION = location.replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME')
+
 def catch(func):
     try:
         func()
@@ -65,9 +69,9 @@ def catch(func):
         print(f'{_FOOTER}')
         print(f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}{"-" * size[0]}{_Style.RESET_ALL}')
 
-        format_exc = '```%0a' + format_exc.replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME').replace(getuser(), 'USERNAME') + '%0a```'
+        format_exc = '```%0a' + format_exc.replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME') + '%0a```'
         title = str(e).replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME')
-        webbrowser.open(f'https://github.com/toto-bird/Peri.dot/issues/new?body={format_exc}&title={title}&labels=Critical,Auto%20Generated%20Issue')
+        webbrowser.open(f'https://github.com/toto-bird/Peri.dot/issues/new?body={format_exc}&title={LOCATION}:%20{title}&labels=Critical,Auto%20Generated%20Issue')
 
 
 
@@ -120,6 +124,6 @@ def catch(func):
         print(f'{_FOOTER}')
         print(f'{_Style.RESET_ALL}{_Fore.RED}{_Style.BRIGHT}{"-" * size[0]}{_Style.RESET_ALL}')
 
-        format_exc = '```%0a' + format_exc.replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME').replace(getuser(), 'USERNAME') + '%0a```'
+        format_exc = '```%0a' + format_exc.replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME') + '%0a```'
         title = str(e).replace(' ', '%20').replace('\n', '%0a').replace(getuser(), 'USERNAME')
-        webbrowser.open(f'https://github.com/toto-bird/Peri.dot/issues/new?body={format_exc}&title={title}&labels=Critical,Auto%20Generated%20Issue')
+        webbrowser.open(f'https://github.com/toto-bird/Peri.dot/issues/new?body={format_exc}&title={LOCATION}:%20{title}&labels=Critical,Auto%20Generated%20Issue')

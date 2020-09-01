@@ -1305,6 +1305,14 @@ class ArrayType(TypeObj):
             None
         ))
 
+    def totuple(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        return((
+            TupleType(tuple(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
     def indicie(self, indicie):
         if not isinstance(indicie, IntType):
             return((
@@ -2073,9 +2081,9 @@ class BuiltInFunctionType(BaseFunction):
         return(copy)
 
     def __repr__(self):
-        try:
+        if self.type == TYPES['type']:
             return(f'<{self.type} {self.returntype}>')
-        except:
+        else:
             return(f'<{self.type} {self.name}>')
 
 

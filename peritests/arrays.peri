@@ -186,9 +186,6 @@ var pscope_toarray = func() -> Null {
 
 
 var pscope_totuple = func() -> Null {
-    return(periscope.skip(
-        'Arrays should be able to be converted to tuple'
-    ))
 
     assert(tuple([1, 2, 3, 4]) == (1, 2, 3, 4))
 

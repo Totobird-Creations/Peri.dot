@@ -3,13 +3,15 @@ init()
 from os import get_terminal_size
 from datetime import datetime
 
-from prompt_toolkit                                   import print_formatted_text as pprint
+from prompt_toolkit                                   import print_formatted_text
 from prompt_toolkit.shortcuts                         import ProgressBar
 from prompt_toolkit.formatted_text                    import HTML
 from prompt_toolkit.shortcuts.progress_bar.formatters import *
 from prompt_toolkit.styles                            import Style as pStyle
 from prompt_toolkit.output.color_depth                import ColorDepth
 from time import sleep
+
+from xml.sax.saxutils                                 import escape
 
 def _testinit(runu, interpreter, perimodu, default, context, types):
     global run
@@ -33,6 +35,13 @@ def _testinit(runu, interpreter, perimodu, default, context, types):
     perimod._file = 'periscope'
     global periscope
     from peridot.version.modules import periscope
+
+
+
+def pprint(format, style=None, color_depth=None):
+    print_formatted_text(HTML(format), style=style, color_depth=color_depth)
+
+
 
 def test(scripts):
     starttime = datetime.now()
@@ -69,7 +78,7 @@ def test(scripts):
     text = ' Testing Started '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
     right = '═' * (size[0] - len(text) - len(left))
-    pprint(HTML(f'{left}<bold>{text}</bold>{right}'), style=style)
+    pprint(f'{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style)
 
     formatters = [
         Text(' '),
@@ -93,7 +102,7 @@ def test(scripts):
     failed = 0
     passed = 0
 
-    with ProgressBar(style=style, formatters=formatters, title=HTML(f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>')) as pb:
+    with ProgressBar(style=style, formatters=formatters, title=f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>') as pb:
         for i in tests:
             if len(i) >= 3:
                 overview.append((i[0], [('fail', i[2])] * len(i[1])))
@@ -127,7 +136,7 @@ def test(scripts):
     text = ' Overview '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
     right = '═' * (size[0] - len(text) - len(left))
-    pprint(HTML(f'\n{left}<bold>{text}</bold>{right}'), style=style, color_depth=ColorDepth.TRUE_COLOR)
+    pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
     maxlen = 0
     for i in overview:
@@ -143,7 +152,7 @@ def test(scripts):
                 iover += '<ansiyellow>⏵</ansiyellow>'
             else:
                 iover += '<ansired><bold>×</bold></ansired>'
-        pprint(HTML(f' <ansiblue><bold>{i[0].ljust(maxlen)}</bold></ansiblue>: {iover}'), style=style, color_depth=ColorDepth.TRUE_COLOR)
+        pprint(f' <ansiblue><bold>{escape(i[0].ljust(maxlen))}</bold></ansiblue>: {iover}', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
 
 
@@ -152,7 +161,7 @@ def test(scripts):
         text = ' Errors '
         left = '═' * (int(size[0] / 2) - int(len(text) / 2))
         right = '═' * (size[0] - len(text) - len(left))
-        pprint(HTML(f'\n{left}<bold>{text}</bold>{right}'), style=style, color_depth=ColorDepth.TRUE_COLOR)
+        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
         for i in range(len(errors)):
             err = errors[i].asstring().split('\n')
@@ -161,7 +170,7 @@ def test(scripts):
             print(err)
 
             if i < len(errors) - 1:
-                pprint(HTML(f'{"─" * get_terminal_size()[0]}'), color_depth=ColorDepth.TRUE_COLOR)
+                pprint(f'{escape("─" * get_terminal_size()[0])}', color_depth=ColorDepth.TRUE_COLOR)
 
 
 
@@ -170,7 +179,7 @@ def test(scripts):
         text = ' Summary '
         left = '═' * (int(size[0] / 2) - int(len(text) / 2))
         right = '═' * (size[0] - len(text) - len(left))
-        pprint(HTML(f'\n{left}<bold>{text}</bold>{right}'), style=style, color_depth=ColorDepth.TRUE_COLOR)
+        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
         maxlen = 0
         for i in summary:
@@ -181,12 +190,12 @@ def test(scripts):
 
         for i in summary:
             if len(i[1]) >= 1:
-                pprint(HTML(f' <ansiblue><bold>{i[0]}</bold></ansiblue>:'))
+                pprint(f' <ansiblue><bold>{escape(i[0])}</bold></ansiblue>:')
                 for j in i[1]:
                     if j[0] == 'skip':
-                        pprint(HTML(f'   <ansiyellow>Skipped</ansiyellow>: {" " * maxlen}   <ansiyellow><bold>{j[1]}</bold></ansiyellow>'))
+                        pprint(f'   <ansiyellow>Skipped</ansiyellow>: {escape(" " * maxlen)}   <ansiyellow><bold>{escape(j[1])}</bold></ansiyellow>')
                     elif j[0] == 'fail':
-                        pprint(HTML(f'    <ansired>Failed</ansired>: <ansired>{j[1].ljust(maxlen)}</ansired> - <ansired><bold>{j[2]}</bold></ansired>'))
+                        pprint(f'    <ansired>Failed</ansired>: <ansired>{escape(j[1].ljust(maxlen))}</ansired> - <ansired><bold>{escape(j[2])}</bold></ansired>')
 
 
 
@@ -216,6 +225,6 @@ def test(scripts):
     linecolour = 'green'
     if failed >= 1:
         linecolour = 'red'
-    pprint(HTML(f'\n<ansi{linecolour}>{left}</ansi{linecolour}>{text}<ansi{linecolour}>in {timetaken} {right}</ansi{linecolour}>\n'), style=style, color_depth=ColorDepth.TRUE_COLOR)
+    pprint(f'\n<ansi{escape(linecolour)}>{left}</ansi{linecolour}>{text}<ansi{linecolour}>in {timetaken} {right}</ansi{linecolour}>\n', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
     return(bool(failed))

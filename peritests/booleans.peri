@@ -174,12 +174,9 @@ var pscope_tofloat = func() -> Null {
 
 
 var pscope_tobool = func() -> Null {
-    return(periscope.skip(
-        'Booleans should be able to convert to boolean'
-    ))
 
-    assert(bool(True) == True)
-    assert(bool(False) == False)
+    var try = handler {bool([1, 2, 3, 4])}
+    assert(try.name == 'TypeException')
 
     return(Null)
 }

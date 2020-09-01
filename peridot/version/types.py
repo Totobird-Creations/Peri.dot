@@ -1248,6 +1248,28 @@ class ArrayType(TypeObj):
 
         super().__init__(elements, type_=TYPES['list'])
 
+    def add(self: _Any, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if type(self) == type(other):
+            return((
+                ArrayType(self.value + other.value)
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None, 
+                Exc_TypeError(
+                    f'{other.type} can not be added to {self.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
+
     def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
         if type(self) == type(other):

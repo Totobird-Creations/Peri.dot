@@ -198,6 +198,9 @@ var pscope_indicie = func() -> Null {
     assert([1, 2, 3, 4][0] == 1)
     assert([1, 2, 3, 4][2] == 3)
 
+    var try = handler {[1, 2, 3, 4][10]}
+    assert(try.name == 'IndexException')
+
     return(Null)
 }
 
@@ -207,6 +210,9 @@ var pscope_attribute = func() -> Null {
     assert(['1', '2', '3', '4'].join(' ') == '1 2 3 4')
     assert([1, 2, 3, 4].slice(1, -1, 1) == [2, 3])
     assert([1, 2, 3, 4].length == 4)
+
+    var try = handler {[1, 2, 3, 4].doesnotexist}
+    assert(try.name == 'AttributeException')
 
     return(Null)
 }

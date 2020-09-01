@@ -1369,7 +1369,7 @@ class ArrayType(TypeObj):
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = ArrayType(self.value.copy())
@@ -1400,6 +1400,28 @@ class DictionaryType(TypeObj):
                 raise InternalPeridotError(f'Dictionary element recieved non {self.valuetype.__name__} value')
 
         super().__init__(elements, type_=TYPES['dictionary'])
+
+    def add(self: _Any, other: _Any) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if type(self) == type(other):
+            return((
+                DictionaryType(dict(list(self.value.items()) + list(other.value.items())))
+                    .setpos(self.start, self.end)
+                    .setcontext(self.context),
+                None
+            ))
+        else:
+            self.originstart += other.originstart
+            self.originend += other.originend
+            self.origindisplay += other.origindisplay
+            return((
+                None, 
+                Exc_TypeError(
+                    f'{other.type} can not be added to {self.type}',
+                    self.start, other.end,
+                    self.context,
+                    self.originstart, self.originend, self.origindisplay
+                )
+            ))
 
     def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
@@ -1504,7 +1526,7 @@ class DictionaryType(TypeObj):
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = DictionaryType(self.value.copy())

@@ -102,7 +102,7 @@ def test(scripts):
     failed = 0
     passed = 0
 
-    with ProgressBar(style=style, formatters=formatters, title=f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>') as pb:
+    with ProgressBar(style=style, formatters=formatters, title=HTML(f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>')) as pb:
         for i in tests:
             if len(i) >= 3:
                 overview.append((i[0], [('fail', i[2])] * len(i[1])))

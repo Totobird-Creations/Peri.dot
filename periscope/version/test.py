@@ -233,7 +233,7 @@ def test(scripts):
     text = f' {passedtext}{combiner}{failedtext} in {timetaken} '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
     right = '═' * (size[0] - len(text) - len(left))
-    if passed >= 1 and failed == 0:
+    if passed >= 1 and failed == 0 and not synfailed:
         passedtext = f'<bold>{passedtext}</bold>'
 
     text = f' <ansigreen>{passedtext}</ansigreen>{combiner}<ansired><bold>{failedtext}</bold></ansired> '

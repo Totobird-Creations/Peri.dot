@@ -219,7 +219,7 @@ class TestPeridotFloat:
         a = FloatType(2.1)
         b = FloatType(3.0)
         c, err = a.raised(b)
-        assert(c.value == 9.261000000000001)
+        assert(c.value == 9.261)
         assert(err is None)
 
     def test_float_lessthan(self):

@@ -16,6 +16,7 @@ KEYWORDS = {
     'varcreate'   : 'var',
     'funccreate'  : 'func',
     'lambdacreate': 'lambda',
+    'structcreate': 'struct',
     'logicaland'  : 'and',
     'logicalor'   : 'or',
     'logicalnot'  : 'not',

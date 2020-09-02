@@ -183,6 +183,21 @@ class ReturnNode():
 
 
 
+### CLASSES
+class StructCreateNode():
+    def __init__(self, token, arguments, options):
+        self.token = token
+        self.arguments = arguments
+        self.options = options
+
+        self.start = self.token.start
+        self.end = self.token.end
+
+    def __repr__(self):
+        return(f'Struct')
+
+
+
 ### HANDLER
 class HandlerNode():
     def __init__(self, token, bodynodes):

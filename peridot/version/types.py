@@ -71,7 +71,8 @@ TYPES = {
     'builtinfunc'  : 'Built-In Function',
     'exception'    : 'Exception',
     'id'           : 'Id',
-    'namespace'    : 'Namespace'
+    'namespace'    : 'Namespace',
+    'dataclass'    : 'Struct'
 }
 
 def _uuid():
@@ -3041,8 +3042,9 @@ IdType.type = TYPES['id']
 
 class NamespaceType(TypeObj):
     def __init__(self, symbols):
-        self.symbols = symbols
         super().__init__(type_=TYPES['namespace'])
+
+        self.symbols = symbols
 
     def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
         equals = True
@@ -3099,10 +3101,129 @@ class NamespaceType(TypeObj):
         copy = NamespaceType(self.symbols)
         copy.id = self.id
         copy.setcontext(self.context)
-        self.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
 
         return(copy)
 
     def __repr__(self):
-        return(f'<Namespace: {len(list(self.symbols.symbols.keys()))} objects>')
+        return(f'<Namespace: {len(self.symbols.symbols)} objects>')
 NamespaceType.type = TYPES['namespace']
+
+
+class StructType(TypeObj):
+    def __init__(self, arguments, options):
+        self.arguments = arguments
+        self.options   = options
+        super().__init__(type_=TYPES['dataclass'])
+
+    def call(self, name, args, opts, rawargs):
+        res = _RTResult()
+
+        if len(args) != 0:
+            try:
+                self.originstart = self.originstart[0]
+                self.originend = self.originend[0]
+                self.origindisplay = self.origindisplay[0]
+            except IndexError:
+                pass
+
+            return(
+                res.failure(
+                    Exc_ArgumentError(
+                        f'\'{self.name}\' takes 0 arguments, {len(args)} given',
+                        self.start, self.end,
+                        self.context,
+                        self.originstart, self.originend, self.origindisplay
+                    )
+                )
+            )
+
+        values = {key.value:value for (key, value) in self.options.items()}
+
+        for key in opts:
+            i = opts[key]
+            if key in [j.value for j in self.arguments]:
+                argtype = list(self.arguments.values())[[j.value for j in self.arguments].index(key)]
+                if not argtype == NullType:
+                    if not isinstance(i, argtype):
+                        return(
+                            res.failure(
+                                Exc_ArgumentError(
+                                    f'\'{key}\' must be of type {argtype.type}, {i.type} given',
+                                    i.start, i.end,
+                                    self.context,
+                                    i.originstart, i.originend, i.origindisplay
+                                )
+                            )
+                        )
+
+            elif key in [j.value for j in self.options]:
+                opttype = list(self.options.values())[[j.value for j in self.options].index(key)]
+                if not isinstance(opttype, NullType):
+                    opttype = type(opttype)
+                    if not isinstance(i, opttype):
+                        return(
+                            res.failure(
+                                Exc_ArgumentError(
+                                    f'\'{key}\' must be of type {opttype.type}, {i.type} given',
+                                    i.start, i.end,
+                                    self.context,
+                                    i.originstart, i.originend, i.origindisplay
+                                )
+                            )
+                        )
+            else:
+                return(
+                    res.failure(
+                        Exc_ArgumentError(
+                            f'\'{self.name}\' has no option \'{key}\'',
+                            i.start, i.end,
+                            self.context,
+                            self.originstart, self.originend, self.origindisplay
+                        )
+                    )
+                )
+            values[key] = opts[key]
+
+        for i in self.arguments:
+            if not i.value in values.keys():
+                return(
+                    res.failure(
+                        Exc_ArgumentError(
+                            f'Required option \'{i.value}\' not given',
+                            i.start, i.end,
+                            self.context,
+                            self.originstart, self.originend, self.origindisplay
+                        )
+                    )
+                )
+
+        symbols = SymbolTable(self.context.symbols)
+        symbols.symbols = values
+        value = NamespaceType(symbols)
+
+        value.setpos(self.start, self.end).setcontext(self.context)
+
+        return(res.success(
+            value
+        ))
+
+    def tostr(self):
+        return((
+            StringType(self.__clean__())
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def copy(self):
+        copy = StructType(self.arguments, self.options)
+        copy.id = self.id
+        copy.setcontext(self.context)
+        copy.setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+
+        return(copy)
+
+    def __repr__(self):
+        return(f'<Structure {len(self.arguments) + len(self.options)} objects>')
+StructType.type = TYPES['dataclass']

@@ -2,15 +2,29 @@
 # RELEASE INFO                           #
 ##########################################
 
-# - Added : Periscope Testing Framework
+# - Added : Structs
 
 
 ##########################################
 # EXAMPLES                               #
 ##########################################
 
-var periscope = include('periscope')
-
-var pscope_func = func() -> int {
-    10 / 0
+var Person = struct {
+    name    : str
+    age     : int
+    parents = []
 }
+
+var Pet = struct {
+    name    : str
+    age     : int
+    species : str
+    owner   : Null
+}
+
+var erick   = Person(name='Erick'  , age=55)
+var zachery = Person(name='Zachery', age=18, parents=[erick])
+
+print(str(
+    erick
+))

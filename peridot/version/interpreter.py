@@ -30,7 +30,7 @@ def _interpreterinit(conf, tokens, context, default, constants, types, exception
     global KEYWORDS, RESERVED
     KEYWORDS            = constants.KEYWORDS
     RESERVED            = constants.RESERVED
-    global TYPES, NullType, IntType, FloatType, StringType, ArrayType, TupleType, DictionaryType, FunctionType, BuiltInFunctionType, ExceptionType, NamespaceType
+    global TYPES, NullType, IntType, FloatType, StringType, ArrayType, TupleType, DictionaryType, FunctionType, BuiltInFunctionType, ExceptionType, NamespaceType, StructType
     TYPES               = types.TYPES
     NullType            = types.NullType
     IntType             = types.IntType
@@ -43,6 +43,7 @@ def _interpreterinit(conf, tokens, context, default, constants, types, exception
     BuiltInFunctionType = types.BuiltInFunctionType
     ExceptionType       = types.ExceptionType
     NamespaceType       = types.NamespaceType
+    StructType          = types.StructType
     global Exc_BreakError, Exc_ContinueError, Exc_FileAccessError, Exc_IdentifierError, Exc_IncludeError, Exc_IterationError, Exc_PanicError, Exc_PatternError, Exc_ReservedError, Exc_ReturnError, Exc_TypeError, Exc_ValueError
     Exc_BreakError      = exceptions.Exc_BreakError
     Exc_ContinueError   = exceptions.Exc_ContinueError
@@ -710,13 +711,76 @@ class Interpreter():
         return(
             res.successreturn(value)
         )
-    
+
+
+    ### CLASSES
+    def visit_StructCreateNode(self, node, context, insideloop=False):
+        res = RTResult()
+
+        arguments = node.arguments
+        options = node.options
+
+        for key in list(arguments.keys()):
+            i = arguments[key]
+            
+            i = res.register(
+                self.visit(
+                    i,
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            if i.type != TYPES['type'] and not isinstance(i, NullType):
+                msg = lang['exceptions']['typeerror']['mustbe']
+                msg = msg.replace('%s', 'Argument type', 1)
+                msg = msg.replace('%s', f'{TYPES["type"]} or {TYPES["nonetype"]}', 1)
+                msg = msg.replace('%s', i.type, 1)
+                return(
+                    res.failure(
+                        Exc_TypeError(
+                            msg,
+                            i.start, i.end,
+                            context
+                        )
+                    )
+                )
+
+            if isinstance(i, NullType):
+                arguments[key] = NullType
+            else:
+                arguments[key] = i.returntype
+
+        for key in list(options.keys()):
+            i = options[key]
+
+            i = res.register(
+                self.visit(
+                    i,
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            options[key] = i
+
+        value = StructType(arguments, options)
+        value.setcontext(context).setpos(node.start, node.end)
+
+        return(
+            res.success(value)
+        )
 
 
     ### FLOW CONTROL
     def visit_IfNode(self, node, context, insideloop=False):
         res = RTResult()
-        #returnval = NullType().setpos(node.start, node.end).setcontext(context)
 
         for condition, codeblock in node.cases:
             condvalue = res.register(

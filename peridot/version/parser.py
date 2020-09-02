@@ -39,32 +39,33 @@ def _parserinit(conf, tokens, exceptions, constants, nodes):
     Syn_SyntaxError = exceptions.Syn_SyntaxError
     global KEYWORDS
     KEYWORDS        = constants.KEYWORDS
-    global BinaryOpNode, ReturnNode, BreakNode, ContinueNode, IncludeNode, VarNullNode, VarCreateNode, UnaryOpNode, FuncCallNode, IndicieNode, AttributeNode, IntNode, FloatNode, StringNode, TupleNode, VarAssignNode, VarAccessNode, ArrayNode, DictionaryNode, FuncCreateNode, HandlerNode, IfNode, SwitchNode, ForLoopNode, WhileLoopNode
-    BinaryOpNode    = nodes.BinaryOpNode
-    ReturnNode      = nodes.ReturnNode
-    BreakNode       = nodes.BreakNode
-    ContinueNode    = nodes.ContinueNode
-    IncludeNode     = nodes.IncludeNode
-    VarNullNode     = nodes.VarNullNode
-    VarCreateNode   = nodes.VarCreateNode
-    UnaryOpNode     = nodes.UnaryOpNode
-    FuncCallNode    = nodes.FuncCallNode
-    IndicieNode     = nodes.IndicieNode
-    AttributeNode   = nodes.AttributeNode
-    IntNode         = nodes.IntNode
-    FloatNode       = nodes.FloatNode
-    StringNode      = nodes.StringNode
-    TupleNode       = nodes.TupleNode
-    VarAssignNode   = nodes.VarAssignNode
-    VarAccessNode   = nodes.VarAccessNode
-    ArrayNode       = nodes.ArrayNode
-    DictionaryNode  = nodes.DictionaryNode
-    FuncCreateNode  = nodes.FuncCreateNode
-    HandlerNode     = nodes.HandlerNode
-    IfNode          = nodes.IfNode
-    SwitchNode      = nodes.SwitchNode
-    ForLoopNode     = nodes.ForLoopNode
-    WhileLoopNode   = nodes.WhileLoopNode
+    global BinaryOpNode, ReturnNode, BreakNode, ContinueNode, IncludeNode, VarNullNode, VarCreateNode, UnaryOpNode, FuncCallNode, IndicieNode, AttributeNode, IntNode, FloatNode, StringNode, TupleNode, VarAssignNode, VarAccessNode, ArrayNode, DictionaryNode, FuncCreateNode, StructCreateNode, HandlerNode, IfNode, SwitchNode, ForLoopNode, WhileLoopNode
+    BinaryOpNode     = nodes.BinaryOpNode
+    ReturnNode       = nodes.ReturnNode
+    BreakNode        = nodes.BreakNode
+    ContinueNode     = nodes.ContinueNode
+    IncludeNode      = nodes.IncludeNode
+    VarNullNode      = nodes.VarNullNode
+    VarCreateNode    = nodes.VarCreateNode
+    UnaryOpNode      = nodes.UnaryOpNode
+    FuncCallNode     = nodes.FuncCallNode
+    IndicieNode      = nodes.IndicieNode
+    AttributeNode    = nodes.AttributeNode
+    IntNode          = nodes.IntNode
+    FloatNode        = nodes.FloatNode
+    StringNode       = nodes.StringNode
+    TupleNode        = nodes.TupleNode
+    VarAssignNode    = nodes.VarAssignNode
+    VarAccessNode    = nodes.VarAccessNode
+    ArrayNode        = nodes.ArrayNode
+    DictionaryNode   = nodes.DictionaryNode
+    FuncCreateNode   = nodes.FuncCreateNode
+    StructCreateNode = nodes.StructCreateNode
+    HandlerNode      = nodes.HandlerNode
+    IfNode           = nodes.IfNode
+    SwitchNode       = nodes.SwitchNode
+    ForLoopNode      = nodes.ForLoopNode
+    WhileLoopNode    = nodes.WhileLoopNode
 
 ##########################################
 # PARSE RESULT                           #
@@ -1056,6 +1057,17 @@ class Parser():
                 )
             )
 
+        elif token.matches(TT_KEYWORD, KEYWORDS['structcreate']):
+            structexpr = res.register(self.structexpr())
+            if res.error:
+                return(res)
+
+            return(
+                res.success(
+                    structexpr
+                )
+            )
+
         elif token.matches(TT_KEYWORD, KEYWORDS['forloop']) or token.matches(TT_KEYWORD, KEYWORDS['whileloop']):
             loopexpr = res.register(self.loopexpr())
             if res.error:
@@ -1734,6 +1746,10 @@ class Parser():
 
         cases.append((condition, codeblock))
 
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
         while self.curtoken.matches(TT_KEYWORD, KEYWORDS['elif']):
             res.registeradvancement()
             self.advance()
@@ -1788,6 +1804,14 @@ class Parser():
             if res.error:
                 return(res)
             cases.append((condition, codeblock))
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
 
         if self.curtoken.matches(TT_KEYWORD, KEYWORDS['else']):
             res.registeradvancement()
@@ -2060,6 +2084,128 @@ class Parser():
             )
         )
 
+
+    def structexpr(self):
+        token = self.curtoken
+        res = ParseResult()
+
+        if not self.curtoken.matches(TT_KEYWORD, KEYWORDS['structcreate']):
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'\'{KEYWORDS["structcreate"]}\'', 1)
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        msg,
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        if self.curtoken.type != TT_LCURLY:
+            msg = lang['exceptions']['syntaxerror']['notfound']
+            msg = msg.replace('%s', f'\'{{\'', 1)
+            return(
+                res.failure(
+                    Syn_SyntaxError(
+                        msg,
+                        self.curtoken.start, self.curtoken.end
+                    )
+                )
+            )
+
+        res.registeradvancement()
+        self.advance()
+
+        while self.curtoken.type == TT_EOL:
+            res.registeradvancement()
+            self.advance()
+
+        args = {}
+        opts = {}
+
+        while self.curtoken.type != TT_RCURLY:
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            if self.curtoken.type == TT_RCURLY: break
+
+            if self.curtoken.type != TT_IDENTIFIER:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', f'identifier', 1)
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            msg,
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            value = self.curtoken
+
+            res.registeradvancement()
+            self.advance()
+
+            if self.curtoken.type == TT_COLON:
+                argtype = 'arg'
+            elif self.curtoken.type == TT_EQUALS:
+                argtype = 'opt'
+            else:
+                msg = lang['exceptions']['syntaxerror']['notfound']
+                msg = msg.replace('%s', f'\':\'', 1)
+                return(
+                    res.failure(
+                        Syn_SyntaxError(
+                            msg,
+                            self.curtoken.start, self.curtoken.end
+                        )
+                    )
+                )
+
+            res.registeradvancement()
+            self.advance()
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+            expr = res.register(
+                self.statement()
+            )
+
+            if res.error:
+                return(res)
+
+            if argtype == 'arg':
+                args[value] = expr
+            else:
+                opts[value] = expr
+
+            while self.curtoken.type == TT_EOL:
+                res.registeradvancement()
+                self.advance()
+
+        res.registeradvancement()
+        self.advance()
+
+
+
+        return(
+            res.success(
+                StructCreateNode(
+                    token, args, opts
+                )
+            )
+        )
 
 
     def loopexpr(self):

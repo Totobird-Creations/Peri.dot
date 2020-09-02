@@ -26,8 +26,9 @@ def _typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter
     global Context, SymbolTable
     Context              = context.Context
     SymbolTable          = context.SymbolTable
-    global KEYWORDS
+    global KEYWORDS, DIGITS
     KEYWORDS             = constants.KEYWORDS
+    DIGITS               = constants.DIGITS
     global TT_EQEQUALS, TT_BANGEQUALS, TT_LESSTHAN, TT_LTEQUALS, TT_GREATERTHAN, TT_GTEQUALS, TT_KEYWORD
     TT_EQEQUALS          = tokens.TT_EQEQUALS
     TT_BANGEQUALS        = tokens.TT_BANGEQUALS
@@ -942,14 +943,6 @@ class StringType(TypeObj):
             None
         ))
 
-    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            StringType(self.__clean__())
-                .setcontext(self.context)
-                .setpos(self.start, self.end),
-            None
-        ))
-
     def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         try:
             value = int(self.value)
@@ -972,7 +965,32 @@ class StringType(TypeObj):
 
     def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         try:
-            value = float(self.value)
+            num = ''
+            dots = 0
+            index = 0
+            char = self.value[index]
+
+            if char == '.':
+                raise(ValueError)
+
+            while index < len(self.value):
+                char = self.value[index]
+                if char == '.':
+                    if dots >= 1:
+                        raise(ValueError())
+                    dots += 1
+                    num += '.'
+                else:
+                    num += char
+
+                index += 1
+
+            index -= 1
+            char = self.value[index]
+            if char == '.' or dots == 0:
+                raise(ValueError())
+
+            value = float(num)
         except:
             return((None,
                     Exc_ValueError(
@@ -984,6 +1002,22 @@ class StringType(TypeObj):
                 ))
         return((
             FloatType(value)
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def toarray(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        return((
+            ArrayType([StringType(i) for i in list(self.value)])
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
+    def totuple(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        return((
+            TupleType(tuple([StringType(i) for i in list(self.value)]))
                 .setcontext(self.context)
                 .setpos(self.start, self.end),
             None
@@ -1087,7 +1121,7 @@ class StringType(TypeObj):
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = StringType(self.value)
@@ -2663,6 +2697,42 @@ class BuiltInFunctionType(BaseFunction):
         stop = exec_context.symbols.access('stop')[0]
         step = exec_context.symbols.access('step')[0]
 
+        if not isinstance(start, IntType) and not isinstance(start, NullType):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'\'start\' must be of type {TYPES["integer"]} or {TYPES["nonetype"]}',
+                        start.start, start.end,
+                        exec_context,
+                        start.originstart, start.originend, start.origindisplay
+                    )
+                )
+            )
+
+        if not isinstance(stop, IntType) and not isinstance(stop, NullType):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'\'stop\' must be of type {TYPES["integer"]} or {TYPES["nonetype"]}',
+                        stop.start, stop.end,
+                        exec_context,
+                        stop.originstart, stop.originend, stop.origindisplay
+                    )
+                )
+            )
+
+        if not isinstance(step, IntType) and not isinstance(step, NullType):
+            return(
+                res.failure(
+                    Exc_TypeError(
+                        f'\'step\' must be of type {TYPES["integer"]} or {TYPES["nonetype"]}',
+                        step.start, step.end,
+                        exec_context,
+                        step.originstart, step.originend, step.origindisplay
+                    )
+                )
+            )
+
         if step.value == 0:
             return(
                 res.failure(
@@ -2680,7 +2750,7 @@ class BuiltInFunctionType(BaseFunction):
                 type(self.editvalue)(self.editvalue.value[start.value:stop.value:step.value])
             )
         )
-    exec_slice.argnames = {'start': TYPES['integer'], 'stop': TYPES['integer'], 'step': TYPES['integer']}
+    exec_slice.argnames = {'start': NullType, 'stop': NullType, 'step': NullType}
     exec_slice.optnames = {}
 BuiltInFunctionType.type = TYPES['builtinfunc']
 BuiltInFunctionType.modules = {}

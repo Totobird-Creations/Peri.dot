@@ -10,11 +10,13 @@ def _exceptionsinit(conf):
     global lang
     lang = conf
 
+class Exc_BaseException(): pass
+
 ##########################################
 # INTERPRETER ERRORS                     #
 ##########################################
 
-class Exc_Error():
+class Exc_Error(Exc_BaseException):
     def __init__(self, exc, msg, start, end, context, originstart=[], originend=[], origindisplay=[]):
         self.exc = exc
         self.msg = msg
@@ -281,7 +283,7 @@ class Exc_ValueError(Exc_Error):
 # LEXER, PARSER ERRORS                   #
 ##########################################
 
-class Syn_Error():
+class Syn_Error(Exc_BaseException):
     def __init__(self, exc, msg, start=None, end=None):
         self.exc = exc
         self.msg = msg
@@ -351,7 +353,7 @@ class Cmd_NotSupportedError(Cmd_CmdError):
 # CMD WARNINGS                           #
 ##########################################
 
-class Cmd_CmdWarning():
+class Cmd_CmdWarning(Exc_BaseException):
     def __init__(self, exc, msg):
         self.exc = exc
         self.msg = msg

@@ -1,0 +1,6 @@
+var periscope = include('periscope')
+
+
+return(periscope.skip(
+    'Can not test exceptions due to limited functionality'
+))

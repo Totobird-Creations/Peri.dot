@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
         from   .version                    import test
 
-        test._testinit(run, interpreter, perimod, default, context, types)
+        test._testinit(run, interpreter, perimod, default, context, types, exceptions)
 
         ##########################################
         # LOGO                                   #

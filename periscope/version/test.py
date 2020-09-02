@@ -13,7 +13,7 @@ from time import sleep
 
 from xml.sax.saxutils                                 import escape
 
-def _testinit(runu, interpreter, perimodu, default, context, types):
+def _testinit(runu, interpreter, perimodu, default, context, types, exceptions):
     global run
     run = runu.run
     global RTResult
@@ -27,6 +27,9 @@ def _testinit(runu, interpreter, perimodu, default, context, types):
     Context = context.Context
     global TypeObj
     TypeObj = types.TypeObj
+    global Exc_BaseException, Exc_ReturnError
+    Exc_BaseException = exceptions.Exc_BaseException
+    Exc_ReturnError = exceptions.Exc_ReturnError
 
     symbols = defaultvariables(SymbolTable())
     perimod._context = Context('<file>', symbols, context, [None, None, None, None, None])
@@ -56,7 +59,13 @@ def test(scripts):
         symbols = {key:value for (key, value) in symbols.symbols.items() if key.startswith('pscope_')}
 
         if error:
-            tests.append((i[1], symbols, error))
+            if isinstance(error, Exc_ReturnError):
+                if isinstance(error.returnvalue, periscope.PeriSkip):
+                    tests.append((i[1], symbols, error.returnvalue))
+                else:
+                    tests.append((i[1], symbols, error))
+            else:
+                tests.append((i[1], symbols, error))
         else:
             tests.append((i[1], symbols))
 
@@ -105,10 +114,14 @@ def test(scripts):
     with ProgressBar(style=style, formatters=formatters, title=HTML(f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>')) as pb:
         for i in tests:
             if len(i) >= 3:
-                overview.append((i[0], [('fail', i[2])] * len(i[1])))
-                summary .append((i[0], [('fail', i[2].exc, i[2].msg)]))
-                errors  .append(i[2])
-                failed += 1
+                if isinstance(i[2], Exc_BaseException):
+                    overview.append((i[0], [('fail', i[2])] * len(i[1])))
+                    summary .append((i[0], [('fail', i[2].exc, i[2].msg)]))
+                    errors  .append(i[2])
+                    failed += 1
+                else:
+                    overview.append((i[0], [('skip',)] * len(i[1])))
+                    summary .append((i[0], [('skip', i[2].msg, i[2].msg)]))
             else:
                 overview.append((i[0], []))
                 summary .append((i[0], []))

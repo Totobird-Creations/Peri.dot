@@ -677,34 +677,32 @@ class Interpreter():
     def visit_ReturnNode(self, node, context, insideloop=False):
         res = RTResult()
 
+        value = res.register(
+            self.visit(
+                node.returnnode,
+                context,
+                insideloop=insideloop
+            )
+        )
+
         if not context.parent:
             msg = lang['exceptions']['returnerror']['location']
+            exc = Exc_ReturnError(
+                msg,
+                node.start, node.end,
+                context
+            )
+            exc.returnvalue = value
             return(
                 res.failure(
-                    Exc_ReturnError(
-                        msg,
-                        node.start, node.end,
-                        context
-                    )
+                    exc
                 )
             )
 
-        if node.returnnode:
-            value = res.register(
-                self.visit(
-                    node.returnnode,
-                    context,
-                    insideloop=insideloop
-                )
-            )
+        res.testreturn = value
 
-            res.testreturn = value
-
-            if res.shouldreturn():
-                return(res)
-
-        else:
-            value = NullType()
+        if res.shouldreturn():
+            return(res)
 
         res.testreturn = value
 

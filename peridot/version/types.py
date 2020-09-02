@@ -5,6 +5,7 @@
 from __future__ import annotations
 from typing import Any as _Any, Optional as _Optional, Tuple as _Tuple
 from uuid import uuid4 as _uuid4
+from decimal   import Decimal
 from fractions import Fraction as _Fraction
 
 def _typesinit(catch, exceptions, context, constants, tokens, nodes, interpreter):
@@ -656,7 +657,7 @@ class FloatType(TypeObj):
     def add(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
-                FloatType(self.value + other.value)
+                FloatType(float(Decimal(str(self.value)) + Decimal(str(other.value))))
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
@@ -678,7 +679,7 @@ class FloatType(TypeObj):
     def subtract(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
-                FloatType(self.value - other.value)
+                FloatType(float(Decimal(str(self.value)) - Decimal(str(other.value))))
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
@@ -700,7 +701,7 @@ class FloatType(TypeObj):
     def multiply(self, other: _Any) -> _Tuple[_Optional[FloatType], _Optional[Exc_TypeError]]:
         if isinstance(other, FloatType):
             return((
-                FloatType(self.value * other.value)
+                FloatType(float(Decimal(str(self.value)) * Decimal(str(other.value))))
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
@@ -733,7 +734,7 @@ class FloatType(TypeObj):
                 ))
 
             return((
-                FloatType(self.value / other.value)
+                FloatType(float(Decimal(str(self.value)) / Decimal(str(other.value))))
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
                 None
@@ -756,10 +757,7 @@ class FloatType(TypeObj):
         if isinstance(other, FloatType):
             return((
                 FloatType(
-                    pow(
-                        self.value,
-                        other.value
-                    )
+                    float(Decimal(str(self.value)) ** Decimal(str(other.value)))
                 )
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
@@ -908,14 +906,6 @@ class FloatType(TypeObj):
             None
         ))
 
-    def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            FloatType(self.value)
-                .setcontext(self.context)
-                .setpos(self.start, self.end),
-            None
-        ))
-
     def attribute(self, attribute) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         if attribute.value == 'as_ratio':
             f = BuiltInFunctionType('as_ratio').setcontext(self.context).setpos(attribute.start, attribute.end)
@@ -925,7 +915,7 @@ class FloatType(TypeObj):
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = FloatType(self.value)

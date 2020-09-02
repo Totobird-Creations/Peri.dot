@@ -2904,7 +2904,7 @@ class NamespaceType(TypeObj):
             otherkeys = list(other.symbols.symbols.keys())
             if len(selfkeys) == len(otherkeys):
                 for i in range(len(selfkeys)):
-                    if not selfkeys[i].eqequals(otherkeys[i])[0].value:
+                    if selfkeys[i] != otherkeys[i]:
                         equals = False
                         break
                     if not self.symbols.symbols[selfkeys[i]].eqequals(other.symbols.symbols[otherkeys[i]])[0].value:

@@ -23,7 +23,10 @@ var Pet = struct {
 }
 
 var erick   = Person(name='Erick'  , age=55)
-var zachery = Person(name='Zachery', age=18, parents=[erick])
+var emery   = Person(name='Emery'  , age=60)
+var zachery = Person(name='Zachery', age=18, parents=[erick, emery])
+var alvina  = Person(name='Alvina' , age=18, parents=[erick, emery])
+var delilah = Pet   (name='Delilah', age=6 , species='Dog'         , owner=alvina)
 
 print(str(
     erick

@@ -1,0 +1,216 @@
+var periscope = include('periscope')
+
+
+var sys = include('sys')
+var datetime = include('datetime')
+
+
+var pscope_add = func() -> Null {
+
+    var try = handler {sys + 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_sub = func() -> Null {
+
+    var try = handler {sys - 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_mul = func() -> Null {
+
+    var try = handler {sys * 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_div = func() -> Null {
+
+    var try = handler {sys / 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_pow = func() -> Null {
+
+    var try = handler {sys ^ 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_equals = func() -> Null {
+
+    assert(sys == sys == True)
+    assert(sys == datetime == False)
+    assert(sys == 10 == False)
+
+    return(Null)
+}
+
+
+var pscope_notequals = func() -> Null {
+
+    assert(sys != sys == False)
+    assert(sys != datetime == True)
+    assert(sys != 10 == True)
+
+    return(Null)
+}
+
+
+var pscope_lessthan = func() -> Null {
+
+    var try = handler {sys < 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_ltequals = func() -> Null {
+
+    var try = handler {sys <= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_greaterthan = func() -> Null {
+
+    var try = handler {sys > 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_gtequals = func() -> Null {
+
+    var try = handler {sys >= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_and = func() -> Null {
+
+    var try = handler {sys and sys}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_or = func() -> Null {
+
+    var try = handler {sys or sys}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_not = func() -> Null {
+
+    var try = handler {not sys}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_call = func() -> Null {
+
+    var try = handler {sys()}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tostr = func() -> Null {
+
+    assert(str(sys) == '<Namespace: 19 objects>')
+    assert(str(datetime) == '<Namespace: 19 objects>')
+
+    return(Null)
+}
+
+
+var pscope_toint = func() -> Null {
+
+    var try = handler {int(sys)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tofloat = func() -> Null {
+
+    var try = handler {float(sys)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tobool = func() -> Null {
+
+    var try = handler {bool(sys)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_toarray = func() -> Null {
+
+    var try = handler {array(sys)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_totuple = func() -> Null {
+
+    var try = handler {tuple(sys)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_indicie = func() -> Null {
+
+    var try = handler {sys[0]}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_attribute = func() -> Null {
+
+    assert(type(sys.args) == array)
+
+    var try = handler {sys.attribute}
+    assert(try.name == 'AttributeException')
+
+    return(Null)
+}

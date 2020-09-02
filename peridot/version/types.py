@@ -2897,6 +2897,30 @@ class NamespaceType(TypeObj):
         self.symbols = symbols
         super().__init__(type_=TYPES['namespace'])
 
+    def eqequals(self: _Any, other: _Any) -> _Tuple[BooleanType, None]:
+        equals = True
+        if type(self) == type(other):
+            selfkeys = list(self.symbols.symbols.keys())
+            otherkeys = list(other.symbols.symbols.keys())
+            if len(selfkeys) == len(otherkeys):
+                for i in range(len(selfkeys)):
+                    if not selfkeys[i].eqequals(otherkeys[i])[0].value:
+                        equals = False
+                        break
+                    if not self.symbols.symbols[selfkeys[i]].eqequals(other.symbols.symbols[otherkeys[i]])[0].value:
+                        equals = False
+                        break
+            else:
+                equals = False
+        else:
+            equals = False
+        return((
+            BooleanType(equals)
+                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay)
+                .setcontext(self.context),
+            None
+        ))
+
     def tostr(self):
         return((
             StringType(self.__clean__())

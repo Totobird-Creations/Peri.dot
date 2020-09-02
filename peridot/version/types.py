@@ -1766,7 +1766,10 @@ class BaseFunction(TypeObj):
         if isinstance(value, tuple):
             value = value[0]
 
-        if isinstance(value, NullType):
+        if isinstance(value, str):
+            v = value
+
+        elif isinstance(value, NullType):
             v = None
 
         elif isinstance(value, ArrayType):
@@ -1794,7 +1797,7 @@ class BaseFunction(TypeObj):
 
         elif isinstance(value, ExceptionType):
             exec(f'class PeriExc_{value.exc}(BaseException): pass')
-            v = eval(f'Peri_{value.exc}')
+            v = eval(f'PeriExc_{value.exc}')
 
         elif isinstance(value, NamespaceType):
             v = PeriSpace()
@@ -2823,14 +2826,14 @@ class ExceptionType(TypeObj):
                 None
             ))
         elif attribute.value == 'line':
-            f = IntType(self.line).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f = IntType(self.line + 1).setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
                 None
             ))
         elif attribute.value == 'column':
-            f = IntType(self.column).setcontext(self.context).setpos(attribute.start, attribute.end)
+            f = IntType(self.column + 1).setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
@@ -2871,10 +2874,10 @@ class ExceptionType(TypeObj):
                 StringType(self.msg)
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
-                IntType(self.line)
+                IntType(self.line + 1)
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
-                IntType(self.column)
+                IntType(self.column + 1)
                     .setpos(self.start, self.end)
                     .setcontext(self.context),
             ))

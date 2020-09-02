@@ -150,20 +150,14 @@ var pscope_call = func() -> Null {
 
 
 var pscope_tostr = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to str crashes'
-    ))
 
-    assert(str(testexception) == '<OperationException:Division by zero, 8:10>')
+    assert(str(testexception) == '<OperationException:Division by zero, 8:6>')
 
     return(Null)
 }
 
 
 var pscope_toint = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to int crashes'
-    ))
 
     var try = handler {int(testexception)}
     assert(try.name == 'TypeException')
@@ -173,9 +167,6 @@ var pscope_toint = func() -> Null {
 
 
 var pscope_tofloat = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to float crashes'
-    ))
 
     var try = handler {float(testexception)}
     assert(try.name == 'TypeException')
@@ -185,9 +176,6 @@ var pscope_tofloat = func() -> Null {
 
 
 var pscope_tobool = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to bool crashes'
-    ))
 
     var try = handler {bool(testexception)}
     assert(try.name == 'TypeException')
@@ -197,9 +185,6 @@ var pscope_tobool = func() -> Null {
 
 
 var pscope_toarray = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to array crashes'
-    ))
 
     var try = handler {array(testexception)}
     assert(try.name == 'TypeException')
@@ -209,12 +194,8 @@ var pscope_toarray = func() -> Null {
 
 
 var pscope_totuple = func() -> Null {
-    return(periscope.skip(
-        'Converting exceptions to tuple crashes'
-    ))
 
-    var try = handler {tuple(testexception)}
-    assert(try.name == 'TypeException')
+    assert(tuple(testexception) == ('OperationException', 'Division by zero', 8, 6))
 
     return(Null)
 }
@@ -231,13 +212,16 @@ var pscope_indicie = func() -> Null {
 
 var pscope_attribute = func() -> Null {
 
+    assert(testexception.name == 'OperationException')
+    assert(testexception.msg == 'Division by zero')
+    assert(testexception.file == 'peritests/exceptions.peri')
+    assert(testexception.loc == '<file>')
+    assert(testexception.line == 8)
+    assert(testexception.column == 6)
+    assert(testexception.text == '10 / 0')
+
     var try = handler {testexception.attribute}
     assert(try.name == 'AttributeException')
 
     return(Null)
 }
-
-
-#return(periscope.skip(
-#    'Can not test exceptions due to limited functionality'
-#))

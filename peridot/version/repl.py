@@ -297,7 +297,7 @@ class PromptToolkitRepl():
 
     def __init__(self):
         printf(FormattedText([
-            ('class:title'  , 'Peridot 1.1.0'),
+            ('class:title'  , f'Peridot {VERSION}'),
             (''             , '\n'),
             ('class:linksub', ' Homepage: '),
             ('class:link'   , 'https://toto-bird.github.io/Peri.dot-lang/'),

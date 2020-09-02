@@ -1,4 +1,4 @@
-VERSION = 'Pre-00'
+VERSION = '1.0.0'
 
 if __name__ == "__main__":
     import peridot.version.catch as catch

@@ -201,7 +201,7 @@ def test(scripts):
             for j in i[1]:
                 if j[0] == 'fail':
                     if len(j[1]) >= 1:
-                        maxlen = len(j[1])
+                        maxlen = len(j[1]) + 1
 
         for i in summary:
             if len(i[1]) >= 1:

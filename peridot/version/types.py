@@ -2844,7 +2844,7 @@ class ExceptionType(TypeObj):
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', attribute.start, attribute.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', attribute.start, attribute.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = ExceptionType(self.exc, self.msg, self.exc_start, self.exc_end, self.exc_context)

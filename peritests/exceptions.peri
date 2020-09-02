@@ -1,6 +1,243 @@
 var periscope = include('periscope')
 
 
-return(periscope.skip(
-    'Can not test exceptions due to limited functionality'
-))
+var periscope = include('periscope')
+
+
+var testexception = handler {
+    10 / 0
+}
+var testexception2 = handler {
+    10 / 0.0
+}
+
+
+var pscope_add = func() -> Null {
+
+    var try = handler {testexception + 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_sub = func() -> Null {
+
+    var try = handler {testexception - 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_mul = func() -> Null {
+
+    var try = handler {testexception * 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_div = func() -> Null {
+
+    var try = handler {testexception / 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_pow = func() -> Null {
+
+    var try = handler {testexception ^ 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_equals = func() -> Null {
+
+    assert(testexception == testexception == True)
+    assert(testexception == testexception2 == False)
+    assert(testexception == 10 == False)
+
+    return(Null)
+}
+
+
+var pscope_notequals = func() -> Null {
+
+    assert(testexception != testexception == False)
+    assert(testexception != testexception2 == True)
+    assert(testexception != 10 == True)
+
+    return(Null)
+}
+
+
+var pscope_lessthan = func() -> Null {
+
+    var try = handler {testexception < 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_ltequals = func() -> Null {
+
+    var try = handler {testexception <= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_greaterthan = func() -> Null {
+
+    var try = handler {testexception > 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_gtequals = func() -> Null {
+
+    var try = handler {testexception >= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_and = func() -> Null {
+
+    var try = handler {testexception and testexception}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_or = func() -> Null {
+
+    var try = handler {testexception or testexception}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_not = func() -> Null {
+
+    var try = handler {not testexception}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_call = func() -> Null {
+
+    var try = handler {testexception()}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tostr = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to str crashes'
+    ))
+
+    assert(str(testexception) == '<OperationException:Division by zero, 8:10>')
+
+    return(Null)
+}
+
+
+var pscope_toint = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to int crashes'
+    ))
+
+    var try = handler {int(testexception)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tofloat = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to float crashes'
+    ))
+
+    var try = handler {float(testexception)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tobool = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to bool crashes'
+    ))
+
+    var try = handler {bool(testexception)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_toarray = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to array crashes'
+    ))
+
+    var try = handler {array(testexception)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_totuple = func() -> Null {
+    return(periscope.skip(
+        'Converting exceptions to tuple crashes'
+    ))
+
+    var try = handler {tuple(testexception)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_indicie = func() -> Null {
+
+    var try = handler {testexception[0]}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_attribute = func() -> Null {
+
+    var try = handler {testexception.attribute}
+    assert(try.name == 'AttributeException')
+
+    return(Null)
+}
+
+
+#return(periscope.skip(
+#    'Can not test exceptions due to limited functionality'
+#))

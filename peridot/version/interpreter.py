@@ -214,32 +214,6 @@ class Interpreter():
         )
 
 
-    def visit_TupleNode(self, node, context, insideloop=False):
-        res = RTResult()
-        elements = []
-        for i in node.elmnodes:
-            elm = res.register(
-                self.visit(
-                    i,
-                    context,
-                    insideloop=insideloop
-                )
-            )
-
-            if res.shouldreturn():
-                return(res)
-
-            elements.append(elm)
-
-        return(
-            res.success(
-                TupleType(tuple(elements))
-                    .setcontext(context)
-                    .setpos(node.start, node.end)
-            )
-        )
-
-
     def visit_DictionaryNode(self, node, context, insideloop=False):
         res = RTResult()
         elements = {}
@@ -277,7 +251,7 @@ class Interpreter():
                     msg = msg.replace('%s', key.type, 1)
                     return(
                         res.failure(
-                            Exc_TypeError(
+                            Exc_ValueError(
                                 msg,
                                 key.start, key.end,
                                 context,
@@ -297,7 +271,7 @@ class Interpreter():
                 if type(value) != type(valuetype):
                     return(
                         res.failure(
-                            Exc_TypeError(
+                            Exc_ValueError(
                                 msg,
                                 value.start, value.end,
                                 context,
@@ -316,6 +290,32 @@ class Interpreter():
         return(
             res.success(
                 DictionaryType(elements)
+                    .setcontext(context)
+                    .setpos(node.start, node.end)
+            )
+        )
+
+
+    def visit_TupleNode(self, node, context, insideloop=False):
+        res = RTResult()
+        elements = []
+        for i in node.elmnodes:
+            elm = res.register(
+                self.visit(
+                    i,
+                    context,
+                    insideloop=insideloop
+                )
+            )
+
+            if res.shouldreturn():
+                return(res)
+
+            elements.append(elm)
+
+        return(
+            res.success(
+                TupleType(tuple(elements))
                     .setcontext(context)
                     .setpos(node.start, node.end)
             )

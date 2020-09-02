@@ -332,22 +332,6 @@ class NullType(TypeObj):
                 None
             ))
 
-    def tostr(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            StringType(self.__clean__())
-                .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
-            None
-        ))
-
-    def tobool(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            BooleanType(False)
-                .setcontext(self.context)
-                .setpos(self.start, self.end, self.originstart, self.originend, self.origindisplay),
-            None
-        ))
-
     def copy(self):
         copy = NullType()
         copy.setcontext(self.context)

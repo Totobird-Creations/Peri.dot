@@ -87,7 +87,7 @@ def test(scripts):
     text = ' Testing Started '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
     right = '═' * (size[0] - len(text) - len(left))
-    pprint(f'{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style)
+    pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}\n', style=style)
 
     formatters = [
         Text(' '),
@@ -151,7 +151,7 @@ def test(scripts):
     text = ' Overview '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
     right = '═' * (size[0] - len(text) - len(left))
-    pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
+    pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}\n', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
     maxlen = 0
     for i in overview:
@@ -176,7 +176,7 @@ def test(scripts):
         text = ' Errors '
         left = '═' * (int(size[0] / 2) - int(len(text) / 2))
         right = '═' * (size[0] - len(text) - len(left))
-        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
+        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}\n', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
         for i in range(len(errors)):
             err = errors[i].asstring().split('\n')
@@ -194,7 +194,7 @@ def test(scripts):
         text = ' Summary '
         left = '═' * (int(size[0] / 2) - int(len(text) / 2))
         right = '═' * (size[0] - len(text) - len(left))
-        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}', style=style, color_depth=ColorDepth.TRUE_COLOR)
+        pprint(f'\n{escape(left)}<bold>{escape(text)}</bold>{escape(right)}\n', style=style, color_depth=ColorDepth.TRUE_COLOR)
 
         maxlen = 0
         for i in summary:

@@ -1120,6 +1120,20 @@ class StringType(TypeObj):
                 f,
                 None
             ))
+        elif attribute.value == 'startswith':
+            f = BuiltInFunctionType('startswith').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
+        elif attribute.value == 'endswith':
+            f = BuiltInFunctionType('endswith').setcontext(self.context).setpos(attribute.start, attribute.end)
+            f.editvalue = self.copy()
+            return((
+                f,
+                None
+            ))
         else:
             return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
@@ -2653,6 +2667,60 @@ class BuiltInFunctionType(BaseFunction):
             )
     exec_split.argnames = {'separator': TYPES['string']}
     exec_split.optnames = {}
+
+
+    def exec_startswith(self, exec_context):
+        res = _RTResult()
+
+        text = exec_context.symbols.access('text')[0]
+        if len(text.value) <= 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'text\' must be at least 1 character in length',
+                        text.start, text.end,
+                        exec_context,
+                        text.originstart, text.originend, text.origindisplay
+                    )
+                )
+            )
+        else:
+            return(
+                _RTResult().success(
+                    BooleanType(self.editvalue.value.startswith(text.value))
+                        .setpos(self.start, self.end)
+                        .setcontext(exec_context)
+                )
+            )
+    exec_startswith.argnames = {'text': TYPES['string']}
+    exec_startswith.optnames = {}
+
+
+    def exec_endswith(self, exec_context):
+        res = _RTResult()
+
+        text = exec_context.symbols.access('text')[0]
+        if len(text.value) <= 0:
+            return(
+                res.failure(
+                    Exc_ValueError(
+                        f'\'text\' must be at least 1 character in length',
+                        text.start, text.end,
+                        exec_context,
+                        text.originstart, text.originend, text.origindisplay
+                    )
+                )
+            )
+        else:
+            return(
+                _RTResult().success(
+                    BooleanType(self.editvalue.value.endswith(text.value))
+                        .setpos(self.start, self.end)
+                        .setcontext(exec_context)
+                )
+            )
+    exec_endswith.argnames = {'text': TYPES['string']}
+    exec_endswith.optnames = {}
 
 
     def exec_join(self, exec_context):

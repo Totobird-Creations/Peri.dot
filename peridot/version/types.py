@@ -607,14 +607,6 @@ class IntType(TypeObj):
             None
         ))
 
-    def toint(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
-        return((
-            IntType(self.value)
-                .setcontext(self.context)
-                .setpos(self.start, self.end),
-            None
-        ))
-
     def tofloat(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
         return((
             FloatType(float(self.value))

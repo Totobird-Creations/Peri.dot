@@ -110,7 +110,6 @@ var pscope_gtequals = func() -> Null {
     assert(61.46 >= 65.46 == False)
     assert(61.46 >= 56.64 == True)
 
-
     return(Null)
 }
 
@@ -217,6 +216,8 @@ var pscope_indicie = func() -> Null {
 
 
 var pscope_attribute = func() -> Null {
+
+    assert(10.5.as_ratio() == (21, 2))
 
     var try = handler {10.0.attribute}
     assert(try.name == 'AttributeException')

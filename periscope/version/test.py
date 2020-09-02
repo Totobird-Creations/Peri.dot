@@ -109,6 +109,7 @@ def test(scripts):
     summary  = []
     errors   = []
     failed = 0
+    synfailed = False
     passed = 0
 
     with ProgressBar(style=style, formatters=formatters, title=HTML(f'<ansigreen>Tracking <bold>{totaltests}</bold> tests...</ansigreen>')) as pb:
@@ -118,7 +119,8 @@ def test(scripts):
                     overview.append((i[0], [('fail', i[2])] * len(i[1])))
                     summary .append((i[0], [('fail', i[2].exc, i[2].msg)]))
                     errors  .append(i[2])
-                    failed += 1
+                    failed += len(i[1])
+                    synfailed = True
                 else:
                     overview.append((i[0], [('skip',)] * len(i[1])))
                     summary .append((i[0], [('skip', i[2].msg, i[2].msg)]))
@@ -169,7 +171,7 @@ def test(scripts):
 
 
 
-    if failed >= 1:
+    if failed >= 1 or synfailed:
         size = get_terminal_size()
         text = ' Errors '
         left = '═' * (int(size[0] / 2) - int(len(text) / 2))
@@ -223,10 +225,10 @@ def test(scripts):
     if passed >= 1 or failed == 0:
         passedtext = f'{passed} passed'
     combiner = ''
-    if passed >= 1 and failed >= 1:
+    if passed >= 1 and (failed >= 1 or synfailed):
         combiner = ', '
     failedtext = ''
-    if failed >= 1:
+    if failed >= 1 or synfailed:
         failedtext = f'{failed} failed'
     text = f' {passedtext}{combiner}{failedtext} in {timetaken} '
     left = '═' * (int(size[0] / 2) - int(len(text) / 2))
@@ -236,7 +238,7 @@ def test(scripts):
 
     text = f' <ansigreen>{passedtext}</ansigreen>{combiner}<ansired><bold>{failedtext}</bold></ansired> '
     linecolour = 'green'
-    if failed >= 1:
+    if failed >= 1 or synfailed:
         linecolour = 'red'
     pprint(f'\n<ansi{escape(linecolour)}>{left}</ansi{linecolour}>{text}<ansi{linecolour}>in {timetaken} {right}</ansi{linecolour}>\n', style=style, color_depth=ColorDepth.TRUE_COLOR)
 

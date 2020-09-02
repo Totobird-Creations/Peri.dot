@@ -1606,6 +1606,28 @@ class TupleType(TypeObj):
             None
         ))
 
+    def toarray(self) -> _Tuple[_Any, _Optional[Exc_TypeError]]:
+        if len(self.value):
+            self.elmtype = type(self.value[0])
+            for i in self.value:
+                if type(i) != self.elmtype:
+                    return((
+                        None,
+                        Exc_ValueError(
+                            f'{TYPES["list"]} of type {self.elmtype.type} can not include {i.type}',
+                            self.start, self.end,
+                            self.context,
+                            self.originstart, self.originend, self.origindisplay
+                        )
+                    ))
+
+        return((
+            ArrayType(list(self.value))
+                .setcontext(self.context)
+                .setpos(self.start, self.end),
+            None
+        ))
+
     def indicie(self, indicie):
         if not isinstance(indicie, IntType):
             return((
@@ -1640,15 +1662,15 @@ class TupleType(TypeObj):
         ))
 
     def attribute(self, attribute):
-        if attribute.value == 'join':
-            f = BuiltInFunctionType('join').setcontext(self.context).setpos(attribute.start, attribute.end)
+        if attribute.value == 'length':
+            f = IntType(len(self.value)).setcontext(self.context).setpos(attribute.start, attribute.end)
             f.editvalue = self.copy()
             return((
                 f,
                 None
             ))
         else:
-            return((None, Exc_TypeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
+            return((None, Exc_AttributeError(f'\'{self.name}\' has no attribute \'{attribute.value}\'', self.start, self.end, self.context, self.originstart, self.originend, self.origindisplay)))
 
     def copy(self):
         copy = TupleType(self.value)

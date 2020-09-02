@@ -1,6 +1,15 @@
 var periscope = include('periscope')
 
 
+var pscope_this = func() -> Null {
+
+    var try = handler {[1, 2, 3, 4.0]}
+    assert(try.name == 'ValueException')
+
+    return(Null)
+}
+
+
 var pscope_add = func() -> Null {
 
     assert([1, 2, 3, 4] + [5, 6, 7, 8] == [1, 2, 3, 4, 5, 6, 7, 8])

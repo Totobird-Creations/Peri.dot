@@ -78,7 +78,8 @@ lang = {
             'mustbe': '%s must be of type %s, %s given'
         },
         'valueerror': {
-            'name': 'ValueException'
+            'name': 'ValueException',
+            'cannot': '%s of type %s can not %s %s',
         },
 
         'syntaxerror': {

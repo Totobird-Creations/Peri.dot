@@ -43,7 +43,7 @@ def _interpreterinit(conf, tokens, context, default, constants, types, exception
     BuiltInFunctionType = types.BuiltInFunctionType
     ExceptionType       = types.ExceptionType
     NamespaceType       = types.NamespaceType
-    global Exc_BreakError, Exc_ContinueError, Exc_FileAccessError, Exc_IdentifierError, Exc_IncludeError, Exc_IterationError, Exc_PanicError, Exc_PatternError, Exc_ReservedError, Exc_ReturnError, Exc_TypeError
+    global Exc_BreakError, Exc_ContinueError, Exc_FileAccessError, Exc_IdentifierError, Exc_IncludeError, Exc_IterationError, Exc_PanicError, Exc_PatternError, Exc_ReservedError, Exc_ReturnError, Exc_TypeError, Exc_ValueError
     Exc_BreakError      = exceptions.Exc_BreakError
     Exc_ContinueError   = exceptions.Exc_ContinueError
     Exc_FileAccessError = exceptions.Exc_FileAccessError
@@ -55,6 +55,7 @@ def _interpreterinit(conf, tokens, context, default, constants, types, exception
     Exc_ReservedError   = exceptions.Exc_ReservedError
     Exc_ReturnError     = exceptions.Exc_ReturnError
     Exc_TypeError       = exceptions.Exc_TypeError
+    Exc_ValueError      = exceptions.Exc_ValueError
     global run
     run = runu.run
     global perimod
@@ -184,14 +185,14 @@ class Interpreter():
 
             if type_:
                 if type(elm) != type(type_):
-                    msg = lang['exceptions']['typeerror']['cannot']
+                    msg = lang['exceptions']['valueerror']['cannot']
                     msg = msg.replace('%s', TYPES['list'], 1)
                     msg = msg.replace('%s', type_.type, 1)
                     msg = msg.replace('%s', 'include', 1)
                     msg = msg.replace('%s', elm.type, 1)
                     return(
                         res.failure(
-                            Exc_TypeError(
+                            Exc_ValueError(
                                 msg,
                                 elm.start, elm.end,
                                 context,

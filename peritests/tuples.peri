@@ -1,0 +1,218 @@
+var periscope = include('periscope')
+
+
+var pscope_add = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) + 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_sub = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) - 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_mul = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) * 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_div = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) / 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_pow = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) ^ 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_equals = func() -> Null {
+
+    assert((1, 2, 3, 4) == (1, 2, 3, 4) == True)
+    assert((1, 2, 3, 4) == (4, 3, 2, 1) == False)
+    assert((1, 2, 3, 4) == (9, 8, 7, 6) == False)
+
+    return(Null)
+}
+
+
+var pscope_notequals = func() -> Null {
+
+    assert((1, 2, 3, 4) != (1, 2, 3, 4) == False)
+    assert((1, 2, 3, 4) != (4, 3, 2, 1) == True)
+    assert((1, 2, 3, 4) != (9, 8, 7, 6) == True)
+
+    return(Null)
+}
+
+
+var pscope_lessthan = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) < 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_ltequals = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) <= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_greaterthan = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) > 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_gtequals = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) >= 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_and = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) and 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_or = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4) or 10}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_not = func() -> Null {
+
+    var try = handler {not (1, 2, 3, 4)}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_call = func() -> Null {
+
+    var try = handler {(1, 2, 3, 4)()}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tostr = func() -> Null {
+
+    assert(str((1, 2, 3, 4)) == '(1, 2, 3, 4)')
+    assert(str(('1', '2', '3', '4')) == '(\'1\', \'2\', \'3\', \'4\')')
+
+    return(Null)
+}
+
+
+var pscope_toint = func() -> Null {
+
+    var try = handler {int((1, 2, 3, 4))}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tofloat = func() -> Null {
+
+    var try = handler {float((1, 2, 3, 4))}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_tobool = func() -> Null {
+
+    var try = handler {bool((1, 2, 3, 4))}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_toarray = func() -> Null {
+
+    assert(array((1, 2, 3, 4)) == [1, 2, 3, 4])
+
+    var try = handler {array((1, 2, 3, 4.0))}
+    assert(try.name == 'ValueException')
+
+    return(Null)
+}
+
+
+var pscope_totuple = func() -> Null {
+
+    var try = handler {tuple((1, 2, 3, 4))}
+    assert(try.name == 'TypeException')
+
+    return(Null)
+}
+
+
+var pscope_indicie = func() -> Null {
+
+    assert((1, 2, 3, 4)[0] == 1)
+    assert((1, 2, 3, 4)[2] == 3)
+
+    var try = handler {(1, 2, 3, 4)[10]}
+    assert(try.name == 'IndexException')
+
+    return(Null)
+}
+
+
+var pscope_attribute = func() -> Null {
+
+    assert((1, 2, 3, 4).length == 4)
+    assert((1, 2, 3, 4, 5, 6).length == 6)
+
+    var try = handler {(1, 2, 3, 4).doesnotexist}
+    assert(try.name == 'AttributeException')
+
+    return(Null)
+}

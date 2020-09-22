@@ -1,2 +1,2 @@
-language = "python3"
-run = "sh ./main.sh"
+language = "rust"
+run = "./target/debug/peridot ./test.peri"

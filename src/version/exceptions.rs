@@ -2,6 +2,7 @@ use std::fmt;
 use colored::*;
 
 use super::lexer;
+use super::context;
 
 
 
@@ -55,7 +56,7 @@ impl fmt::Display for ParserException {
         exc += format!("  {} `{}`,\n", "File".green(), self.start.file.green().bold()).as_str();
         exc += format!("  {} {}, {} {}\n", "Line".green(), (self.start.line + 1).to_string().green().bold(), "Column".green(), (self.start.column + 1).to_string().green().bold()).as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
-        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
+        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.index - self.start.index).yellow()).as_str();
         exc += format!("{}: {}", self.name.red().bold(), self.msg.red()).as_str();
 
         write!(f, "{}", exc)
@@ -66,9 +67,50 @@ impl fmt::Display for ParserException {
 
 #[derive(Clone)]
 pub struct InterpreterException {
-    pub failed: bool,
-    pub name  : String,
-    pub msg   : String,
-    pub start : lexer::LexerPosition,
-    pub end   : lexer::LexerPosition
+    pub failed : bool,
+    pub name   : String,
+    pub msg    : String,
+    pub start  : lexer::LexerPosition,
+    pub end    : lexer::LexerPosition,
+    pub context: Option<context::Context>
+}
+impl InterpreterException {
+    fn generatetraceback(self) -> String {
+        let mut result = "".to_string();
+        let mut part: String;
+        let mut pos = self.start;
+        let mut ctx = self.context;
+        let mut context: context::Context;
+
+        loop {
+            match ctx {
+                Some(value) => {context = value}
+                None        => break
+            }
+
+            part = format!("  {} `{}`, {} `{}`,\n", "File".green(), pos.file.green().bold(), "In".green(), context.display.green().bold());
+            part += format!("  {} {}, {} {}\n", "Line".green(), pos.line.to_string().green().bold(), "Column".green(), pos.column.to_string().green().bold()).as_str();
+            result = part + result.as_str();
+
+            match context.parententry {
+                Some(value) => {pos = value}
+                None        => break
+            }
+            ctx = *context.parent;
+        }
+
+        result = format!("{}\n{}", "Traceback (Most recent call last):".blue().bold(), result.as_str());
+        return result;
+    }
+}
+impl fmt::Display for InterpreterException {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut exc = "".to_string();
+        exc += self.clone().generatetraceback().as_str();
+        exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
+        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
+        exc += format!("{}: {}", self.name.red().bold(), self.msg.red()).as_str();
+
+        write!(f, "{}", exc)
+    }
 }

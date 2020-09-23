@@ -26,6 +26,17 @@ pub enum Node {
         value: String,
         start: lexer::LexerPosition, end: lexer::LexerPosition
     },
+    VarAccessNode {
+        token: tokens::Token,
+        start: lexer::LexerPosition, end: lexer::LexerPosition
+    },
+
+
+    VarInitNode {
+        varname: tokens::Token,
+        node   : Box<Node>,
+        start: lexer::LexerPosition, end: lexer::LexerPosition
+    },
 
 
     BinaryOpNode {
@@ -45,12 +56,15 @@ impl fmt::Display for Node {
         match self {
             Node::NullNode                                              => write!(f, "{}", "NULL".red()),
 
-            Node::IntNode      {token: _, value, start: _, end: _}      => write!(f, "i{}", value),
-            Node::FloatNode    {token: _, value, start: _, end: _}      => write!(f, "f{}", value),
-            Node::StringNode   {token: _, value, start: _, end: _}      => write!(f, "`{}`", value),
+            Node::IntNode       {token: _, value, start: _, end: _}      => write!(f, "i{}", value),
+            Node::FloatNode     {token: _, value, start: _, end: _}      => write!(f, "f{}", value),
+            Node::StringNode    {token: _, value, start: _, end: _}      => write!(f, "`{}`", value),
+            Node::VarAccessNode {token, start: _, end: _}                => write!(f, "{}", token.value),
 
-            Node::BinaryOpNode {left, optoken, right, start: _, end: _} => write!(f, "({} {} {})", left, optoken, right),
-            Node::UnaryOpNode  {optoken, node, start: _, end: _}        => write!(f, "({} {})", optoken, node)
+            Node::VarInitNode   {varname, node, start: _, end: _}     => write!(f, "({} = {})", varname.value, node),
+
+            Node::BinaryOpNode  {left, optoken, right, start: _, end: _} => write!(f, "({} {} {})", left, optoken, right),
+            Node::UnaryOpNode   {optoken, node, start: _, end: _}        => write!(f, "({} {})", optoken, node)
         }
     }
 }

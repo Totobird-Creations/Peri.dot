@@ -4,7 +4,8 @@ Operator : PLUS MINUS TIMES DIVBY POW SQRT
 
 
 expr:
-    - factor (factor (PLUS|MINUS|TIMES|DIVBY|POW|SQRT))*
+  - KEYWORD:var IDENTIFIER EQUALS expr
+  - factor (factor (PLUS|MINUS|TIMES|DIVBY|POW|SQRT))*
 
 factor:
   - (PLUS|MINUS) factor
@@ -15,3 +16,4 @@ atom:
   - INT
   - FLOAT
   - STRING
+  - IDENTIFIER

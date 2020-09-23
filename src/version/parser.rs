@@ -39,6 +39,13 @@ impl ParseResult {
 
 
 
+pub enum ParseResponse {
+    Success(Vec<Node>),
+    Failed(ParserException)
+}
+
+
+
 #[derive(Clone)]
 struct Parser {
     tokens: Vec<Token>,
@@ -57,8 +64,8 @@ impl Parser {
 
 
 
-    fn parse(&mut self) -> ParseResult {
-        let mut res = self.expr();
+    fn parse(&mut self) -> ParseResponse {
+        /*let mut res = self.expr();
         let tok = self.tokens[self.index + 1].clone();
         if ! res.exception.failed && tok.token != TT_EOF {
             return res.failure(ParserException {
@@ -69,39 +76,78 @@ impl Parser {
             });
         }
 
-        return res;
+        return res;*/
+
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
+        let mut nodes = vec![];
+        let mut node: Node;
+
+        while self.curtoken.token != TT_EOF {
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
+            if self.curtoken.token == TT_EOF {break}
+
+            nodes.push(res.register(self.expr()));
+        }
+
+        return ParseResponse::Success(nodes);
     }
 
 
 
-    /*fn expr(&mut self) -> ParseResult {
+    fn expr(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
         let start = self.curtoken.start.clone();
-        let mut left = res.register(self.factor());
-        if res.exception.failed {
-            return res;
-        }
-        let mut optoken: Token;
-        let mut right: Node;
 
-        while [TT_PLUS, TT_MINUS, TT_TIMES, TT_DIVBY, TT_POW].contains(&self.curtoken.token.as_str()) {
-            optoken = self.curtoken.clone();
+        if self.curtoken.clone().matches(TT_KEYWORD, "var") {
             res.registeradvancement();
             self.advance();
 
-            right = res.register(self.factor());
+            if self.curtoken.token != TT_IDENTIFIER {
+                return res.failure(ParserException {
+                    failed: true,
+                    name: "SyntaxException".to_string(),
+                    msg: "Expected IDENTIFIER not found".to_string(),
+                    start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                });
+            }
+            let varname = self.curtoken.clone();
+
+            res.registeradvancement();
+            self.advance();
+
+            if self.curtoken.token != TT_EQUALS {
+                return res.failure(ParserException {
+                    failed: true,
+                    name: "SyntaxException".to_string(),
+                    msg: "Expected `=` not found".to_string(),
+                    start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                });
+            }
+
+            res.registeradvancement();
+            self.advance();
+
+            let expr = res.register(self.expr());
             if res.exception.failed {
                 return res;
             }
-            left = res.success(Node::BinaryOpNode {left: Box::new(left), optoken: optoken, right: Box::new(right), start: start.clone(), end: self.curtoken.end.clone()}).node
+
+            return res.success(Node::VarInitNode {
+                varname: varname.clone(), node: Box::new(expr),
+                start: varname.start.clone(), end: self.curtoken.start.clone()
+            });
         }
 
-        return res.success(left);
-    }*/
+        return self.arithexpr();
+    }
 
 
 
-    fn expr(&mut self) -> ParseResult {
+    fn arithexpr(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
         let start = self.curtoken.start.clone();
         let mut left = res.register(self.factor());
@@ -213,7 +259,10 @@ impl Parser {
             self.advance();
             return res.success(Node::StringNode {token: token, value: value, start: start, end: end});
 
-
+        } else if token.token == TT_IDENTIFIER {
+            res.registeradvancement();
+            self.advance();
+            return res.success(Node::VarAccessNode {token: token, start: start, end: end});
 
         } else {
             return res.failure(ParserException {
@@ -228,7 +277,7 @@ impl Parser {
 
 
 
-pub fn parse(tokens: Vec<Token>) -> ParseResult {
+pub fn parse(tokens: Vec<Token>) -> ParseResponse {
     let curtoken = tokens[0].clone();
     let mut parser = Parser {
         tokens: tokens,

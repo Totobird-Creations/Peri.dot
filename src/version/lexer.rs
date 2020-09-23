@@ -9,7 +9,7 @@ use super::exceptions::*;
 
 #[derive(Clone, Debug)]
 pub struct LexerPosition {
-    index  : usize,
+    pub index  : usize,
     pub line   : usize,
     pub column : usize,
     pub file   : String,
@@ -60,7 +60,7 @@ impl fmt::Display for LexerResult {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut result = "".to_string();
         for i in &self.result {
-            result += format!(" {}", i).as_str();
+            result += format!("{} ", i).as_str();
         }
         write!(f, "{}", result)
     }
@@ -302,6 +302,11 @@ impl Lexer {
                 self.advance();
 
 
+            } else if (ALPHABET.to_string() + "_").contains(self.ch) {
+                tokens.push(self.makeidentifier());
+                
+
+
             } else {
                 let start = self.pos.copy();
                 let ch    = self.ch;
@@ -415,6 +420,27 @@ impl Lexer {
 
         let token = Token{token: TT_STRING.to_string(), value: string, start: start, end: self.pos.copy()};
         return LexerPartResult {result: token, exception: LexerException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.pos.copy(), end: self.pos.copy()}};
+    }
+
+
+
+    fn makeidentifier(&mut self) -> Token {
+        let mut identifier = String::from("");
+        let start = self.pos.copy();
+
+        while (! self.end) && ((ALPHABET.to_string() + DIGITS + "_").contains(self.ch)) {
+            identifier += self.ch.to_string().as_str();
+            self.advance();
+        }
+
+        let tokentype: &str;
+        if KEYWORDS.contains(&identifier.as_str()) {
+            tokentype = TT_KEYWORD;
+        } else {
+            tokentype = TT_IDENTIFIER;
+        }
+
+        return Token {token: tokentype.to_string(), value: identifier, start: start, end: self.pos.copy()};
     }
 }
 

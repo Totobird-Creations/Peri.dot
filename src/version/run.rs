@@ -4,6 +4,7 @@ use std::fs;
 use super::exceptions;
 use super::lexer;
 use super::parser;
+use super::nodes;
 use super::interpreter;
 
 pub fn run(file: &str) {
@@ -16,25 +17,34 @@ pub fn run(file: &str) {
         exit(1);
     }
 
-    //println!("{}", result);
+    println!("LEXER RESULT => {}", result);
 
     let result = parser::parse(result.result);
+    let nodesres: Vec<nodes::Node>;
 
-    if result.exception.failed {
-        println!("{}", result.exception);
-        exit(1);
+    match result {
+        parser::ParseResponse::Success(nodes) => {
+            nodesres = nodes.clone();
+            for node in nodes {
+                println!("PARSER RESULT => {}", node);
+            }
+        },
+        parser::ParseResponse::Failed(error) => {
+            println!("{}", error);
+            exit(1);
+        }
     }
 
-    println!("{}", result.node);
+    let results = interpreter::interpret(nodesres);
 
-    let result = interpreter::interpret(result.node);
+    for result in results {
+        if result.exception.failed {
+            println!("{}", result.exception);
+            exit(1);
+        }
 
-    if result.exception.failed {
-        println!("{}", result.exception.name);
-        exit(1);
+        println!("INTERPRETER RESULT => {}", result.value);
     }
-
-    println!("{}", result.value)
 }
 
 fn read(filename: &str) -> String {

@@ -3,15 +3,16 @@ use std::fmt;
 use super::lexer;
 use super::interpreter::RTResult;
 use super::exceptions::InterpreterException;
+use super::context;
 
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Type {
     pub value: Value,
-    pub start: lexer::LexerPosition, pub end: lexer::LexerPosition
+    pub start: lexer::LexerPosition, pub end: lexer::LexerPosition, pub context: context::Context
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Value {
     NullType,
     IntType(i32),
@@ -36,30 +37,35 @@ impl Type {
         return self.clone();
     }
 
+    /*pub fn setcontext(&mut self, context: context::Context) -> Type {
+        self.context = context;
+        return self.clone();
+    }*/
+
 
 
     pub fn plus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone()}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::IntType(selfvalue + othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::FloatType(selfvalue + othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::StringType(selfvalue), Value::StringType(othervalue)) => {
                 return res.success(Type {
                     value: Value::StringType(selfvalue + othervalue.as_str()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -68,7 +74,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: Some(self.context)
                 });
             }
 
@@ -78,20 +84,20 @@ impl Type {
 
 
     pub fn minus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone()}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::IntType(selfvalue - othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::FloatType(selfvalue - othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -100,7 +106,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: Some(self.context)
                 });
             }
 
@@ -110,20 +116,20 @@ impl Type {
 
 
     pub fn times_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone()}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::IntType(selfvalue * othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::FloatType(selfvalue * othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -132,7 +138,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: Some(self.context)
                 });
             }
 
@@ -142,7 +148,7 @@ impl Type {
 
 
     pub fn divby_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone()}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -151,12 +157,12 @@ impl Type {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
-                        start: self.start, end: other.end
+                        start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
                 return res.success(Type {
                     value: Value::IntType(selfvalue / othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -166,12 +172,12 @@ impl Type {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
-                        start: self.start, end: other.end
+                        start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue / othervalue),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -180,7 +186,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: Some(self.context)
                 });
             }
 
@@ -190,20 +196,20 @@ impl Type {
 
 
     pub fn pow_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone()}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::IntType(selfvalue.pow(othervalue as u32)),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::FloatType(selfvalue.powf(othervalue)),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: self.context
                 });
             }
 
@@ -212,7 +218,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
-                    start: self.start, end: other.end
+                    start: self.start, end: other.end, context: Some(self.context)
                 });
             }
 

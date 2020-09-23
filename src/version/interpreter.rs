@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use super::exceptions::InterpreterException;
 use super::lexer;
 use super::tokens;
 use super::nodes::Node;
 use super::types::*;
+use super::context::*;
 
 
 
@@ -36,53 +39,90 @@ struct Interpreter {
 
 }
 impl Interpreter {
-    fn visit(&mut self, node: Node) -> RTResult {
+    fn visit(&mut self, node: Node, context: Context) -> RTResult {
         match node.clone() {
-            Node::NullNode                                          => panic!("NullNode Found"),
-            Node::IntNode    {token, value, start, end}             => self.visit_intnode(node, token, start, end),
-            Node::FloatNode  {token, value, start, end}             => self.visit_floatnode(node, token, start, end),
-            Node::StringNode {token, value, start, end}             => self.visit_stringnode(node, token, start, end),
+            Node::NullNode                                         => panic!("NullNode Found"),
+            Node::IntNode       {token, value, start, end}         => self.visit_intnode(node, context, token, start, end),
+            Node::FloatNode     {token, value, start, end}         => self.visit_floatnode(node, context, token, start, end),
+            Node::StringNode    {token, value, start, end}         => self.visit_stringnode(node, context, token, start, end),
+            Node::VarAccessNode {token, start, end}                => self.visit_varaccessnode(node, context, token, start, end),
+        
+            Node::VarInitNode   {varname, node: onode, start, end} => self.visit_varinitnode(node, context, varname, *onode, start, end),
 
-            Node::BinaryOpNode  {left, optoken, right, start, end}  => self.visit_binaryopnode(node, *left, optoken, *right, start, end),
-            Node::UnaryOpNode {optoken, node: onode, start, end}    => self.visit_unaryopnode(node, optoken, *onode, start, end)
+            Node::BinaryOpNode  {left, optoken, right, start, end} => self.visit_binaryopnode(node, context, *left, optoken, *right, start, end),
+            Node::UnaryOpNode   {optoken, node: onode, start, end} => self.visit_unaryopnode(node, context, optoken, *onode, start, end)
         }
     }
 
 
 
-    fn visit_intnode(&mut self, node: Node, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone()}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone()}};
+    fn visit_intnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::IntType(token.value.parse::<i32>().unwrap()),
-            start, end
+            start, end, context
         });
     }
 
-    fn visit_floatnode(&mut self, node: Node, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone()}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone()}};
+    fn visit_floatnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::FloatType(token.value.parse::<f32>().unwrap()),
-            start, end
+            start, end, context
         });
     }
 
-    fn visit_stringnode(&mut self, node: Node, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone()}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone()}};
+    fn visit_stringnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::StringType(token.value.parse::<String>().unwrap()),
-            start, end
+            start, end, context
         });
+    }
+
+    fn visit_varaccessnode(&mut self, node: Node, mut context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
+        let varname = token.value;
+        let value = context.symbols.get(varname.clone());
+
+        match value {
+            Some(value) => {
+                return res.success(value.value);
+            }
+            None        => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "IdentifierException".to_string(),
+                    msg: format!("Symbol `{}` is not defined", varname),
+                    start: start, end: end, context: Some(context)
+                });
+            }
+        }
     }
 
 
 
-    fn visit_binaryopnode(&mut self, node: Node, left: Node, optoken: tokens::Token, right: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone()}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone()}};
-        let left = res.register(self.visit(left));
+    fn visit_varinitnode(&mut self, node: Node, mut context: Context, token: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
+        let varname = token.value;
+        let value = res.register(self.visit(onode, context.clone()));
         if res.exception.failed {
             return res;
         }
-        let right = res.register(self.visit(right));
+
+        context.symbols.set(varname, value.clone());
+        return res.success(value);
+    }
+
+
+
+    fn visit_binaryopnode(&mut self, node: Node, context: Context, left: Node, optoken: tokens::Token, right: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
+        let left = res.register(self.visit(left, context.clone()));
+        if res.exception.failed {
+            return res;
+        }
+        let right = res.register(self.visit(right, context.clone()));
         if res.exception.failed {
             return res;
         }
@@ -111,15 +151,15 @@ impl Interpreter {
         );
     }
 
-    fn visit_unaryopnode(&mut self, node: Node, optoken: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone()}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone()}};
-        let mut number = res.register(self.visit(onode));
+    fn visit_unaryopnode(&mut self, node: Node, context: Context, optoken: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
+        let mut number = res.register(self.visit(onode, context.clone()));
         if res.exception.failed {
             return res;
         }
 
         if optoken.token == tokens::TT_MINUS {
-            number = res.register(number.times_op(Type {value: Value::IntType(-1), start: start.clone(), end: end.clone()}));
+            number = res.register(number.times_op(Type {value: Value::IntType(-1), start: start.clone(), end: end.clone(), context: context.clone()}));
         } else {
             panic!("Interpreter | visit_UnaryOpNode | Invalid operator recieved.");
         }
@@ -136,9 +176,19 @@ impl Interpreter {
 
 
 
-pub fn interpret(node: Node) -> RTResult {
+pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
     let mut interpreter = Interpreter {};
-    let result = interpreter.visit(node);
+    let symbols = SymbolTable {symbols: HashMap::new(), parent: Box::new(None)};
+    let context = Context {
+        display: "<root>".to_string(),
+        parent: Box::from(None),
+        parententry: None,
+        symbols: symbols
+    };
+    let mut result = vec![];
+    for node in nodes {
+        result.push(interpreter.visit(node, context.clone()));
+    }
 
     return result;
 }

@@ -80,7 +80,6 @@ impl Parser {
 
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
         let mut nodes = vec![];
-        let mut node: Node;
 
         while self.curtoken.token != TT_EOF {
             while self.curtoken.token == TT_EOL {
@@ -91,6 +90,10 @@ impl Parser {
             if self.curtoken.token == TT_EOF {break}
 
             nodes.push(res.register(self.expr()));
+
+            if res.exception.failed {
+                return ParseResponse::Failed(res.exception);
+            }
         }
 
         return ParseResponse::Success(nodes);

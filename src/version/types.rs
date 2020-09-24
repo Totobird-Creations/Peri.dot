@@ -10,7 +10,8 @@ use super::context;
 #[derive(Clone, Debug)]
 pub struct Type {
     pub value: Value,
-    pub start: lexer::LexerPosition, pub end: lexer::LexerPosition, pub context: context::Context
+    pub start: lexer::LexerPosition, pub end: lexer::LexerPosition,
+    pub context: context::Context
 }
 #[derive(Clone, Debug)]
 pub enum Value {

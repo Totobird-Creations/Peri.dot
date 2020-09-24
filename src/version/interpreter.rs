@@ -39,7 +39,7 @@ struct Interpreter {
 
 }
 impl Interpreter {
-    fn visit(&mut self, node: Node, context: Context) -> RTResult {
+    fn visit(&mut self, node: Node, context: &mut Context) -> RTResult {
         match node.clone() {
             Node::NullNode                                         => panic!("NullNode Found"),
             Node::IntNode       {token, value, start, end}         => self.visit_intnode(node, context, token, start, end),
@@ -56,31 +56,31 @@ impl Interpreter {
 
 
 
-    fn visit_intnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_intnode(&mut self, node: Node, context: &Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::IntType(token.value.parse::<i32>().unwrap()),
-            start, end, context
+            start, end, context: context.clone()
         });
     }
 
-    fn visit_floatnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_floatnode(&mut self, node: Node, context: &Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::FloatType(token.value.parse::<f32>().unwrap()),
-            start, end, context
+            start, end, context: context.clone()
         });
     }
 
-    fn visit_stringnode(&mut self, node: Node, context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_stringnode(&mut self, node: Node, context: &Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::StringType(token.value.parse::<String>().unwrap()),
-            start, end, context
+            start, end, context: context.clone()
         });
     }
 
-    fn visit_varaccessnode(&mut self, node: Node, mut context: Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_varaccessnode(&mut self, node: Node, context: &mut Context, token: tokens::Token, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         let varname = token.value;
         let value = context.symbols.get(varname.clone());
@@ -94,7 +94,7 @@ impl Interpreter {
                     failed: true,
                     name: "IdentifierException".to_string(),
                     msg: format!("Symbol `{}` is not defined", varname),
-                    start: start, end: end, context: Some(context)
+                    start: start, end: end, context: Some(context.clone())
                 });
             }
         }
@@ -102,10 +102,10 @@ impl Interpreter {
 
 
 
-    fn visit_varinitnode(&mut self, node: Node, mut context: Context, token: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_varinitnode(&mut self, node: Node, context: &mut Context, token: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
         let varname = token.value;
-        let value = res.register(self.visit(onode, context.clone()));
+        let value = res.register(self.visit(onode, context));
         if res.exception.failed {
             return res;
         }
@@ -116,13 +116,13 @@ impl Interpreter {
 
 
 
-    fn visit_binaryopnode(&mut self, node: Node, context: Context, left: Node, optoken: tokens::Token, right: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_binaryopnode(&mut self, node: Node, context: &mut Context, left: Node, optoken: tokens::Token, right: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
-        let left = res.register(self.visit(left, context.clone()));
+        let left = res.register(self.visit(left, context));
         if res.exception.failed {
             return res;
         }
-        let right = res.register(self.visit(right, context.clone()));
+        let right = res.register(self.visit(right, context));
         if res.exception.failed {
             return res;
         }
@@ -151,9 +151,9 @@ impl Interpreter {
         );
     }
 
-    fn visit_unaryopnode(&mut self, node: Node, context: Context, optoken: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
+    fn visit_unaryopnode(&mut self, node: Node, context: &mut Context, optoken: tokens::Token, onode: Node, start: lexer::LexerPosition, end: lexer::LexerPosition) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: start.clone(), end: end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: start.clone(), end: end.clone(), context: context.clone()}};
-        let mut number = res.register(self.visit(onode, context.clone()));
+        let mut number = res.register(self.visit(onode, context));
         if res.exception.failed {
             return res;
         }
@@ -179,7 +179,7 @@ impl Interpreter {
 pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
     let mut interpreter = Interpreter {};
     let symbols = SymbolTable {symbols: HashMap::new(), parent: Box::new(None)};
-    let context = Context {
+    let context = &mut Context {
         display: "<root>".to_string(),
         parent: Box::from(None),
         parententry: None,
@@ -187,7 +187,8 @@ pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
     };
     let mut result = vec![];
     for node in nodes {
-        result.push(interpreter.visit(node, context.clone()));
+        result.push(interpreter.visit(node, context));
+        //println!("{:#?}", context.symbols)
     }
 
     return result;

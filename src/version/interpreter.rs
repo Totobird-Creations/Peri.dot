@@ -188,7 +188,6 @@ pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
     let mut result = vec![];
     for node in nodes {
         result.push(interpreter.visit(node, context));
-        //println!("{:#?}", context.symbols)
     }
 
     return result;

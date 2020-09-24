@@ -29,7 +29,6 @@ pub struct SymbolTable {
 }
 impl SymbolTable {
     pub fn get(&mut self, name: String) -> Option<Symbol> {
-        println!("{:#?}", self.symbols);
         match self.symbols.get(name.as_str()) {
             Some(value) => return Some(value.clone()),
             None        => return None

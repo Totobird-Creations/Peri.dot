@@ -18,15 +18,17 @@ pub enum Value {
     NullType,
     IntType(i32),
     FloatType(f32),
-    StringType(String)
+    StringType(String),
+    BooleanType(bool)
 }
 impl Type {
     fn gettype(&self) -> &str {
         match self.value {
-            Value::NullType   =>    "Null",
-            Value::IntType(_) =>    "Int",
-            Value::FloatType(_) =>  "Float",
-            Value::StringType(_) => "String"
+            Value::NullType   =>     "Null",
+            Value::IntType(_) =>     "Int",
+            Value::FloatType(_) =>   "Float",
+            Value::StringType(_) =>  "String",
+            Value::BooleanType(_) => "String"
         }
     }
 
@@ -229,16 +231,17 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.value {
-            Value::NullType          => write!(f, "Null"),
-            Value::IntType(value)    => write!(f, "{}", value),
-            Value::FloatType(value)  => {
+            Value::NullType           => write!(f, "Null"),
+            Value::IntType(value)     => write!(f, "{}", value),
+            Value::FloatType(value)   => {
                 let mut value = value.to_string();
                 if ! value.contains(".") {
                     value += ".0";
                 }
                 write!(f, "{}", value)
             },
-            Value::StringType(value) => write!(f, "{}", value)
+            Value::StringType(value)  => write!(f, "{}", value),
+            Value::BooleanType(value) => write!(f, "{}", if *value {"True"} else {"False"})
         }
     }
 }

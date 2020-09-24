@@ -2,10 +2,16 @@ Literal  : INT FLOAT STRING
 Operator : PLUS MINUS TIMES DIVBY POW SQRT
 
 
+notraceexpr:
+  - KEYWORD:var IDENTIFIER EQUALS expr
+  - expr
 
 expr:
-  - KEYWORD:var IDENTIFIER EQUALS expr
+  - arithexpr
+
+arithexpr:
   - factor (factor (PLUS|MINUS|TIMES|DIVBY|POW|SQRT))*
+  - factor (factor (EQUALEQ|NOTEQ|LSSTHN|LSSTHNEQ|GRTTHN|GRTTHNEQ))
 
 factor:
   - (PLUS|MINUS) factor

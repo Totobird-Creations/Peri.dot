@@ -89,7 +89,7 @@ impl Parser {
 
             if self.curtoken.token == TT_EOF {break}
 
-            nodes.push(res.register(self.expr()));
+            nodes.push(res.register(self.notraceexpr()));
 
             if res.exception.failed {
                 return ParseResponse::Failed(res.exception);
@@ -101,7 +101,7 @@ impl Parser {
 
 
 
-    fn expr(&mut self) -> ParseResult {
+    fn notraceexpr(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
         let start = self.curtoken.start.clone();
 
@@ -144,6 +144,15 @@ impl Parser {
                 start: varname.start.clone(), end: self.curtoken.start.clone()
             });
         }
+
+        return self.expr();
+    }
+
+
+
+    fn expr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node::NullNode, advancecount: 0};
+        let start = self.curtoken.start.clone();
 
         return self.arithexpr();
     }

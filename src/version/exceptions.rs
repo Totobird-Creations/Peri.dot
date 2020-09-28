@@ -34,7 +34,7 @@ impl fmt::Display for LexerException {
         exc += format!("  {} `{}`,\n", "File".green(), self.start.file.green().bold()).as_str();
         exc += format!("  {} {}, {} {}\n", "Line".green(), (self.start.line + 1).to_string().green().bold(), "Column".green(), (self.start.column + 1).to_string().green().bold()).as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
-        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
+        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.index - self.start.index).yellow()).as_str();
         let mut errorcode = Md5::new();
         errorcode.input(format!("{}{}", self.name, self.ucmsg));
         let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");
@@ -122,7 +122,7 @@ impl fmt::Display for InterpreterException {
         let mut exc = "".to_string();
         exc += self.clone().generatetraceback().as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
-        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
+        exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.index - self.start.index).yellow()).as_str();
         let mut errorcode = Md5::new();
         errorcode.input(format!("{}{}", self.name, self.ucmsg));
         let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");

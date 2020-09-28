@@ -57,16 +57,55 @@ impl Interpreter {
 
     fn visit_intnode(&mut self, node: Node, context: &Context, token: tokens::Token, value: String) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let value = match value.parse::<i128>() {
+            Ok(value) => value,
+            Err(err)  => {
+                return res.failure(
+                    InterpreterException {
+                        failed: true,
+                        name: "OverflowException".to_string(),
+                        msg: format!("Integer overflowed when converting to Peri.dot type"),
+                        ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                        start: node.start, end: node.end, context: Some(context.clone())
+                    }
+                )
+            }
+        };
         return res.success(Type {
-            value: Value::IntType(value.parse::<i128>().unwrap()),
+            value: Value::IntType(value),
             start: node.start, end: node.end, context: context.clone()
         });
     }
 
     fn visit_floatnode(&mut self, node: Node, context: &Context, token: tokens::Token, value: String) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let value = match value.parse::<f64>() {
+            Ok(value) => value,
+            Err(err)  => {
+                return res.failure(
+                    InterpreterException {
+                        failed: true,
+                        name: "OverflowException".to_string(),
+                        msg: format!("Float overflowed when converting to Peri.dot type"),
+                        ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                        start: node.start, end: node.end, context: Some(context.clone())
+                    }
+                )
+            }
+        };
+        if ! value.is_finite() {
+            return res.failure(
+                InterpreterException {
+                    failed: true,
+                    name: "OverflowException".to_string(),
+                    msg: format!("Float overflowed when converting to Peri.dot type"),
+                    ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                    start: node.start, end: node.end, context: Some(context.clone())
+                }
+            )
+        }
         return res.success(Type {
-            value: Value::FloatType(value.parse::<f64>().unwrap()),
+            value: Value::FloatType(value),
             start: node.start, end: node.end, context: context.clone()
         });
     }
@@ -85,8 +124,8 @@ impl Interpreter {
         let value = context.symbols.get(varname.clone());
 
         match value {
-            Some(value) => {
-                return res.success(value.value);
+            Some(mut value) => {
+                return res.success(value.value.setpos(node.start, node.end));
             }
             None        => {
                 return res.failure(InterpreterException {

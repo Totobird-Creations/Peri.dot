@@ -52,8 +52,22 @@ impl Type {
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                let value = match selfvalue.checked_add(othervalue) {
+                    Some(value) => value,
+                    None        => {
+                        return res.failure(
+                            InterpreterException {
+                                failed: true,
+                                name: "OverflowException".to_string(),
+                                msg: format!("Integer overflowed when converting to Peri.dot type"),
+                                ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                                start: self.start, end: self.end, context: Some(self.context.clone())
+                            }
+                        )
+                    }
+                };
                 return res.success(Type {
-                    value: Value::IntType(selfvalue + othervalue),
+                    value: Value::IntType(value),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -69,6 +83,17 @@ impl Type {
                 selfvalue = selfvalue * len;
                 othervalue = othervalue * len;
                 let selfvalue = (selfvalue + othervalue) / len;
+                if ! selfvalue.is_finite() {
+                    return res.failure(
+                        InterpreterException {
+                            failed: true,
+                            name: "OverflowException".to_string(),
+                            msg: format!("Float overflowed when converting to Peri.dot type"),
+                            ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context.clone())
+                        }
+                    )
+                }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
@@ -102,8 +127,22 @@ impl Type {
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                let value = match selfvalue.checked_sub(othervalue) {
+                    Some(value) => value,
+                    None        => {
+                        return res.failure(
+                            InterpreterException {
+                                failed: true,
+                                name: "OverflowException".to_string(),
+                                msg: format!("Integer overflowed when converting to Peri.dot type"),
+                                ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                                start: self.start, end: self.end, context: Some(self.context.clone())
+                            }
+                        )
+                    }
+                };
                 return res.success(Type {
-                    value: Value::IntType(selfvalue - othervalue),
+                    value: Value::IntType(value),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -119,6 +158,17 @@ impl Type {
                 selfvalue = selfvalue * len;
                 othervalue = othervalue * len;
                 let selfvalue = (selfvalue - othervalue) / len;
+                if ! selfvalue.is_finite() {
+                    return res.failure(
+                        InterpreterException {
+                            failed: true,
+                            name: "OverflowException".to_string(),
+                            msg: format!("Float overflowed when converting to Peri.dot type"),
+                            ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context.clone())
+                        }
+                    )
+                }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
@@ -145,15 +195,41 @@ impl Type {
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                let value = match selfvalue.checked_mul(othervalue) {
+                    Some(value) => value,
+                    None        => {
+                        return res.failure(
+                            InterpreterException {
+                                failed: true,
+                                name: "OverflowException".to_string(),
+                                msg: format!("Integer overflowed when converting to Peri.dot type"),
+                                ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                                start: self.start, end: self.end, context: Some(self.context.clone())
+                            }
+                        )
+                    }
+                };
                 return res.success(Type {
-                    value: Value::IntType(selfvalue * othervalue),
+                    value: Value::IntType(value),
                     start: self.start, end: other.end, context: self.context
                 });
             }
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                let selfvalue = selfvalue * othervalue;
+                if ! selfvalue.is_finite() {
+                    return res.failure(
+                        InterpreterException {
+                            failed: true,
+                            name: "OverflowException".to_string(),
+                            msg: format!("Float overflowed when converting to Peri.dot type"),
+                            ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context.clone())
+                        }
+                    )
+                }
                 return res.success(Type {
-                    value: Value::FloatType(selfvalue * othervalue),
+                    value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -187,8 +263,22 @@ impl Type {
                         start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
+                let value = match selfvalue.checked_div(othervalue) {
+                    Some(value) => value,
+                    None        => {
+                        return res.failure(
+                            InterpreterException {
+                                failed: true,
+                                name: "OverflowException".to_string(),
+                                msg: format!("Integer overflowed when converting to Peri.dot type"),
+                                ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                                start: self.start, end: self.end, context: Some(self.context.clone())
+                            }
+                        )
+                    }
+                };
                 return res.success(Type {
-                    value: Value::IntType(selfvalue / othervalue),
+                    value: Value::IntType(value),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -203,8 +293,20 @@ impl Type {
                         start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
+                let selfvalue = selfvalue / othervalue;
+                if ! selfvalue.is_finite() {
+                    return res.failure(
+                        InterpreterException {
+                            failed: true,
+                            name: "OverflowException".to_string(),
+                            msg: format!("Float overflowed when converting to Peri.dot type"),
+                            ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context.clone())
+                        }
+                    )
+                }
                 return res.success(Type {
-                    value: Value::FloatType(selfvalue / othervalue),
+                    value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -238,8 +340,22 @@ impl Type {
                         start: other.start, end: other.end, context: Some(self.context)
                     });
                 }
+                let value = match selfvalue.checked_pow(othervalue as u32) {
+                    Some(value) => value,
+                    None        => {
+                        return res.failure(
+                            InterpreterException {
+                                failed: true,
+                                name: "OverflowException".to_string(),
+                                msg: format!("Integer overflowed when converting to Peri.dot type"),
+                                ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
+                                start: self.start, end: self.end, context: Some(self.context.clone())
+                            }
+                        )
+                    }
+                };
                 return res.success(Type {
-                    value: Value::IntType(selfvalue.pow(othervalue as u32)),
+                    value: Value::IntType(value),
                     start: self.start, end: other.end, context: self.context
                 });
             }

@@ -280,9 +280,9 @@ impl Parser {
             return res.success(Node {
                 nodevalue: NodeValue::UnaryOpNode {
                     optoken: token,
-                    node: Box::new(factor)
+                    node: Box::new(factor.clone())
                 },
-                start: start, end: self.curtoken.start.clone()
+                start: start, end: factor.end
             });
 
 

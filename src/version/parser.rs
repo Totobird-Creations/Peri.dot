@@ -240,7 +240,6 @@ impl Parser {
     fn factor(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let token = self.curtoken.clone();
-        let end = token.end.clone();
         if token.token == TT_LPAREN {
             res.registeradvancement();
             self.advance();

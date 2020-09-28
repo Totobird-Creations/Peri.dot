@@ -709,7 +709,7 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
-                    msg: format!("{} can not be combined to {}", self.gettype(), other.gettype()),
+                    msg: format!("{} can not be combined with {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be combined with {}".to_string(),
                     start: self.start, end: other.end, context: Some(context)
                 });

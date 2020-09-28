@@ -11,6 +11,7 @@ impl Logger {
     }
 }
 
+#[allow(non_upper_case_globals)]
 pub const logger: Logger = Logger {
     level: 1
 };

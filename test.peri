@@ -3,9 +3,4 @@ var b = a
 var c = b
 var d = c
 
-var e = 0.0
-var f = e
-var g = f
-var h = g
-
-d h>=
+if (d) {}

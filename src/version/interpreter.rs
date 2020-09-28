@@ -175,7 +175,7 @@ impl Interpreter {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
 
         for i in cases {
-            let condition = res.register(self.visit(i.0, context));
+            let condition = res.register(self.visit(i.0.clone(), context));
             if res.exception.failed {
                 return res;
             }
@@ -186,13 +186,13 @@ impl Interpreter {
                 Value::BoolType(val) => {
                     condvalue = val
                 },
-                _                      => {
+                _ => {
                     return res.failure(InterpreterException {
                         failed: true,
                         name: "TypeException".to_string(),
                         msg: format!("{} can not be interpreted as Bool", condition.gettype()),
                         ucmsg: "{} can not be interpreted as Bool".to_string(),
-                        start: node.start, end: node.end, context: Some(context.clone())
+                        start: i.0.clone().start, end: i.0.clone().end, context: Some(condition.context.clone())
                     });
                 }
             }

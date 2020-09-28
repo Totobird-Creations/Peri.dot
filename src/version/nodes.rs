@@ -77,7 +77,7 @@ impl fmt::Display for Node {
                 }
 
                 match elsecase {
-                    Some(node) => {
+                    Some(_) => {
                         res += " else";
                     },
                     None       => {}

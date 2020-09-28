@@ -25,15 +25,14 @@ impl fmt::Display for Token {
             tokenname = self.token.truecolor(68, 73, 75);
         } else if [TT_EQUALEQ, TT_NOTEQ, TT_LSSTHN, TT_LSSTHNEQ, TT_GRTTHN, TT_GRTTHNEQ].contains(&self.token.as_str()) {
             tokenname = self.token.truecolor(192, 0, 0);
-        } else if [TT_INT, TT_FLOAT, TT_STRING].contains(&self.token.as_str()) {
+        } else if [TT_INT, TT_FLOAT, TT_STRING, TT_IDENTIFIER].contains(&self.token.as_str()) {
             tokenname = self.token.truecolor(0, 192, 0);
-        } else if [TT_PLUS, TT_MINUS, TT_TIMES, TT_DIVBY, TT_POW, TT_CAST].contains(&self.token.as_str()) {
+        } else if [TT_PLUS, TT_MINUS, TT_TIMES, TT_DIVBY, TT_POW, TT_CAST, TT_NOT].contains(&self.token.as_str()) {
             tokenname = self.token.truecolor(157, 128, 0);
         // Blue
-        } else if [TT_PLUSEQ, TT_MINUSEQ, TT_TIMESEQ, TT_DIVBYEQ, TT_POWEQ].contains(&self.token.as_str()) {
-            tokenname = self.token.truecolor(174, 64, 0);
         } else if [TT_EQUALS].contains(&self.token.as_str()) {
             tokenname = self.token.truecolor(0, 255, 255);
+        // Magenta
         } else {
             tokenname = self.token.normal()
         }
@@ -65,12 +64,6 @@ pub const TT_TIMES      : &'static str = "TIMES";      // \*
 pub const TT_DIVBY      : &'static str = "DIVBY";      // \/
 pub const TT_POW        : &'static str = "POW";        // \*\*
 
-pub const TT_PLUSEQ     : &'static str = "PLUSEQ";     // \+=
-pub const TT_MINUSEQ    : &'static str = "MINUSEQ";    // -=
-pub const TT_TIMESEQ    : &'static str = "TIMESEQ";    // \*=
-pub const TT_DIVBYEQ    : &'static str = "DIVBYEQ";    // \/=
-pub const TT_POWEQ      : &'static str = "POWEQ";      // \*\*=
-
 pub const TT_EQUALS     : &'static str = "EQUALS";     // =
 
 pub const TT_EQUALEQ    : &'static str = "EQUALEQ";    // ==
@@ -83,6 +76,13 @@ pub const TT_GRTTHNEQ   : &'static str = "GRTTHNEQ";   // >=
 
 pub const TT_LPAREN     : &'static str = "LPAREN";     // \(
 pub const TT_RPAREN     : &'static str = "RPAREN";     // \)
+pub const TT_LCURLY     : &'static str = "LCURLY";     // \{
+pub const TT_RCURLY     : &'static str = "RCURLY";     // \}
+
+pub const TT_AND        : &'static str = "AND";        // &
+pub const TT_XOR        : &'static str = "XOR";        // \|
+pub const TT_OR         : &'static str = "OR";         // (&\|)|(\|&)
+pub const TT_NOT        : &'static str = "NOT";        // !
 
 pub const TT_KEYWORD    : &'static str = "KEYWORD";    // [A-Za-z_][A-Za-z0-9_]*
 pub const TT_IDENTIFIER : &'static str = "IDENTIFIER"; // [A-Za-z_][A-Za-z0-9_]*

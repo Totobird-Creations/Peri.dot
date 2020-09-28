@@ -1,5 +1,8 @@
-Literal  : INT FLOAT STRING
-Operator : PLUS MINUS TIMES DIVBY POW SQRT
+Literal    : INT FLOAT STRING
+Operator   : PLUS MINUS TIMES DIVBY POW SQRT NOT
+Comparison : EQUALSEQ NOTEQ LSSTHN GRTTHN LSSTHNEQ GRTTHNEQ
+Combiner   : AND XOR OR
+
 
 
 notraceexpr:
@@ -7,19 +10,29 @@ notraceexpr:
   - expr
 
 expr:
-  - arithexpr
+  - opexpr
 
-arithexpr:
-  - factor (factor (PLUS|MINUS|TIMES|DIVBY|POW|SQRT))*
-  - factor (factor (EQUALEQ|NOTEQ|LSSTHN|LSSTHNEQ|GRTTHN|GRTTHNEQ))
+opexpr:
+  - factor (factor (Operator|Comparison|Combiner) | opexpr)*
 
 factor:
   - (PLUS|MINUS) factor
   - LPAREN expr RPAREN
+  - ifexpr
   - atom
 
+ifexpr:
+  - KEYWORD:if LPAREN expr RPAREN codeblock
+    (KEYWORD:elif LPAREN expr RPAREN codeblock)*
+    (KEYWORD:else codeblock)?
+
 atom:
-  - INT
-  - FLOAT
-  - STRING
+  - Literal
   - IDENTIFIER
+
+
+
+codeblock:
+  - LCURLY EOL*
+    (expr EOL*)*
+    RCURLY

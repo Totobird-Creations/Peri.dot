@@ -17,7 +17,20 @@ pub struct Context {
 
 #[derive(Clone, Debug)]
 pub struct Symbol {
-    pub value: types::Type
+    pub value: types::Type,
+    pub readonly: bool
+}
+
+
+
+pub fn defaultsymbols() -> SymbolTable {
+    let mut symbols = SymbolTable {symbols: HashMap::new(), parent: Box::new(None)};
+
+    symbols.biv("null".to_string(), types::Value::NullType);
+    symbols.biv("true".to_string(), types::Value::BoolType(true));
+    symbols.biv("false".to_string(), types::Value::BoolType(false));
+
+    return symbols;
 }
 
 
@@ -38,7 +51,38 @@ impl SymbolTable {
     pub fn set(&mut self, name: String, value: types::Type) {
         self.symbols.insert(
             name,
-            Symbol {value}
+            Symbol {value, readonly: false}
+        );
+    }
+
+    pub fn biv(&mut self, name: String, value: types::Value) {
+        self.symbols.insert(
+            name,
+            Symbol {
+                value: types::Type {
+                    value: value,
+                    start: lexer::LexerPosition {
+                        index: 0, line: 0, column: 0,
+                        file: "Built-In".to_string(),
+                        script: "".to_string(), lines: vec!["".to_string()]
+                    },
+                    end: lexer::LexerPosition {
+                        index: 0, line: 0, column: 0,
+                        file: "Built-In".to_string(),
+                        script: "".to_string(), lines: vec!["".to_string()]
+                    },
+                    context: Context {
+                        display: "Built-In".to_string(),
+                        parent: Box::new(None),
+                        parententry: None,
+                        symbols: SymbolTable {
+                            parent: Box::new(None),
+                            symbols: HashMap::new()
+                        }
+                    }
+                },
+                readonly: true
+            }
         );
     }
 

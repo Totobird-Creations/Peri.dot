@@ -5,9 +5,6 @@
 ---
 
 ### Pre-Release Notes
-```diff
-- WARNING: Multiline is not yet supported
-```
 - RPN-ish Arithmetic Added
 ```peridot
 # Peri.Py
@@ -17,6 +14,24 @@
 # Rusty Peri.dot
 1 2+ 3*     # ((1 + 2) * 3)
 1 (2 3*)+   # (1 + (2 * 3))
+```
+- Variables Added
+  - Initialization
+  - Access
+```peridot
+# Rusty Peri.dot
+var x = 10 10+
+x # 20
+```
+- Error codes
+```
+# Console
+
+# Before
+OperationException: 10 raised to negative value 1
+
+# Now
+[e24261] OperationException: 10 raised to negative value 1
 ```
 
 ---

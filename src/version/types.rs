@@ -16,19 +16,19 @@ pub struct Type {
 #[derive(Clone, Debug)]
 pub enum Value {
     NullType,
-    IntType(i32),
-    FloatType(f32),
-    StringType(String),
-    BooleanType(bool)
+    IntType(i128),
+    FloatType(f64),
+    StrType(String),
+    BoolType(bool)
 }
 impl Type {
-    fn gettype(&self) -> &str {
+    pub fn gettype(&self) -> &str {
         match self.value {
-            Value::NullType   =>     "Null",
-            Value::IntType(_) =>     "Int",
-            Value::FloatType(_) =>   "Float",
-            Value::StringType(_) =>  "String",
-            Value::BooleanType(_) => "String"
+            Value::NullType   =>   "Null",
+            Value::IntType(_) =>   "Int",
+            Value::FloatType(_) => "Float",
+            Value::StrType(_) =>   "String",
+            Value::BoolType(_) =>  "Bool"
         }
     }
 
@@ -48,7 +48,7 @@ impl Type {
 
 
     pub fn plus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -58,16 +58,26 @@ impl Type {
                 });
             }
 
-            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+            (Value::FloatType(mut selfvalue), Value::FloatType(mut othervalue)) => {
+                let a = selfvalue.to_string();
+                let a = a.split(".").collect::<Vec<&str>>();
+                let a = if a.len() == 1 {0} else {a[1].len()};
+                let b = othervalue.to_string();
+                let b = b.split(".").collect::<Vec<&str>>();
+                let b = if b.len() == 1 {0} else {b[1].len()};
+                let len = (10.0 as f64).powf(if a > b {a as f64} else {b as f64});
+                selfvalue = selfvalue * len;
+                othervalue = othervalue * len;
+                let selfvalue = (selfvalue + othervalue) / len;
                 return res.success(Type {
-                    value: Value::FloatType(selfvalue + othervalue),
+                    value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
                 });
             }
 
-            (Value::StringType(selfvalue), Value::StringType(othervalue)) => {
+            (Value::StrType(selfvalue), Value::StrType(othervalue)) => {
                 return res.success(Type {
-                    value: Value::StringType(selfvalue + othervalue.as_str()),
+                    value: Value::StrType(selfvalue + othervalue.as_str()),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -77,6 +87,7 @@ impl Type {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
+                    ucmsg: "{} can not be added to {}".to_string(),
                     start: self.start, end: other.end, context: Some(self.context)
                 });
             }
@@ -87,7 +98,7 @@ impl Type {
 
 
     pub fn minus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -97,9 +108,19 @@ impl Type {
                 });
             }
 
-            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+            (Value::FloatType(mut selfvalue), Value::FloatType(mut othervalue)) => {
+                let a = selfvalue.to_string();
+                let a = a.split(".").collect::<Vec<&str>>();
+                let a = if a.len() == 1 {0} else {a[1].len()};
+                let b = othervalue.to_string();
+                let b = b.split(".").collect::<Vec<&str>>();
+                let b = if b.len() == 1 {0} else {b[1].len()};
+                let len = (10.0 as f64).powf(if a > b {a as f64} else {b as f64});
+                selfvalue = selfvalue * len;
+                othervalue = othervalue * len;
+                let selfvalue = (selfvalue - othervalue) / len;
                 return res.success(Type {
-                    value: Value::FloatType(selfvalue - othervalue),
+                    value: Value::FloatType(selfvalue),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -108,7 +129,8 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
-                    msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
+                    msg: format!("{} can not be subtracted from {}", other.gettype(), self.gettype()),
+                    ucmsg: "{} can not be subtracted from {}".to_string(),
                     start: self.start, end: other.end, context: Some(self.context)
                 });
             }
@@ -119,7 +141,7 @@ impl Type {
 
 
     pub fn times_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -140,7 +162,8 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
-                    msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
+                    msg: format!("{} can not be multiplied by {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be multiplied by {}".to_string(),
                     start: self.start, end: other.end, context: Some(self.context)
                 });
             }
@@ -151,7 +174,7 @@ impl Type {
 
 
     pub fn divby_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -160,6 +183,7 @@ impl Type {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
+                        ucmsg: "{} divided by zero".to_string(),
                         start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
@@ -175,6 +199,7 @@ impl Type {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
+                        ucmsg: "{} divided by zero".to_string(),
                         start: self.start, end: other.end, context: Some(self.context)
                     });
                 }
@@ -188,7 +213,8 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
-                    msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
+                    msg: format!("{} can not be divided by {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be divided by {}".to_string(),
                     start: self.start, end: other.end, context: Some(self.context)
                 });
             }
@@ -199,10 +225,19 @@ impl Type {
 
 
     pub fn pow_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                if othervalue < 0 {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "OperationException".to_string(),
+                        msg: format!("{} raised to negative value {}", selfvalue, othervalue * -1),
+                        ucmsg: "{} raised to negative value {}".to_string(),
+                        start: other.start, end: other.end, context: Some(self.context)
+                    });
+                }
                 return res.success(Type {
                     value: Value::IntType(selfvalue.pow(othervalue as u32)),
                     start: self.start, end: other.end, context: self.context
@@ -220,7 +255,293 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
-                    msg: format!("{} can not be added to {}", other.gettype(), self.gettype()),
+                    msg: format!("{} can not be raised to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be raised to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn equaleq_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::NullType, Value::NullType) => {
+                return res.success(Type {
+                    value: Value::BoolType(true),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue == othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue == othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::StrType(selfvalue), Value::StrType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue == othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue == othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be compared to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn noteq_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let value = res.register(self.clone().equaleq_comp(other.clone()));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        match value.value {
+            Value::BoolType(value) => {
+                return res.success(Type {
+                    value: Value::BoolType(! value),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+            _ => panic!("Equaleq comparison returned non-boolean value")
+        }
+    }
+
+
+
+    pub fn lssthn_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue < othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue < othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be compared to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn grtthn_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue > othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue > othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be compared to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn lssthneq_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue <= othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue <= othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be compared to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn grtthneq_comp(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue >= othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue >= othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be compared to {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn and_comb(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue && othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be combined with {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be combined with {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn xor_comb(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(!(selfvalue && othervalue) && (selfvalue || othervalue)),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be combined with {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be combined with {}".to_string(),
+                    start: self.start, end: other.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn or_comb(self, other: Type) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        match (self.value.clone(), other.value.clone()) {
+
+            (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
+                return res.success(Type {
+                    value: Value::BoolType(selfvalue || othervalue),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (_, _) => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be combined to {}", self.gettype(), other.gettype()),
+                    ucmsg: "{} can not be combined with {}".to_string(),
                     start: self.start, end: other.end, context: Some(self.context)
                 });
             }
@@ -231,7 +552,7 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.value {
-            Value::NullType           => write!(f, "Null"),
+            Value::NullType           => write!(f, "null"),
             Value::IntType(value)     => write!(f, "{}", value),
             Value::FloatType(value)   => {
                 let mut value = value.to_string();
@@ -240,8 +561,8 @@ impl fmt::Display for Type {
                 }
                 write!(f, "{}", value)
             },
-            Value::StringType(value)  => write!(f, "{}", value),
-            Value::BooleanType(value) => write!(f, "{}", if *value {"True"} else {"False"})
+            Value::StrType(value)  => write!(f, "{}", value),
+            Value::BoolType(value) => write!(f, "{}", if *value {"true"} else {"false"})
         }
     }
 }

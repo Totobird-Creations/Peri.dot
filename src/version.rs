@@ -1,3 +1,5 @@
+pub mod logger;
+
 pub mod run;
 
 pub mod constants;

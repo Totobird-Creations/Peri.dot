@@ -1,6 +1,7 @@
 use std::process::exit;
 use std;
 use colored::*;
+use md5::{Md5, Digest};
 
 mod version;
 
@@ -25,7 +26,7 @@ fn main() {
             exit(0);
 
         } else if args[1].starts_with("-") {
-            argumenterror("InvalidArgument", &args[1], &args, 1);
+            argumenterror("InvalidArgumentException", &args[1], &args, 1);
             exit(1);
 
         } else {
@@ -47,13 +48,13 @@ fn main() {
             } else if ["-d", "--debug"].contains(&arg.as_str()) && debug == false {
                 debug = true;
             } else {
-                argumenterror("InvalidArgument", &arg, &args, i);
+                argumenterror("InvalidArgumentException", &arg, &args, i);
                 exit(1);
             }
         }
 
         if ! found {
-            argumenterror("MissingArgument", "Filename", &args, i + 1);
+            argumenterror("MissingArgumentException", "Filename", &args, i + 1);
             exit(1);
         }
 
@@ -142,13 +143,18 @@ fn argumenterror(title: &str, msg: &str, args: &Vec<String>, argnum: i32) {
         Err(_e)  => format!("{}", "INVALID")
     };
 
+    let mut errorcode = Md5::new();
+    errorcode.input(format!("{}{}", title, msg));
+    let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");
+    let errorcode = errorcode.get(0..5).unwrap();
+
     let error = format!("
 {}
   {}, {}:
     {}
       {}
       {}
-{}: {}
+[{}{}] {}: {}
 ",
     "Peri.dot encountered an error while reading arguments:".blue().bold(),
     format!("File {}", "<Command Line>".bold()).green(),
@@ -156,7 +162,7 @@ fn argumenterror(title: &str, msg: &str, args: &Vec<String>, argnum: i32) {
     format!("Argument {}", format!("{}", argnum + 1).bold()).green(),
     args.join(" ").yellow().bold(),
     argpointer.yellow(),
-    title.red().bold(), msg.red()
+    "e".red(), errorcode.red().bold(), title.red().bold(), msg.red()
     );
     println!("{}", error)
 }

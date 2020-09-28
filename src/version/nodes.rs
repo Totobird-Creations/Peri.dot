@@ -7,35 +7,42 @@ use super::lexer;
 
 
 #[derive(Debug, Clone)]
-pub enum Node {
+pub struct Node {
+    pub nodevalue: NodeValue,
+    pub start: lexer::LexerPosition,
+    pub end: lexer::LexerPosition
+}
+#[derive(Debug, Clone)]
+pub enum NodeValue {
     NullNode,
 
 
     IntNode {
         token: tokens::Token,
-        value: i32,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
+        value: String,
     },
     FloatNode {
         token: tokens::Token,
-        value: f32,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
+        value: String,
     },
     StringNode {
         token: tokens::Token,
         value: String,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
     },
     VarAccessNode {
         token: tokens::Token,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
     },
 
 
     VarInitNode {
         varname: tokens::Token,
         node   : Box<Node>,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
+    },
+
+
+    IfNode {
+        cases: Vec<(Node, Vec<Node>)>,
+        elsecase: Option<Vec<Node>>,
     },
 
 
@@ -43,28 +50,44 @@ pub enum Node {
         left   : Box<Node>,
         optoken: tokens::Token,
         right  : Box<Node>,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
     },
     UnaryOpNode {
         optoken: tokens::Token,
         node   : Box<Node>,
-        start: lexer::LexerPosition, end: lexer::LexerPosition
     }
 }
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Node::NullNode                                              => write!(f, "{}", "NULL".red()),
+        match &self.nodevalue {
+            NodeValue::NullNode                              => write!(f, "{}", "NULL".red()),
 
-            Node::IntNode       {token: _, value, start: _, end: _}      => write!(f, "i{}", value),
-            Node::FloatNode     {token: _, value, start: _, end: _}      => write!(f, "f{}", value),
-            Node::StringNode    {token: _, value, start: _, end: _}      => write!(f, "`{}`", value),
-            Node::VarAccessNode {token, start: _, end: _}                => write!(f, "{}", token.value),
+            NodeValue::IntNode       {token: _, value}       => write!(f, "i{}", value),
+            NodeValue::FloatNode     {token: _, value}       => write!(f, "f{}", value),
+            NodeValue::StringNode    {token: _, value}       => write!(f, "`{}`", value),
+            NodeValue::VarAccessNode {token}                 => write!(f, "{}", token.value),
 
-            Node::VarInitNode   {varname, node, start: _, end: _}     => write!(f, "({} = {})", varname.value, node),
+            NodeValue::VarInitNode   {varname, node}         => write!(f, "({} = {})", varname.value, node),
 
-            Node::BinaryOpNode  {left, optoken, right, start: _, end: _} => write!(f, "({} {} {})", left, optoken, right),
-            Node::UnaryOpNode   {optoken, node, start: _, end: _}        => write!(f, "({} {})", optoken, node)
+            NodeValue::IfNode        {cases, elsecase} => {
+                let mut res = "".to_string();
+
+                for i in 0 .. cases.len() {
+                    res += if i == 0 {"if"} else {" elif"};
+                    res += format!(" {}", cases[i].0).as_str();
+                }
+
+                match elsecase {
+                    Some(node) => {
+                        res += " else";
+                    },
+                    None       => {}
+                }
+
+                write!(f, "({})", res)
+            },
+
+            NodeValue::BinaryOpNode  {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),
+            NodeValue::UnaryOpNode   {optoken, node}         => write!(f, "({} {})", optoken, node)
         }
     }
 }

@@ -1,5 +1,6 @@
 use std::fmt;
 use colored::*;
+use md5::{Md5, Digest};
 
 use super::lexer;
 use super::context;
@@ -19,11 +20,12 @@ impl fmt::Display for CommandLineException {
 
 
 pub struct LexerException {
-    pub failed   : bool,
-    pub name     : String,
-    pub msg      : String,
-    pub start    : lexer::LexerPosition,
-    pub end      : lexer::LexerPosition
+    pub failed: bool,
+    pub name  : String,
+    pub msg   : String,
+    pub ucmsg : String,
+    pub start : lexer::LexerPosition,
+    pub end   : lexer::LexerPosition
 }
 impl fmt::Display for LexerException {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -33,7 +35,12 @@ impl fmt::Display for LexerException {
         exc += format!("  {} {}, {} {}\n", "Line".green(), (self.start.line + 1).to_string().green().bold(), "Column".green(), (self.start.column + 1).to_string().green().bold()).as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
         exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
-        exc += format!("{}: {}", self.name.red().bold(), self.msg.red()).as_str();
+        let mut errorcode = Md5::new();
+        errorcode.input(format!("{}{}", self.name, self.ucmsg));
+        let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");
+        let errorcode = errorcode.get(0..5).unwrap();
+
+        exc += format!("[{}{}] {}: {}", "e".red(), errorcode.red().bold(), self.name.red().bold(), self.msg.red()).as_str();
 
         write!(f, "{}", exc)
     }
@@ -43,11 +50,12 @@ impl fmt::Display for LexerException {
 
 #[derive(Clone)]
 pub struct ParserException {
-    pub failed   : bool,
-    pub name     : String,
-    pub msg      : String,
-    pub start    : lexer::LexerPosition,
-    pub end      : lexer::LexerPosition
+    pub failed: bool,
+    pub name  : String,
+    pub msg   : String,
+    pub ucmsg : String,
+    pub start : lexer::LexerPosition,
+    pub end   : lexer::LexerPosition
 }
 impl fmt::Display for ParserException {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -57,7 +65,12 @@ impl fmt::Display for ParserException {
         exc += format!("  {} {}, {} {}\n", "Line".green(), (self.start.line + 1).to_string().green().bold(), "Column".green(), (self.start.column + 1).to_string().green().bold()).as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
         exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.index - self.start.index).yellow()).as_str();
-        exc += format!("{}: {}", self.name.red().bold(), self.msg.red()).as_str();
+        let mut errorcode = Md5::new();
+        errorcode.input(format!("{}{}", self.name, self.ucmsg));
+        let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");
+        let errorcode = errorcode.get(0..5).unwrap();
+
+        exc += format!("[{}{}] {}: {}", "e".red(), errorcode.red().bold(), self.name.red().bold(), self.msg.red()).as_str();
 
         write!(f, "{}", exc)
     }
@@ -70,6 +83,7 @@ pub struct InterpreterException {
     pub failed : bool,
     pub name   : String,
     pub msg    : String,
+    pub ucmsg  : String,
     pub start  : lexer::LexerPosition,
     pub end    : lexer::LexerPosition,
     pub context: Option<context::Context>
@@ -109,7 +123,12 @@ impl fmt::Display for InterpreterException {
         exc += self.clone().generatetraceback().as_str();
         exc += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
         exc += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.column - self.start.column).yellow()).as_str();
-        exc += format!("{}: {}", self.name.red().bold(), self.msg.red()).as_str();
+        let mut errorcode = Md5::new();
+        errorcode.input(format!("{}{}", self.name, self.ucmsg));
+        let errorcode = format!("{:?}", errorcode.result()).replace(", ", "").replace("[", "").replace("]", "");
+        let errorcode = errorcode.get(0..5).unwrap();
+
+        exc += format!("[{}{}] {}: {}", "e".red(), errorcode.red().bold(), self.name.red().bold(), self.msg.red()).as_str();
 
         write!(f, "{}", exc)
     }

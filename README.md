@@ -20,6 +20,7 @@
   - Access
 ```peridot
 # Rusty Peri.dot
+
 var x = 10 10+
 x # 20
 ```

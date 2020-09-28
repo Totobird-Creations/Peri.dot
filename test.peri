@@ -1,3 +1,11 @@
-var a = -170141183460469231731687303715884105727 1 -
+var a = 0
+var b = a
+var c = b
+var d = c
 
-a -1 *
+var e = "Hello"
+var f = e
+var g = f
+var h = g
+
+d h+

@@ -6,11 +6,21 @@ use super::types;
 
 
 #[derive(Clone, Debug)]
+pub struct Origin {
+    pub start  : lexer::LexerPosition,
+    pub end    : lexer::LexerPosition,
+    pub context: Context
+}
+
+
+
+#[derive(Clone, Debug)]
 pub struct Context {
     pub display    : String,
     pub parent     : Box<Option<Context>>,
     pub parententry: Option<lexer::LexerPosition>,
-    pub symbols    : SymbolTable
+    pub symbols    : SymbolTable,
+    pub origin     : Vec<Origin>
 }
 
 
@@ -78,7 +88,8 @@ impl SymbolTable {
                         symbols: SymbolTable {
                             parent: Box::new(None),
                             symbols: HashMap::new()
-                        }
+                        },
+                        origin: vec![]
                     }
                 },
                 readonly: true

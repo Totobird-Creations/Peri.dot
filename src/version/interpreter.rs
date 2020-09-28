@@ -55,11 +55,11 @@ impl Interpreter {
 
 
 
-    fn visit_intnode(&mut self, node: Node, context: &Context, token: tokens::Token, value: String) -> RTResult {
+    fn visit_intnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let value = match value.parse::<i128>() {
             Ok(value) => value,
-            Err(err)  => {
+            Err(_)  => {
                 return res.failure(
                     InterpreterException {
                         failed: true,
@@ -77,11 +77,11 @@ impl Interpreter {
         });
     }
 
-    fn visit_floatnode(&mut self, node: Node, context: &Context, token: tokens::Token, value: String) -> RTResult {
+    fn visit_floatnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let value = match value.parse::<f64>() {
             Ok(value) => value,
-            Err(err)  => {
+            Err(_)  => {
                 return res.failure(
                     InterpreterException {
                         failed: true,
@@ -110,7 +110,7 @@ impl Interpreter {
         });
     }
 
-    fn visit_stringnode(&mut self, node: Node, context: &Context, token: tokens::Token, value: String) -> RTResult {
+    fn visit_stringnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::StrType(value),
@@ -125,9 +125,10 @@ impl Interpreter {
 
         match value {
             Some(mut value) => {
+                value.value.modorigin();
                 return res.success(value.value.setpos(node.start, node.end));
             }
-            None        => {
+            None => {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "IdentifierException".to_string(),
@@ -333,7 +334,8 @@ pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
         display: "<root>".to_string(),
         parent: Box::from(None),
         parententry: None,
-        symbols: symbols
+        symbols: symbols,
+        origin: vec![]
     };
     let mut result = vec![];
     for node in nodes {

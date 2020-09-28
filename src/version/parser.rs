@@ -454,7 +454,7 @@ impl Parser {
                 nodevalue: NodeValue::IntNode {
                     token, value
                 },
-                start, end: self.curtoken.end.clone()
+                start, end: end
             });
 
         } else if token.token == TT_FLOAT {
@@ -464,7 +464,7 @@ impl Parser {
                 nodevalue: NodeValue::FloatNode {
                     token, value
                 },
-                start, end: self.curtoken.end.clone()
+                start, end: end
             });
 
         } else if token.token == TT_STRING {
@@ -474,7 +474,7 @@ impl Parser {
                 nodevalue: NodeValue::StringNode {
                     token, value
                 },
-                start, end: self.curtoken.end.clone()
+                start, end: end
             });
 
         } else if token.token == TT_IDENTIFIER {
@@ -484,7 +484,7 @@ impl Parser {
                 nodevalue: NodeValue::VarAccessNode {
                     token
                 },
-                start, end: self.curtoken.end.clone()
+                start, end: end
             });
 
         } else {

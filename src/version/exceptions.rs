@@ -161,7 +161,7 @@ impl InterpreterException {
             part += format!("  {}{} {}, {} {},\n", (prefix.clone() + cornertype + "═").magenta(), "File".green(), start.file.green().bold(), "In".green(), context.display.green().bold()).as_str();
             part += format!("  {} {} {}, {} {}\n", (prefix.clone() + "║").magenta(), "Line".green(), (start.line + 1).to_string().green().bold(), "Column".green(), (start.column + 1).to_string().green().bold()).as_str();
             part += format!("  {}   {}\n", (prefix.clone() + "║").magenta(), start.lines[start.line].yellow().bold()).as_str();
-            part += format!("  {}   {}{}", (prefix.clone() + "║").magenta(), " ".repeat(start.column), "^".repeat(end.index - start.index - 1).yellow()).as_str();
+            part += format!("  {}   {}{}", (prefix.clone() + "║").magenta(), " ".repeat(start.column), "^".repeat(end.index - start.index).yellow()).as_str();
 
             let mut ig = ignore.clone();
             ig.push(i >= origin.len() - 1);

@@ -189,7 +189,7 @@ impl Type {
             }
 
             (_, _) => {
-                let mut context = self.context;
+                let mut context = self.context.clone();
                 context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
@@ -213,13 +213,15 @@ impl Type {
                 let value = match selfvalue.checked_mul(othervalue) {
                     Some(value) => value,
                     None        => {
+                        let mut context = self.context.clone();
+                        context.origin.append(&mut other.context.origin.clone());
                         return res.failure(
                             InterpreterException {
                                 failed: true,
                                 name: "OverflowException".to_string(),
                                 msg: format!("Integer overflowed when converting to Peri.dot type"),
                                 ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
-                                start: self.start, end: self.end, context: Some(self.context.clone())
+                                start: self.start, end: self.end, context: Some(context)
                             }
                         )
                     }
@@ -233,13 +235,15 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 let selfvalue = selfvalue * othervalue;
                 if ! selfvalue.is_finite() {
+                    let mut context = self.context.clone();
+                    context.origin.append(&mut other.context.origin.clone());
                     return res.failure(
                         InterpreterException {
                             failed: true,
                             name: "OverflowException".to_string(),
                             msg: format!("Float overflowed when converting to Peri.dot type"),
                             ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
-                            start: self.start, end: self.end, context: Some(self.context.clone())
+                            start: self.start, end: self.end, context: Some(context)
                         }
                     )
                 }
@@ -250,12 +254,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be multiplied by {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be multiplied by {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -277,19 +283,21 @@ impl Type {
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
                         ucmsg: "{} divided by zero".to_string(),
-                        start: self.start, end: other.end, context: Some(context)
+                        start: other.start, end: other.end, context: Some(context)
                     });
                 }
                 let value = match selfvalue.checked_div(othervalue) {
                     Some(value) => value,
                     None        => {
+                        let mut context = self.context.clone();
+                        context.origin.append(&mut other.context.origin.clone());
                         return res.failure(
                             InterpreterException {
                                 failed: true,
                                 name: "OverflowException".to_string(),
                                 msg: format!("Integer overflowed when converting to Peri.dot type"),
                                 ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
-                                start: self.start, end: self.end, context: Some(self.context.clone())
+                                start: self.start, end: self.end, context: Some(context)
                             }
                         )
                     }
@@ -302,23 +310,27 @@ impl Type {
 
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 if othervalue == 0.0 {
+                    let mut context = self.context.clone();
+                    context.origin.append(&mut other.context.origin.clone());
                     return res.failure(InterpreterException {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} divided by zero", selfvalue),
                         ucmsg: "{} divided by zero".to_string(),
-                        start: self.start, end: other.end, context: Some(self.context)
+                        start: self.start, end: other.end, context: Some(context)
                     });
                 }
                 let selfvalue = selfvalue / othervalue;
                 if ! selfvalue.is_finite() {
+                    let mut context = self.context.clone();
+                    context.origin.append(&mut other.context.origin.clone());
                     return res.failure(
                         InterpreterException {
                             failed: true,
                             name: "OverflowException".to_string(),
                             msg: format!("Float overflowed when converting to Peri.dot type"),
                             ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
-                            start: self.start, end: self.end, context: Some(self.context.clone())
+                            start: self.start, end: self.end, context: Some(context)
                         }
                     )
                 }
@@ -329,12 +341,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be divided by {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be divided by {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -349,24 +363,28 @@ impl Type {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 if othervalue < 0 {
+                    let mut context = self.context.clone();
+                    context.origin = other.context.origin;
                     return res.failure(InterpreterException {
                         failed: true,
                         name: "OperationException".to_string(),
                         msg: format!("{} raised to negative value {}", selfvalue, othervalue * -1),
                         ucmsg: "{} raised to negative value {}".to_string(),
-                        start: other.start, end: other.end, context: Some(self.context)
+                        start: other.start, end: other.end, context: Some(context)
                     });
                 }
                 let value = match selfvalue.checked_pow(othervalue as u32) {
                     Some(value) => value,
                     None        => {
+                        let mut context = self.context.clone();
+                        context.origin.append(&mut other.context.origin.clone());
                         return res.failure(
                             InterpreterException {
                                 failed: true,
                                 name: "OverflowException".to_string(),
                                 msg: format!("Integer overflowed when converting to Peri.dot type"),
                                 ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
-                                start: self.start, end: self.end, context: Some(self.context.clone())
+                                start: self.start, end: self.end, context: Some(context)
                             }
                         )
                     }
@@ -385,12 +403,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be raised to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be raised to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -439,12 +459,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be compared to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -493,12 +515,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be compared to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -526,12 +550,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be compared to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -559,12 +585,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be compared to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -592,12 +620,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be compared to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be compared to {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -618,12 +648,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be combined with {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be combined with {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -644,12 +676,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be combined with {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be combined with {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 
@@ -670,12 +704,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be combined to {}", self.gettype(), other.gettype()),
                     ucmsg: "{} can not be combined with {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 

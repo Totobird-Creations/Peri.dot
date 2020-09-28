@@ -3,9 +3,9 @@ var b = a
 var c = b
 var d = c
 
-var e = "Hello"
+var e = 0.0
 var f = e
 var g = f
 var h = g
 
-d h-
+d h>=

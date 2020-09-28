@@ -139,13 +139,15 @@ impl Type {
                 let value = match selfvalue.checked_sub(othervalue) {
                     Some(value) => value,
                     None        => {
+                        let mut context = self.context;
+                        context.origin.append(&mut other.context.origin.clone());
                         return res.failure(
                             InterpreterException {
                                 failed: true,
                                 name: "OverflowException".to_string(),
                                 msg: format!("Integer overflowed when converting to Peri.dot type"),
                                 ucmsg: "Integer overflowed when converting to Peri.dot type".to_string(),
-                                start: self.start, end: self.end, context: Some(self.context.clone())
+                                start: self.start, end: self.end, context: Some(context)
                             }
                         )
                     }
@@ -168,13 +170,15 @@ impl Type {
                 othervalue = othervalue * len;
                 let selfvalue = (selfvalue - othervalue) / len;
                 if ! selfvalue.is_finite() {
+                    let mut context = self.context;
+                    context.origin.append(&mut other.context.origin.clone());
                     return res.failure(
                         InterpreterException {
                             failed: true,
                             name: "OverflowException".to_string(),
                             msg: format!("Float overflowed when converting to Peri.dot type"),
                             ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
-                            start: self.start, end: self.end, context: Some(self.context.clone())
+                            start: self.start, end: self.end, context: Some(context)
                         }
                     )
                 }
@@ -185,12 +189,14 @@ impl Type {
             }
 
             (_, _) => {
+                let mut context = self.context;
+                context.origin.append(&mut other.context.origin.clone());
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "TypeException".to_string(),
                     msg: format!("{} can not be subtracted from {}", other.gettype(), self.gettype()),
                     ucmsg: "{} can not be subtracted from {}".to_string(),
-                    start: self.start, end: other.end, context: Some(self.context)
+                    start: self.start, end: other.end, context: Some(context)
                 });
             }
 

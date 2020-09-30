@@ -137,6 +137,17 @@ var x = if (10 0 <) {
 } else {
     -1000
 }
+
+
+for var i in ([0, 1, 2, 3, 4]) {
+    i
+}
+
+
+var i = 0
+while (i 10<) {
+    var i = i 1+
+}
 ```
 ---
 

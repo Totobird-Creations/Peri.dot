@@ -369,8 +369,47 @@ impl Interpreter {
 
 
 
-    fn visit_whilenode(&mut self, node: Node, context: &mut Context, condition: Node, body: Vec<Node>) -> RTResult {
-        panic!("WhileNode Found!");
+    fn visit_whilenode(&mut self, node: Node, context: &mut Context, conditionnode: Node, body: Vec<Node>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+
+        let mut value = Type {
+            value: Value::NullType,
+            start: node.start, end: node.end,
+            context: context.clone()
+        };
+
+        loop {
+            let condition = res.register(self.visit(conditionnode.clone(), context));
+            let condvalue: bool;
+
+            match condition.value {
+                Value::BoolType(val) => {
+                    condvalue = val;
+                },
+                _ => {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "TypeException".to_string(),
+                        msg: format!("{} can not be interpreted as Bool", condition.gettype()),
+                        ucmsg: "{} can not be interpreted as Bool".to_string(),
+                        start: condition.clone().start, end: condition.clone().end, context: Some(condition.context.clone())
+                    });
+                }
+            }
+
+            if ! condvalue {
+                break;
+            }
+
+            for j in body.clone() {
+                value = res.register(self.visit(j, context));
+                if res.exception.failed {
+                    return res;
+                }
+            }
+        }
+
+        return res.success(value);
     }
 
 

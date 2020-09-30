@@ -303,7 +303,6 @@ impl Parser {
 
 
         } else if token.clone().matches(TT_KEYWORD, "while") {
-            panic!("WHILE EXPR?!?!?!?");
             let whileexpr = res.register(self.whileexpr());
             if res.exception.failed {
                 return res;
@@ -567,7 +566,7 @@ impl Parser {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let start = self.curtoken.start.clone();
 
-        if self.curtoken.clone().matches(TT_KEYWORD, "while") {
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "while") {
             return res.failure(ParserException {
                 failed: false,
                 name: "SyntaxException".to_string(),
@@ -580,7 +579,7 @@ impl Parser {
         res.registeradvancement();
         self.advance();
 
-        if self.curtoken.token == TT_LPAREN {
+        if self.curtoken.token != TT_LPAREN {
             return res.failure(ParserException {
                 failed: false,
                 name: "SyntaxException".to_string(),
@@ -599,7 +598,7 @@ impl Parser {
             return res;
         }
 
-        if self.curtoken.token == TT_RPAREN {
+        if self.curtoken.token != TT_RPAREN {
             return res.failure(ParserException {
                 failed: false,
                 name: "SyntaxException".to_string(),

@@ -19,6 +19,8 @@ factor:
   - (PLUS|MINUS) factor
   - LPAREN expr RPAREN
   - ifexpr
+  - forexpr
+  - whileexpr
   - atom
 
 ifexpr:
@@ -26,9 +28,21 @@ ifexpr:
     (KEYWORD:elif LPAREN expr RPAREN codeblock)*
     (KEYWORD:else codeblock)?
 
+forexpr:
+  - KEYWORD:for IDENTIFIER KEYWORD:in LPAREN expr RPAREN codeblock
+
+whileexpr:
+  - KEYWORD:while LPAREN expr RPAREN codeblock
+
 atom:
   - Literal
   - IDENTIFIER
+  - arrayexpr
+
+arrayexpr:
+  - LSQUARE EOL* (expr
+    (COMMA EOL* expr)*)? COMMA? EOL*
+    RSQUARE
 
 
 

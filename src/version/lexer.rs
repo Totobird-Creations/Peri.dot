@@ -322,6 +322,24 @@ impl Lexer {
                 self.advance();
 
 
+            } else if self.ch == '[' {
+                let mut end = self.pos.copy();
+                end.advance(self.ch);
+                logger.trace("Found token: LSQUARE");
+                tokens.push(Token{token: TT_LSQUARE.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
+
+                self.advance();
+
+
+            } else if self.ch == ']' {
+                let mut end = self.pos.copy();
+                end.advance(self.ch);
+                logger.trace("Found token: RSQUARE");
+                tokens.push(Token{token: TT_RSQUARE.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
+
+                self.advance();
+
+
             } else if self.ch == '{' {
                 let mut end = self.pos.copy();
                 end.advance(self.ch);
@@ -336,6 +354,15 @@ impl Lexer {
                 end.advance(self.ch);
                 logger.trace("Found token: RCURLY");
                 tokens.push(Token{token: TT_RCURLY.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
+
+                self.advance();
+
+
+            } else if self.ch == ',' {
+                let mut end = self.pos.copy();
+                end.advance(self.ch);
+                logger.trace("Found token: COMMA");
+                tokens.push(Token{token: TT_COMMA.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
 
                 self.advance();
 

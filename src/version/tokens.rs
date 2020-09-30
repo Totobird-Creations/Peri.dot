@@ -76,8 +76,12 @@ pub const TT_GRTTHNEQ   : &'static str = "GRTTHNEQ";   // >=
 
 pub const TT_LPAREN     : &'static str = "LPAREN";     // \(
 pub const TT_RPAREN     : &'static str = "RPAREN";     // \)
+pub const TT_LSQUARE    : &'static str = "LSQUARE";    // \[
+pub const TT_RSQUARE    : &'static str = "RSQUARE";    // \]
 pub const TT_LCURLY     : &'static str = "LCURLY";     // \{
 pub const TT_RCURLY     : &'static str = "RCURLY";     // \}
+
+pub const TT_COMMA      : &'static str = "COMMA";      // ,
 
 pub const TT_AND        : &'static str = "AND";        // &
 pub const TT_XOR        : &'static str = "XOR";        // \|

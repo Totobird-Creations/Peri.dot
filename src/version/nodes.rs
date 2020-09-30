@@ -32,6 +32,9 @@ pub enum NodeValue {
     VarAccessNode {
         token: tokens::Token,
     },
+    ArrayNode {
+        exprs: Vec<Node>
+    },
 
 
     VarInitNode {
@@ -43,6 +46,16 @@ pub enum NodeValue {
     IfNode {
         cases: Vec<(Node, Vec<Node>)>,
         elsecase: Option<Vec<Node>>,
+    },
+    ForNode {
+        varoverwrite: bool,
+        varname: tokens::Token,
+        iterable: Box<Node>,
+        body: Vec<Node>
+    },
+    WhileNode {
+        condition: Box<Node>,
+        body: Vec<Node>
     },
 
 
@@ -65,6 +78,18 @@ impl fmt::Display for Node {
             NodeValue::FloatNode     {token: _, value}       => write!(f, "f{}", value),
             NodeValue::StringNode    {token: _, value}       => write!(f, "`{}`", value),
             NodeValue::VarAccessNode {token}                 => write!(f, "{}", token.value),
+            NodeValue::ArrayNode     {exprs}                 => {
+                let mut res = "".to_string();
+
+                for i in 0 .. exprs.len() {
+                    res += format!("{}", exprs[i]).as_str();
+                    if i < exprs.len() - 1 {
+                        res += ", "
+                    }
+                }
+
+                write!(f, "[{}]", res)
+            },
 
             NodeValue::VarInitNode   {varname, node}         => write!(f, "({} = {})", varname.value, node),
 
@@ -85,6 +110,12 @@ impl fmt::Display for Node {
 
                 write!(f, "({})", res)
             },
+            NodeValue::ForNode       {varoverwrite, varname, iterable, body: _} => {
+                write!(f, "(for {}{} in {})", if *varoverwrite {"var "} else {""}, varname.value, *iterable)
+            },
+            NodeValue::WhileNode     {condition, body: _} => {
+                write!(f, "(while {})", *condition)
+            }
 
             NodeValue::BinaryOpNode  {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),
             NodeValue::UnaryOpNode   {optoken, node}         => write!(f, "({} {})", optoken, node)

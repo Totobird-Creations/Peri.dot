@@ -1,6 +1,15 @@
-var a = 0
-var b = a
-var c = b
-var d = c
+if (10 > 20) {
+    true
+} elif (10 > 10) {
+    true
+} else {
+    false
+}
 
-if (d) {}
+
+
+var i = 0
+var a = for i in ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    10
+}
+a

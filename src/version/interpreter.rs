@@ -38,18 +38,21 @@ struct Interpreter {
 impl Interpreter {
     fn visit(&mut self, node: Node, context: &mut Context) -> RTResult {
         match node.nodevalue.clone() {
-            NodeValue::NullNode                             => panic!("NullNode Found"),
-            NodeValue::IntNode       {token, value}         => self.visit_intnode(node, context, token, value),
-            NodeValue::FloatNode     {token, value}         => self.visit_floatnode(node, context, token, value),
-            NodeValue::StringNode    {token, value}         => self.visit_stringnode(node, context, token, value),
-            NodeValue::VarAccessNode {token}                => self.visit_varaccessnode(node, context, token),
+            NodeValue::NullNode                                              => panic!("NullNode Found"),
+            NodeValue::IntNode       {token, value}                          => self.visit_intnode      (node, context, token, value),
+            NodeValue::FloatNode     {token, value}                          => self.visit_floatnode    (node, context, token, value),
+            NodeValue::StringNode    {token, value}                          => self.visit_stringnode   (node, context, token, value),
+            NodeValue::VarAccessNode {token}                                 => self.visit_varaccessnode(node, context, token),
+            NodeValue::ArrayNode     {exprs}                                 => self.visit_arraynode    (node, context, exprs),
 
-            NodeValue::VarInitNode   {varname, node: onode} => self.visit_varinitnode(node, context, varname, *onode),
+            NodeValue::VarInitNode   {varname, node: onode}                  => self.visit_varinitnode  (node, context, varname, *onode),
 
-            NodeValue::IfNode        {cases, elsecase}      => self.visit_ifnode(node, context, cases, elsecase),
+            NodeValue::IfNode        {cases, elsecase}                       => self.visit_ifnode       (node, context, cases, elsecase),
+            NodeValue::ForNode       {varoverwrite, varname, iterable, body} => self.visit_fornode      (node, context, varoverwrite, varname, *iterable, body),
+            NodeValue::WhileNode     {condition, body}                       => self.visit_whilenode    (node, context, *condition, body),
 
-            NodeValue::BinaryOpNode  {left, optoken, right} => self.visit_binaryopnode(node, context, *left, optoken, *right),
-            NodeValue::UnaryOpNode   {optoken, node: onode} => self.visit_unaryopnode(node, context, optoken, *onode)
+            NodeValue::BinaryOpNode  {left, optoken, right}                  => self.visit_binaryopnode (node, context, *left, optoken, *right),
+            NodeValue::UnaryOpNode   {optoken, node: onode}                  => self.visit_unaryopnode  (node, context, optoken, *onode)
         }
     }
 
@@ -137,6 +140,53 @@ impl Interpreter {
                     start: node.start, end: node.end, context: Some(context.clone())
                 });
             }
+        }
+    }
+
+    fn visit_arraynode(&mut self, node: Node, context: &mut Context, exprs: Vec<Node>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut values = vec![];
+
+        for i in exprs {
+            let expr = res.register(self.visit(i, context));
+
+            if res.exception.failed {
+                return res;
+            }
+
+            values.push(expr);
+        }
+
+        if values.len() > 0 {
+            let arraytype = values[0].gettype().to_string();
+
+            for i in values.clone() {
+                if i.gettype().to_string() != arraytype {
+                    context.origin = i.clone().context.origin;
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "TypeException".to_string(),
+                        msg: format!("Array<{}> may not contain {}", arraytype, i.gettype()),
+                        ucmsg: "Array<{}> may not contain {}".to_string(),
+                        start: i.start, end: i.end, context: Some(context.clone())
+                    });
+                }
+            }
+
+            return res.success(Type {
+                value: Value::ArrayType(values.clone(), arraytype),
+                start: node.start, end: node.end, context: context.clone()
+            });
+
+        } else {
+            let arraytype = Type {
+                value: Value::NullType,
+                start: node.clone().start, end: node.clone().end, context: context.clone()
+            };
+            return res.success(Type {
+                value: Value::ArrayType(values, arraytype.gettype().to_string()),
+                start: node.clone().start, end: node.clone().end, context: context.clone()
+            });
         }
     }
 
@@ -236,6 +286,91 @@ impl Interpreter {
             start: node.start, end: node.end,
             context: context.clone()
         });
+    }
+
+
+
+    fn visit_fornode(&mut self, node: Node, context: &mut Context, varoverwrite: bool, varname: tokens::Token, iterable: Node, body: Vec<Node>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        
+        let iterable = res.register(self.visit(iterable, context));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        let iterable = match iterable.value {
+            Value::ArrayType(value, _) => value,
+            _ => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be interpreted as an Iterable", iterable.gettype()),
+                    ucmsg: "{} can not be interpreted as {}".to_string(),
+                    start: iterable.start, end: iterable.end, context: Some(context.clone())
+                });
+            }
+        };
+
+        let mut value = Type {
+            value: Value::NullType,
+            start: node.start, end: node.end,
+            context: context.clone()
+        };
+
+        for i in iterable {
+            if ! varoverwrite {
+                let itype = context.symbols.get(varname.value.clone());
+                match itype {
+                    Some(value) => {
+                        if value.readonly {
+                            return res.failure(InterpreterException {
+                                failed: true,
+                                name: "TypeException".to_string(),
+                                msg: format!("Can not assign to read-only symbol"),
+                                ucmsg: "Can not assign to read-only symbol".to_string(),
+                                start: varname.start, end: varname.end, context: Some(context.clone())
+                            });
+                        }
+
+                        if value.value.gettype() != i.gettype() {
+                            return res.failure(InterpreterException {
+                                failed: true,
+                                name: "TypeException".to_string(),
+                                msg: format!("Can not assign {} to symbol of type {}", i.gettype(), value.value.gettype()),
+                                ucmsg: "Can not assign {} to symbol of type {}".to_string(),
+                                start: varname.start, end: varname.end, context: Some(context.clone())
+                            });
+                        }
+                    },
+                    None => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("Can not assign to non-existant symbol"),
+                            ucmsg: "Can not assign to non-existant symbol".to_string(),
+                            start: varname.start, end: varname.end, context: Some(context.clone())
+                        });
+                    }
+                }
+            }
+            context.symbols.set(varname.value.clone(), i);
+
+            for j in body.clone() {
+                value = res.register(self.visit(j, context));
+                if res.exception.failed {
+                    return res;
+                }
+            }
+        }
+
+        return res.success(value);
+    }
+
+
+
+    fn visit_whilenode(&mut self, node: Node, context: &mut Context, condition: Node, body: Vec<Node>) -> RTResult {
+        panic!("WhileNode Found!");
     }
 
 

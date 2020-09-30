@@ -5,7 +5,40 @@
 ---
 
 ### Pre-Release Notes
-- RPN-ish Arithmetic Added
+- ADDED __Types__
+```peridot
+# Rusty Peri.dot
+
+# String                : Str
+"Hello World!"
+'Hello World!'
+
+# Integer               : Int
+10 11 -7
+
+# Floating Point Number : Float
+10.5 11.7 -1.4
+
+# Boolean               : Bool
+true false
+
+# Array                 : Array<L, T>
+[1, 2, 3, 4] [1.0, 2.0, 3.0, 4.0]
+
+### COMING SOON ###
+# Sequence              : Seq<T>
+# Untyped Array         : Uarray<T, T, ...>
+# Table                 : Table<K, V>
+# Enumeration           : ENUMNAME
+# Exception             : Excep<N>
+# Module                : Mod<N>
+# Structure             : STRUCTNAME
+# Implementation        : IMPLNAME
+# Function              : Func<[P, P, ...], R>
+```
+
+
+- ADDED: __RPN Arithmetic__
 ```peridot
 # Peri.Py
 (1 + 2) * 3 # ((1 + 2) * 3)
@@ -13,18 +46,22 @@
 
 # Rusty Peri.dot
 1 2+ 3*     # ((1 + 2) * 3)
-1 (2 3*)+   # (1 + (2 * 3))
+1 2 3*+   # ((2 * 3) + 1)
 ```
-- Variables Added
-  - Initialization
-  - Access
+
+
+- ADDED: __Variables__
+  - __Initialization__
+  - __Access__
 ```peridot
 # Rusty Peri.dot
 
 var x = 10 10+
 x # 20
 ```
-- Error codes
+
+
+- ADDED: __Error Codes__
 ```
 # Console
 
@@ -34,7 +71,9 @@ OperationException: 10 raised to negative value 1
 # Now
 [e24261] OperationException: 10 raised to negative value 1
 ```
-- Origin Added
+
+
+- ADDED: __Origin__
 ```
 # Console
 
@@ -84,6 +123,21 @@ OperationException: 10 raised to negative value 1
 [e22410] TypeException: String can not be added to Int
 ```
 
+
+- ADDED: __If, For, and While Statements__
+```peridot
+# Rusty Peri.dot
+
+var x = if (10 0 <) {
+    10
+} elif (0 0 <) {
+    0
+} elif (-10 0 <) {
+    -10
+} else {
+    -1000
+}
+```
 ---
 
 [Homepage](https://toto-bird.github.io/Peri.dot-lang/)<br />

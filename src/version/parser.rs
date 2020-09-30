@@ -240,6 +240,7 @@ impl Parser {
     fn factor(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let token = self.curtoken.clone();
+
         if token.token == TT_LPAREN {
             res.registeradvancement();
             self.advance();
@@ -285,12 +286,29 @@ impl Parser {
             });
 
 
-        } else if token.matches(TT_KEYWORD, "if") {
+        } else if token.clone().matches(TT_KEYWORD, "if") {
             let ifexpr = res.register(self.ifexpr());
             if res.exception.failed {
                 return res;
             }
             return res.success(ifexpr);
+
+
+        } else if token.clone().matches(TT_KEYWORD, "for") {
+            let forexpr = res.register(self.forexpr());
+            if res.exception.failed {
+                return res;
+            }
+            return res.success(forexpr);
+
+
+        } else if token.clone().matches(TT_KEYWORD, "while") {
+            panic!("WHILE EXPR?!?!?!?");
+            let whileexpr = res.register(self.whileexpr());
+            if res.exception.failed {
+                return res;
+            }
+            return res.success(whileexpr);
 
 
         } else {
@@ -439,6 +457,181 @@ impl Parser {
 
 
 
+    fn forexpr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let start = self.curtoken.start.clone();
+
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "for") {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `for` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let mut varoverwrite = false;
+        if self.curtoken.clone().matches(TT_KEYWORD, "var") {
+            varoverwrite = true;
+            res.registeradvancement();
+            self.advance();
+        }
+
+        if self.curtoken.token != TT_IDENTIFIER {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected IDENTIFIER not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        let varname = self.curtoken.clone();
+
+        res.registeradvancement();
+        self.advance();
+
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "in") {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `in` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        if self.curtoken.token != TT_LPAREN {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `(` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let expr = res.register(self.expr());
+
+        if res.exception.failed {
+            return res;
+        }
+
+        if self.curtoken.token != TT_RPAREN {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `)` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let response = self.codeblock();
+        let codeblock: Vec<Node>;
+        match response {
+            ParseResponse::Success(value) => {
+                codeblock = value;
+            },
+            ParseResponse::Failed(err) => {return res.failure(err)}
+        }
+
+        return res.success(Node {
+            nodevalue: NodeValue::ForNode {
+                varoverwrite: varoverwrite,
+                varname: varname,
+                iterable: Box::new(expr),
+                body: codeblock
+            },
+            start: start, end: self.curtoken.start.clone()
+        });
+    }
+
+
+
+    fn whileexpr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let start = self.curtoken.start.clone();
+
+        if self.curtoken.clone().matches(TT_KEYWORD, "while") {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `while` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        if self.curtoken.token == TT_LPAREN {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `(` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let condition = res.register(self.expr());
+
+        if res.exception.failed {
+            return res;
+        }
+
+        if self.curtoken.token == TT_RPAREN {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `)` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let response = self.codeblock();
+        let codeblock: Vec<Node>;
+        match response {
+            ParseResponse::Success(value) => {
+                codeblock = value;
+            },
+            ParseResponse::Failed(err) => {return res.failure(err)}
+        }
+
+        return res.success(Node {
+            nodevalue: NodeValue::WhileNode {
+                condition: Box::new(condition),
+                body: codeblock
+            },
+            start: start, end: self.curtoken.start.clone()
+        });
+    }
+
+
+
     fn atom(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let token = self.curtoken.clone();
@@ -486,6 +679,9 @@ impl Parser {
                 start, end: end
             });
 
+        } else if token.token == TT_LSQUARE {
+            return self.arrayexpr();
+
         } else {
             return res.failure(ParserException {
                 failed: true,
@@ -495,6 +691,128 @@ impl Parser {
                 start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
             });
         }
+    }
+
+
+
+    fn arrayexpr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let start = self.curtoken.start.clone();
+
+        if self.curtoken.token != TT_LSQUARE {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `[` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        if self.curtoken.token == TT_COMMA {
+            res.registeradvancement();
+            self.advance();
+
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
+            if self.curtoken.token != TT_RSQUARE {
+                return res.failure(ParserException {
+                    failed: false,
+                    name: "SyntaxException".to_string(),
+                    msg: "Expected `]` not found".to_string(),
+                    ucmsg: "Expected {} not found".to_string(),
+                    start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                });
+            }
+
+            res.registeradvancement();
+            self.advance();
+
+            return res.success(Node {
+                nodevalue: NodeValue::ArrayNode {
+                    exprs: vec![]
+                },
+                start: start, end: self.curtoken.end.clone()
+            });
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
+        if self.curtoken.token == TT_RSQUARE {
+            let end = self.curtoken.end.clone();
+
+            res.registeradvancement();
+            self.advance();
+
+            return res.success(Node {
+                nodevalue: NodeValue::ArrayNode {
+                    exprs: vec![]
+                },
+                start: start, end: end
+            });
+        }
+
+        let mut exprs = vec![res.register(self.expr())];
+
+        if res.exception.failed {
+            return res;
+        }
+
+        while self.curtoken.token == TT_COMMA {
+            res.registeradvancement();
+            self.advance();
+
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
+            if self.curtoken.token == TT_RSQUARE {
+                break
+            }
+
+            exprs.push(res.register(self.expr()));
+
+            if res.exception.failed {
+                return res;
+            }
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
+        if self.curtoken.token != TT_RSQUARE {
+            return res.failure(ParserException {
+                failed: false,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `]` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        let end = self.curtoken.end.clone();
+
+        res.registeradvancement();
+        self.advance();
+
+        return res.success(Node {
+            nodevalue: NodeValue::ArrayNode {
+                exprs: exprs
+            },
+            start: start, end: end
+        })
     }
 
 

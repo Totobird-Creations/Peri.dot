@@ -1,4 +1,5 @@
 use std::fmt;
+use std::collections::HashMap;
 
 use super::lexer;
 use super::interpreter::RTResult;
@@ -19,16 +20,28 @@ pub enum Value {
     IntType(i128),
     FloatType(f64),
     StrType(String),
-    BoolType(bool)
+    BoolType(bool),
+    ArrayType(Vec<Type>, String),
+    //SequenceType(Vec<Type>),
+    //UntypedArrayType(Vec<Type>),
+    //TableType(HashMap),
+    //EnumerationType,
+    //ExceptionType,
+    //ModuleType,
+    //StructureType,
+    //ImplementationType,
+    //FunctionType,
+    //BuiltInFunctionType
 }
 impl Type {
-    pub fn gettype(&self) -> &str {
-        match self.value {
-            Value::NullType   =>   "Null",
-            Value::IntType(_) =>   "Int",
-            Value::FloatType(_) => "Float",
-            Value::StrType(_) =>   "String",
-            Value::BoolType(_) =>  "Bool"
+    pub fn gettype(&self) -> String {
+        match &self.value {
+            Value::NullType                => "Null".to_string(),
+            Value::IntType(_)              => "Int".to_string(),
+            Value::FloatType(_)            => "Float".to_string(),
+            Value::StrType(_)              => "String".to_string(),
+            Value::BoolType(_)             => "Bool".to_string(),
+            Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype)
         }
     }
 
@@ -110,6 +123,29 @@ impl Type {
             (Value::StrType(selfvalue), Value::StrType(othervalue)) => {
                 return res.success(Type {
                     value: Value::StrType(selfvalue + othervalue.as_str()),
+                    start: self.start, end: other.end, context: self.context
+                });
+            }
+
+            (Value::ArrayType(selfvalue, selftype), Value::ArrayType(othervalue, othertype)) => {
+                if selftype != othertype {
+                    let mut context = self.clone().context;
+                    context.origin.append(&mut other.context.origin.clone());
+                    return res.failure(
+                        InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{}<{}> can not be added to {}<{}>", other.gettype(), othertype, self.gettype(), selftype),
+                            ucmsg: "Float overflowed when converting to Peri.dot type".to_string(),
+                            start: self.start, end: self.end, context: Some(context)
+                        }
+                    )
+                }
+                let mut value = selfvalue.clone();
+                let mut othervalue = othervalue;
+                value.append(&mut othervalue);
+                return res.success(Type {
+                    value: Value::ArrayType(value, self.gettype().to_string()),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -721,17 +757,27 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.value {
-            Value::NullType           => write!(f, "null"),
-            Value::IntType(value)     => write!(f, "{}", value),
-            Value::FloatType(value)   => {
+            Value::NullType            => write!(f, "null"),
+            Value::IntType(value)      => write!(f, "{}", value),
+            Value::FloatType(value)    => {
                 let mut value = value.to_string();
                 if ! value.contains(".") {
                     value += ".0";
                 }
                 write!(f, "{}", value)
             },
-            Value::StrType(value)  => write!(f, "{}", value),
-            Value::BoolType(value) => write!(f, "{}", if *value {"true"} else {"false"})
+            Value::StrType(value)      => write!(f, "{}", value),
+            Value::BoolType(value)     => write!(f, "{}", if *value {"true"} else {"false"}),
+            Value::ArrayType(value, _) => {
+                let mut res = "".to_string();
+                for i in 0..value.len() {
+                    res += format!("{}", value[i]).as_str();
+                    if i < value.len() - 1 {
+                        res += ", ";
+                    }
+                }
+                write!(f, "[{}]", res)
+            }
         }
     }
 }

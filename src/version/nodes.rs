@@ -41,6 +41,10 @@ pub enum NodeValue {
         varname: tokens::Token,
         node   : Box<Node>,
     },
+    VarAssignNode {
+        varname: tokens::Token,
+        node   : Box<Node>,
+    },
 
 
     IfNode {
@@ -91,7 +95,8 @@ impl fmt::Display for Node {
                 write!(f, "[{}]", res)
             },
 
-            NodeValue::VarInitNode   {varname, node}         => write!(f, "({} = {})", varname.value, node),
+            NodeValue::VarInitNode   {varname, node}         => write!(f, "(var {} = {})", varname.value, node),
+            NodeValue::VarAssignNode {varname, node}         => write!(f, "({} = {})", varname.value, node),
 
             NodeValue::IfNode        {cases, elsecase} => {
                 let mut res = "".to_string();

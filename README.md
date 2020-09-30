@@ -52,12 +52,14 @@ true false
 
 - ADDED: __Variables__
   - __Initialization__
+  - __Assignment__
   - __Access__
 ```peridot
 # Rusty Peri.dot
 
 var x = 10 10+
-x # 20
+x = 30
+x # 30
 ```
 
 

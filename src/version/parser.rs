@@ -15,6 +15,10 @@ impl ParseResult {
         self.advancecount += 1;
     }
 
+    fn registerretreat(&mut self) {
+        self.advancecount -= 1;
+    }
+
     fn register(&mut self, res: ParseResult) -> Node {
         self.advancecount += res.advancecount;
         if res.exception.failed {
@@ -54,6 +58,15 @@ struct Parser {
 impl Parser {
     fn advance(&mut self) -> Token {
         self.index += 1;
+        if self.index < self.tokens.len() {
+            self.curtoken = self.tokens[self.index].clone();
+        }
+
+        return self.curtoken.clone();
+    }
+
+    fn retreat(&mut self) -> Token {
+        self.index -= 1;
         if self.index < self.tokens.len() {
             self.curtoken = self.tokens[self.index].clone();
         }
@@ -145,6 +158,34 @@ impl Parser {
                 },
                 start: varname.start.clone(), end: self.curtoken.start.clone()
             });
+
+
+        } else if self.curtoken.token == TT_IDENTIFIER {
+            let varname = self.curtoken.clone();
+
+            res.registeradvancement();
+            self.advance();
+
+            if self.curtoken.token == TT_EQUALS {
+                res.registeradvancement();
+                self.advance();
+
+                let expr = res.register(self.expr());
+
+                if res.exception.failed {
+                    return res;
+                }
+
+                return res.success(Node {
+                    nodevalue: NodeValue::VarAssignNode {
+                        varname: varname.clone(), node: Box::new(expr)
+                    },
+                    start: varname.start.clone(), end: self.curtoken.start.clone()
+                });
+            }
+
+            res.registerretreat();
+            self.retreat();
         }
 
         return self.expr();

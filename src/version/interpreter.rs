@@ -39,20 +39,21 @@ impl Interpreter {
     fn visit(&mut self, node: Node, context: &mut Context) -> RTResult {
         match node.nodevalue.clone() {
             NodeValue::NullNode                                              => panic!("NullNode Found"),
-            NodeValue::IntNode       {token, value}                          => self.visit_intnode      (node, context, token, value),
-            NodeValue::FloatNode     {token, value}                          => self.visit_floatnode    (node, context, token, value),
-            NodeValue::StringNode    {token, value}                          => self.visit_stringnode   (node, context, token, value),
-            NodeValue::VarAccessNode {token}                                 => self.visit_varaccessnode(node, context, token),
-            NodeValue::ArrayNode     {exprs}                                 => self.visit_arraynode    (node, context, exprs),
+            NodeValue::IntNode       {token, value}                          => self.visit_intnode       (node, context, token, value),
+            NodeValue::FloatNode     {token, value}                          => self.visit_floatnode     (node, context, token, value),
+            NodeValue::StringNode    {token, value}                          => self.visit_stringnode    (node, context, token, value),
+            NodeValue::VarAccessNode {token}                                 => self.visit_varaccessnode (node, context, token),
+            NodeValue::ArrayNode     {exprs}                                 => self.visit_arraynode     (node, context, exprs),
 
-            NodeValue::VarInitNode   {varname, node: onode}                  => self.visit_varinitnode  (node, context, varname, *onode),
+            NodeValue::VarInitNode   {varname, node: onode}                  => self.visit_varinitnode   (node, context, varname, *onode),
+            NodeValue::VarAssignNode {varname, node: onode}                  => self.visit_varassignnode (node, context, varname, *onode),
 
-            NodeValue::IfNode        {cases, elsecase}                       => self.visit_ifnode       (node, context, cases, elsecase),
-            NodeValue::ForNode       {varoverwrite, varname, iterable, body} => self.visit_fornode      (node, context, varoverwrite, varname, *iterable, body),
-            NodeValue::WhileNode     {condition, body}                       => self.visit_whilenode    (node, context, *condition, body),
+            NodeValue::IfNode        {cases, elsecase}                       => self.visit_ifnode        (node, context, cases, elsecase),
+            NodeValue::ForNode       {varoverwrite, varname, iterable, body} => self.visit_fornode       (node, context, varoverwrite, varname, *iterable, body),
+            NodeValue::WhileNode     {condition, body}                       => self.visit_whilenode     (node, context, *condition, body),
 
-            NodeValue::BinaryOpNode  {left, optoken, right}                  => self.visit_binaryopnode (node, context, *left, optoken, *right),
-            NodeValue::UnaryOpNode   {optoken, node: onode}                  => self.visit_unaryopnode  (node, context, optoken, *onode)
+            NodeValue::BinaryOpNode  {left, optoken, right}                  => self.visit_binaryopnode  (node, context, *left, optoken, *right),
+            NodeValue::UnaryOpNode   {optoken, node: onode}                  => self.visit_unaryopnode   (node, context, optoken, *onode)
         }
     }
 
@@ -217,6 +218,43 @@ impl Interpreter {
         
         context.symbols.set(varname, value.clone());
         return res.success(value);
+    }
+
+    fn visit_varassignnode(&mut self, node: Node, context: &mut Context, token: tokens::Token, onode: Node) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let varname = token.value;
+        let assigningvalue = res.register(self.visit(onode, context));
+        if res.exception.failed {
+            return res;
+        }
+
+        match context.symbols.get(varname.clone()) {
+            Some(value) => {
+                if value.readonly {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "IdentifierException".to_string(),
+                        msg: format!("Symbol `{}` is read-only", varname),
+                        ucmsg: "Symbol `{}` is read-only".to_string(),
+                        start: node.start, end: node.end, context: Some(context.clone())
+                    });
+                }
+
+                if value.value.gettype() != assigningvalue.gettype() {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "TypeException".to_string(),
+                        msg: format!("Can not assign {} to symbol of type {}", assigningvalue.gettype(), value.value.gettype()),
+                        ucmsg: "Can not assign {} to symbols of type {}".to_string(),
+                        start: assigningvalue.start, end: assigningvalue.end, context: Some(context.clone())
+                    });
+                }
+            },
+            None => {}
+        }
+        
+        context.symbols.set(varname, assigningvalue.clone());
+        return res.success(assigningvalue);
     }
 
 

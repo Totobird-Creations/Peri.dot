@@ -7,6 +7,7 @@ Combiner   : AND XOR OR
 
 notraceexpr:
   - KEYWORD:var IDENTIFIER EQUALS expr
+  - IDENTIFIER EQUALS expr
   - expr
 
 expr:

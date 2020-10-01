@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::exceptions::InterpreterException;
 use super::tokens;
 use super::nodes::*;
@@ -32,18 +34,19 @@ impl RTResult {
 
 
 
-struct Interpreter {
-
-}
+pub struct Interpreter {}
 impl Interpreter {
-    fn visit(&mut self, node: Node, context: &mut Context) -> RTResult {
+    pub fn visit(&mut self, node: Node, context: &mut Context) -> RTResult {
         match node.nodevalue.clone() {
             NodeValue::NullNode                                              => panic!("NullNode Found"),
+            NodeValue::TypeNode {value}                                      => panic!("TypeNode Found: {}", value),
+
             NodeValue::IntNode       {token, value}                          => self.visit_intnode       (node, context, token, value),
             NodeValue::FloatNode     {token, value}                          => self.visit_floatnode     (node, context, token, value),
             NodeValue::StringNode    {token, value}                          => self.visit_stringnode    (node, context, token, value),
             NodeValue::VarAccessNode {token}                                 => self.visit_varaccessnode (node, context, token),
             NodeValue::ArrayNode     {exprs}                                 => self.visit_arraynode     (node, context, exprs),
+            NodeValue::CallNode      {varname, args}                         => self.visit_callnode      (node, context, *varname, args),
 
             NodeValue::VarInitNode   {varname, node: onode}                  => self.visit_varinitnode   (node, context, varname, *onode),
             NodeValue::VarAssignNode {varname, node: onode}                  => self.visit_varassignnode (node, context, varname, *onode),
@@ -51,6 +54,7 @@ impl Interpreter {
             NodeValue::IfNode        {cases, elsecase}                       => self.visit_ifnode        (node, context, cases, elsecase),
             NodeValue::ForNode       {varoverwrite, varname, iterable, body} => self.visit_fornode       (node, context, varoverwrite, varname, *iterable, body),
             NodeValue::WhileNode     {condition, body}                       => self.visit_whilenode     (node, context, *condition, body),
+            NodeValue::FuncNode      {args, returntype, body}                => self.visit_funcnode      (node, context, args, returntype, body),
 
             NodeValue::BinaryOpNode  {left, optoken, right}                  => self.visit_binaryopnode  (node, context, *left, optoken, *right),
             NodeValue::UnaryOpNode   {optoken, node: onode}                  => self.visit_unaryopnode   (node, context, optoken, *onode)
@@ -60,7 +64,7 @@ impl Interpreter {
 
 
     fn visit_intnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let value = match value.parse::<i128>() {
             Ok(value) => value,
             Err(_)  => {
@@ -77,12 +81,13 @@ impl Interpreter {
         };
         return res.success(Type {
             value: Value::IntType(value),
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end, context: context.clone()
         });
     }
 
     fn visit_floatnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let value = match value.parse::<f64>() {
             Ok(value) => value,
             Err(_)  => {
@@ -110,26 +115,29 @@ impl Interpreter {
         }
         return res.success(Type {
             value: Value::FloatType(value),
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end, context: context.clone()
         });
     }
 
     fn visit_stringnode(&mut self, node: Node, context: &Context, _token: tokens::Token, value: String) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         return res.success(Type {
             value: Value::StrType(value),
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end, context: context.clone()
         });
     }
 
     fn visit_varaccessnode(&mut self, node: Node, context: &mut Context, token: tokens::Token) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let varname = token.value;
         let value = context.symbols.get(varname.clone());
 
         match value {
             Some(mut value) => {
                 value.value.modorigin();
+                value.value.name = varname.clone();
                 return res.success(value.value.setpos(node.start, node.end));
             }
             None => {
@@ -145,7 +153,7 @@ impl Interpreter {
     }
 
     fn visit_arraynode(&mut self, node: Node, context: &mut Context, exprs: Vec<Node>) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let mut values = vec![];
 
         for i in exprs {
@@ -176,27 +184,58 @@ impl Interpreter {
 
             return res.success(Type {
                 value: Value::ArrayType(values.clone(), arraytype),
+                name: "<Anonymous>".to_string(),
                 start: node.start, end: node.end, context: context.clone()
             });
 
         } else {
             let arraytype = Type {
                 value: Value::NullType,
+                name: "<Anonymous>".to_string(),
                 start: node.clone().start, end: node.clone().end, context: context.clone()
             };
             return res.success(Type {
                 value: Value::ArrayType(values, arraytype.gettype().to_string()),
+                name: "<Anonymous>".to_string(),
                 start: node.clone().start, end: node.clone().end, context: context.clone()
             });
         }
     }
 
+    fn visit_callnode(&mut self, node: Node, context: &mut Context, varname: Node, args: Vec<Node>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut resargs = vec![];
+
+        let mut func = res.register(self.visit(varname, context));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        func = func.copy().setpos(node.start, node.end);
+
+        for arg in args {
+            resargs.push(res.register(self.visit(arg, context)));
+            if res.exception.failed {
+                return res;
+            }
+        }
+
+        let value = res.register(func.call(resargs));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        return res.success(value);
+    }
+
 
 
     fn visit_varinitnode(&mut self, node: Node, context: &mut Context, token: tokens::Token, onode: Node) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let varname = token.value;
-        let value = res.register(self.visit(onode, context));
+        let mut value = res.register(self.visit(onode, context));
         if res.exception.failed {
             return res;
         }
@@ -215,15 +254,17 @@ impl Interpreter {
             },
             None => {}
         }
+
+        value.name = varname.clone();
         
         context.symbols.set(varname, value.clone());
         return res.success(value);
     }
 
     fn visit_varassignnode(&mut self, node: Node, context: &mut Context, token: tokens::Token, onode: Node) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let varname = token.value;
-        let assigningvalue = res.register(self.visit(onode, context));
+        let mut assigningvalue = res.register(self.visit(onode, context));
         if res.exception.failed {
             return res;
         }
@@ -252,6 +293,8 @@ impl Interpreter {
             },
             None => {}
         }
+
+        assigningvalue.name = varname.clone();
         
         context.symbols.set(varname, assigningvalue.clone());
         return res.success(assigningvalue);
@@ -260,7 +303,7 @@ impl Interpreter {
 
 
     fn visit_ifnode(&mut self, node: Node, context: &mut Context, cases: Vec<(Node, Vec<Node>)>, elsecase: Option<Vec<Node>>) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
 
         for i in cases {
             let condition = res.register(self.visit(i.0.clone(), context));
@@ -288,6 +331,7 @@ impl Interpreter {
             if condvalue {
                 let mut value = Type {
                     value: Value::NullType,
+                    name: "<Anonymous>".to_string(),
                     start: node.start, end: node.end,
                     context: context.clone()
                 };
@@ -305,6 +349,7 @@ impl Interpreter {
             Some(nodes) => {
                 let mut value = Type {
                     value: Value::NullType,
+                    name: "<Anonymous>".to_string(),
                     start: node.start, end: node.end,
                     context: context.clone()
                 };
@@ -321,6 +366,7 @@ impl Interpreter {
 
         return res.success(Type {
             value: Value::NullType,
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end,
             context: context.clone()
         });
@@ -329,7 +375,7 @@ impl Interpreter {
 
 
     fn visit_fornode(&mut self, node: Node, context: &mut Context, varoverwrite: bool, varname: tokens::Token, iterable: Node, body: Vec<Node>) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         
         let iterable = res.register(self.visit(iterable, context));
 
@@ -352,6 +398,7 @@ impl Interpreter {
 
         let mut value = Type {
             value: Value::NullType,
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end,
             context: context.clone()
         };
@@ -408,10 +455,11 @@ impl Interpreter {
 
 
     fn visit_whilenode(&mut self, node: Node, context: &mut Context, conditionnode: Node, body: Vec<Node>) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
 
         let mut value = Type {
             value: Value::NullType,
+            name: "<Anonymous>".to_string(),
             start: node.start, end: node.end,
             context: context.clone()
         };
@@ -452,8 +500,47 @@ impl Interpreter {
 
 
 
+    fn visit_funcnode(&mut self, node: Node, context: &mut Context, args: HashMap<i32, (tokens::Token, String)>, returntype: Box<Node>, body: Vec<Node>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+
+        let mut argnames = vec![];
+
+        for i in args.keys() {
+            if argnames.contains(&args[i].0.value) {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "ParameterException".to_string(),
+                    msg: format!("Paramter `{}` is used more than once", args[i].0.value),
+                    ucmsg: "Parameter {} is used more than once".to_string(),
+                    start: args[i].0.start.clone(), end: args[i].0.end.clone(), context: Some(context.clone())
+                });
+            }
+            argnames.push(args[i].0.value.clone());
+        }
+
+        let returntype = match returntype.nodevalue {
+            NodeValue::TypeNode {value} => {value},
+            _ => panic!("Non TypeNode received")
+        };
+
+        let func = Type {
+            value: Value::FuncType (
+                args,
+                returntype,
+                body
+            ),
+            name: "<Anonymous>".to_string(),
+            start: node.start, end: node.end,
+            context: context.clone()
+        };
+
+        return res.success(func);
+    }
+
+
+
     fn visit_binaryopnode(&mut self, node: Node, context: &mut Context, left: Node, optoken: tokens::Token, right: Node) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let left = res.register(self.visit(left, context));
         if res.exception.failed {
             return res;
@@ -508,7 +595,7 @@ impl Interpreter {
     }
 
     fn visit_unaryopnode(&mut self, node: Node, context: &mut Context, optoken: tokens::Token, onode: Node) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
         let mut value = res.register(self.visit(onode, context));
         if res.exception.failed {
             return res;
@@ -516,12 +603,12 @@ impl Interpreter {
 
         if optoken.token == tokens::TT_MINUS {
             match value.value {
-                Value::FloatType(_) => value = res.register(value.times_op(Type {value: Value::FloatType(-1.0), start: node.start.clone(), end: node.end.clone(), context: context.clone()})),
-                _                   => value = res.register(value.times_op(Type {value: Value::IntType(-1), start: node.start.clone(), end: node.end.clone(), context: context.clone()}))
+                Value::FloatType(_) => value = res.register(value.times_op(Type {value: Value::FloatType(-1.0), name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()})),
+                _                   => value = res.register(value.times_op(Type {value: Value::IntType(-1), name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}))
             }
 
         } else if optoken.token == tokens::TT_NOT {
-            value = res.register(value.equaleq_comp(Type {value: Value::BoolType(false), start: node.start.clone(), end: node.end.clone(), context: context.clone()}));
+            value = res.register(value.equaleq_comp(Type {value: Value::BoolType(false), name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}));
         } else {
             panic!("Interpreter | visit_UnaryOpNode | Invalid operator recieved.");
         }

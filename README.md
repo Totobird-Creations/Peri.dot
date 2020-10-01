@@ -25,16 +25,22 @@ true false
 # Array                 : Array<L, T>
 [1, 2, 3, 4] [1.0, 2.0, 3.0, 4.0]
 
+# Function              : Func<[P, P, ...], R>
+var add = func(a: Int, b: Int): Int {
+    a b+
+}
+add(8, 5)
+
 ### COMING SOON ###
 # Sequence              : Seq<T>
 # Untyped Array         : Uarray<T, T, ...>
 # Table                 : Table<K, V>
-# Enumeration           : ENUMNAME
+# Enumeration           : Enum<N>
 # Exception             : Excep<N>
 # Module                : Mod<N>
-# Structure             : STRUCTNAME
-# Implementation        : IMPLNAME
-# Function              : Func<[P, P, ...], R>
+# Structure             : Struct<N>
+# Implementation        : Struct<N>
+# Built-In Function     : Func<[P, P, ...], R>
 ```
 
 

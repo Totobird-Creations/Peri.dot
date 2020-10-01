@@ -97,10 +97,10 @@ impl InterpreterException {
         let mut context: context::Context;
 
         loop {
-            match ctx {
-                Some(value) => {context = value}
+            context = match ctx {
+                Some(value) => value,
                 None        => break
-            }
+            };
 
             part = "".to_string();
 
@@ -110,8 +110,8 @@ impl InterpreterException {
 
             part += format!("  {} `{}`, {} `{}`,\n", "File".green(), pos.file.green().bold(), "In".green(), context.display.green().bold()).as_str();
             part += format!("  {} {}, {} {}\n", "Line".green(), (pos.line + 1).to_string().green().bold(), "Column".green(), (pos.column + 1).to_string().green().bold()).as_str();
-            part += format!("    {}\n", self.start.lines[self.start.line].yellow().bold()).as_str();
-            part += format!("    {}{}\n", " ".repeat(self.start.column), "^".repeat(self.end.index - self.start.index).yellow()).as_str();
+            part += format!("    {}\n", pos.lines[pos.line].yellow().bold()).as_str();
+            part += format!("    {}{}\n", " ".repeat(pos.column), "^".repeat(pos.index - pos.index).yellow()).as_str();
             result = part + result.as_str();
 
             match context.parententry {
@@ -158,7 +158,7 @@ impl InterpreterException {
             }
 
             part = "".to_string();
-            part += format!("  {}{} {}, {} {},\n", (prefix.clone() + cornertype + "═").magenta(), "File".green(), start.file.green().bold(), "In".green(), context.display.green().bold()).as_str();
+            part += format!("  {}{} {}, {} `{}`,\n", (prefix.clone() + cornertype + "═").magenta(), "File".green(), start.file.green().bold(), "In".green(), context.display.green().bold()).as_str();
             part += format!("  {} {} {}, {} {}\n", (prefix.clone() + "║").magenta(), "Line".green(), (start.line + 1).to_string().green().bold(), "Column".green(), (start.column + 1).to_string().green().bold()).as_str();
             part += format!("  {}   {}\n", (prefix.clone() + "║").magenta(), start.lines[start.line].yellow().bold()).as_str();
             part += format!("  {}   {}{}", (prefix.clone() + "║").magenta(), " ".repeat(start.column), "^".repeat(end.index - start.index).yellow()).as_str();

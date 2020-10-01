@@ -2,15 +2,18 @@ use std::fmt;
 use std::collections::HashMap;
 
 use super::lexer;
-use super::interpreter::RTResult;
+use super::interpreter::{RTResult, Interpreter};
 use super::exceptions::InterpreterException;
 use super::context;
+use super::nodes;
+use super::tokens;
 
 
 
 #[derive(Clone, Debug)]
 pub struct Type {
     pub value: Value,
+    pub name: String,
     pub start: lexer::LexerPosition, pub end: lexer::LexerPosition,
     pub context: context::Context
 }
@@ -30,18 +33,34 @@ pub enum Value {
     //ModuleType,
     //StructureType,
     //ImplementationType,
-    //FunctionType,
+    FuncType(HashMap<i32, (tokens::Token, String)>, String, Vec<nodes::Node>)
     //BuiltInFunctionType
 }
 impl Type {
     pub fn gettype(&self) -> String {
         match &self.value {
-            Value::NullType                => "Null".to_string(),
-            Value::IntType(_)              => "Int".to_string(),
-            Value::FloatType(_)            => "Float".to_string(),
-            Value::StrType(_)              => "String".to_string(),
-            Value::BoolType(_)             => "Bool".to_string(),
-            Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype)
+            Value::NullType                    => "Null".to_string(),
+            Value::IntType(_)                  => "Int".to_string(),
+            Value::FloatType(_)                => "Float".to_string(),
+            Value::StrType(_)                  => "Str".to_string(),
+            Value::BoolType(_)                 => "Bool".to_string(),
+            Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype),
+            Value::FuncType(args, returntype, _)  => {
+                let mut res = "".to_string();
+
+                let mut i = 0;
+                for key in args.keys() {
+                    res += args[key].1.as_str();
+
+                    if i < args.len() - 1 {
+                        res += ", ";
+                    }
+
+                    i += 1;
+                }
+
+                format!("Func<[{}], {}>", res, returntype)
+            }
         }
     }
 
@@ -50,6 +69,11 @@ impl Type {
     pub fn setpos(&mut self, start: lexer::LexerPosition, end: lexer::LexerPosition) -> Type {
         self.start = start;
         self.end = end;
+        return self.clone();
+    }
+
+    pub fn setcontext(&mut self, context: context::Context) -> Type {
+        self.context = context;
         return self.clone();
     }
 
@@ -64,7 +88,7 @@ impl Type {
 
 
     pub fn plus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -86,6 +110,7 @@ impl Type {
                 };
                 return res.success(Type {
                     value: Value::IntType(value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -116,6 +141,7 @@ impl Type {
                 }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -123,6 +149,7 @@ impl Type {
             (Value::StrType(selfvalue), Value::StrType(othervalue)) => {
                 return res.success(Type {
                     value: Value::StrType(selfvalue + othervalue.as_str()),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -146,6 +173,7 @@ impl Type {
                 value.append(&mut othervalue);
                 return res.success(Type {
                     value: Value::ArrayType(value, self.gettype().to_string()),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -168,7 +196,7 @@ impl Type {
 
 
     pub fn minus_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -190,6 +218,7 @@ impl Type {
                 };
                 return res.success(Type {
                     value: Value::IntType(value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -220,6 +249,7 @@ impl Type {
                 }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -242,7 +272,7 @@ impl Type {
 
 
     pub fn times_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -264,6 +294,7 @@ impl Type {
                 };
                 return res.success(Type {
                     value: Value::IntType(value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -285,6 +316,7 @@ impl Type {
                 }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -307,7 +339,7 @@ impl Type {
 
 
     pub fn divby_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -340,6 +372,7 @@ impl Type {
                 };
                 return res.success(Type {
                     value: Value::IntType(value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -372,6 +405,7 @@ impl Type {
                 }
                 return res.success(Type {
                     value: Value::FloatType(selfvalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -394,7 +428,7 @@ impl Type {
 
 
     pub fn pow_op(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
@@ -427,6 +461,7 @@ impl Type {
                 };
                 return res.success(Type {
                     value: Value::IntType(value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -434,6 +469,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::FloatType(selfvalue.powf(othervalue)),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -456,12 +492,13 @@ impl Type {
 
 
     pub fn equaleq_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::NullType, Value::NullType) => {
                 return res.success(Type {
                     value: Value::BoolType(true),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -469,6 +506,7 @@ impl Type {
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue == othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -476,6 +514,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue == othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -483,6 +522,7 @@ impl Type {
             (Value::StrType(selfvalue), Value::StrType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue == othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -490,6 +530,7 @@ impl Type {
             (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue == othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -512,7 +553,7 @@ impl Type {
 
 
     pub fn noteq_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         let value = res.register(self.clone().equaleq_comp(other.clone()));
 
         if res.exception.failed {
@@ -523,6 +564,7 @@ impl Type {
             Value::BoolType(value) => {
                 return res.success(Type {
                     value: Value::BoolType(! value),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -533,12 +575,13 @@ impl Type {
 
 
     pub fn lssthn_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue < othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -546,6 +589,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue < othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -568,12 +612,13 @@ impl Type {
 
 
     pub fn grtthn_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue > othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -581,6 +626,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue > othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -603,12 +649,13 @@ impl Type {
 
 
     pub fn lssthneq_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue <= othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -616,6 +663,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue <= othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -638,12 +686,13 @@ impl Type {
 
 
     pub fn grtthneq_comp(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::IntType(selfvalue), Value::IntType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue >= othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -651,6 +700,7 @@ impl Type {
             (Value::FloatType(selfvalue), Value::FloatType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue >= othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -673,12 +723,13 @@ impl Type {
 
 
     pub fn and_comb(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue && othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -701,12 +752,13 @@ impl Type {
 
 
     pub fn xor_comb(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(!(selfvalue && othervalue) && (selfvalue || othervalue)),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -729,12 +781,13 @@ impl Type {
 
 
     pub fn or_comb(self, other: Type) -> RTResult {
-        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {
 
             (Value::BoolType(selfvalue), Value::BoolType(othervalue)) => {
                 return res.success(Type {
                     value: Value::BoolType(selfvalue || othervalue),
+                    name: "<Anonymous>".to_string(),
                     start: self.start, end: other.end, context: self.context
                 });
             }
@@ -753,21 +806,135 @@ impl Type {
 
         }
     }
+
+
+
+    pub fn checkpopargs(self, context: &mut context::Context, args: Vec<Type>, funcargs: HashMap<i32, (tokens::Token, String)>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: self.end.clone(), context: self.context.clone()}};
+
+        if args.len() != funcargs.len() {
+            return res.failure(InterpreterException {
+                failed: true,
+                name: "ParameterException".to_string(),
+                msg: format!("Function takes {} parameters, {} given", funcargs.len(), args.len()),
+                ucmsg: "{} takes {} parameters, {} given".to_string(),
+                start: self.start, end: self.end, context: Some(self.context.clone())
+            });
+        }
+
+        for key in funcargs.keys() {
+            if funcargs[key].1 != args[*key as usize].gettype() {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "ParameterException".to_string(),
+                    msg: format!("Parameter `{}` must be of type {}, {} given", funcargs[key].0.value, funcargs[key].1, args[*key as usize].gettype()),
+                    ucmsg: "Parameter {} must be of type {}, {} given".to_string(),
+                    start: args[*key as usize].start.clone(), end: args[*key as usize].end.clone(), context: Some(args[*key as usize].context.clone())
+                });
+            }
+
+            context.symbols.set(funcargs[key].0.value.clone(), args[*key as usize].clone().setcontext(context.clone()));
+        }
+
+        return res.success(Type {
+            value: Value::NullType,
+            name: "<Anonymous>".to_string(),
+            start: self.start, end: self.end,
+            context: self.context
+        })
+    }
+
+
+
+    pub fn call(self, args: Vec<Type>) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: self.end.clone(), context: self.context.clone()}};
+
+        match self.value.clone() {
+
+            Value::FuncType(funcargs, returntype, body) => {
+                let mut interpreter = Interpreter {};
+                let mut symbols = context::defaultsymbols();
+                symbols.parent = Box::new(Some(self.context.symbols.clone()));
+
+                let context = &mut context::Context {
+                    display: self.name.to_string(),
+                    parent: Box::from(Some(self.context.clone())),
+                    parententry: Some(self.start.clone()),
+                    symbols: symbols,
+                    origin: vec![]
+                };
+
+                res.register(self.clone().checkpopargs(context, args, funcargs));
+
+                if res.exception.failed {
+                    return res;
+                }
+
+                let mut value = Type {
+                    value: Value::NullType,
+                    name: "<Anonymous>".to_string(),
+                    start: self.start, end: self.end,
+                    context: context.clone()
+                };
+                for i in body {
+                    value = res.register(interpreter.visit(i, context));
+                    if res.exception.failed {
+                        return res;
+                    }
+                }
+
+                return res.success(value);
+            }
+
+            _ => {
+                let mut context = self.context.clone();
+                context.origin.append(&mut self.context.origin.clone());
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be called", self.gettype()),
+                    ucmsg: "{} can not be called".to_string(),
+                    start: self.start, end: self.end, context: Some(context)
+                });
+            }
+
+        }
+    }
+
+
+
+    pub fn copy(self) -> Type {
+        match self.value.clone() {
+            Value::FuncType(funcargs, returntype, body) => {
+                Type {
+                    value: Value::FuncType(
+                        funcargs.clone(),
+                        returntype.clone(),
+                        body.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            _ => panic!("Illegal copy")
+        }
+    }
 }
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.value {
-            Value::NullType            => write!(f, "null"),
-            Value::IntType(value)      => write!(f, "{}", value),
-            Value::FloatType(value)    => {
+            Value::NullType              => write!(f, "null"),
+            Value::IntType(value)        => write!(f, "{}", value),
+            Value::FloatType(value) => {
                 let mut value = value.to_string();
                 if ! value.contains(".") {
                     value += ".0";
                 }
                 write!(f, "{}", value)
             },
-            Value::StrType(value)      => write!(f, "{}", value),
-            Value::BoolType(value)     => write!(f, "{}", if *value {"true"} else {"false"}),
+            Value::StrType(value)        => write!(f, "{}", value),
+            Value::BoolType(value)       => write!(f, "{}", if *value {"true"} else {"false"}),
             Value::ArrayType(value, _) => {
                 let mut res = "".to_string();
                 for i in 0..value.len() {
@@ -777,7 +944,8 @@ impl fmt::Display for Type {
                     }
                 }
                 write!(f, "[{}]", res)
-            }
+            },
+            Value::FuncType(_, _, _)     => write!(f, "<func {}>", self.name)
         }
     }
 }

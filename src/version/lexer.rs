@@ -8,7 +8,7 @@ use super::exceptions::*;
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, std::hash::Hash, std::cmp::Eq, std::cmp::PartialEq)]
 pub struct LexerPosition {
     pub index  : usize,
     pub line   : usize,
@@ -290,13 +290,13 @@ impl Lexer {
 
                     self.advance()
 
-                } else if self.ch == '>' && ! self.end {
+                /*} else if self.ch == '>' && ! self.end {
                     let mut end = self.pos.copy();
                     end.advance(self.ch);
                     logger.trace("Found token: CAST");
                     tokens.push(Token{token: TT_CAST.to_string(), value: "".to_string(), start: start, end: end});
 
-                    self.advance()
+                    self.advance()*/
 
                 } else {
                     logger.trace("Found token: GRTTHN");
@@ -363,6 +363,15 @@ impl Lexer {
                 end.advance(self.ch);
                 logger.trace("Found token: COMMA");
                 tokens.push(Token{token: TT_COMMA.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
+
+                self.advance();
+
+
+            } else if self.ch == ':' {
+                let mut end = self.pos.copy();
+                end.advance(self.ch);
+                logger.trace("Found token: COLON");
+                tokens.push(Token{token: TT_COLON.to_string(), value: "".to_string(), start: self.pos.copy(), end: end});
 
                 self.advance();
 
@@ -545,6 +554,9 @@ impl Lexer {
         if KEYWORDS.contains(&identifier.as_str()) {
             logger.trace("Found token: KEYWORD");
             tokentype = TT_KEYWORD;
+        } else if TYPES.contains(&identifier.as_str()) {
+            logger.trace("Found token: TYPE");
+            tokentype = TT_TYPE;
         } else {
             logger.trace("Found token: IDENTIFIER");
             tokentype = TT_IDENTIFIER;

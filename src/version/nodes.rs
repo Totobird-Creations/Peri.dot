@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use std::fmt;
 use colored::*;
 
@@ -35,6 +37,10 @@ pub enum NodeValue {
     ArrayNode {
         exprs: Vec<Node>
     },
+    CallNode {
+        varname: Box<Node>,
+        args   : Vec<Node>
+    },
 
 
     VarInitNode {
@@ -61,6 +67,11 @@ pub enum NodeValue {
         condition: Box<Node>,
         body: Vec<Node>
     },
+    FuncNode {
+        args: HashMap<i32, (tokens::Token, String)>,
+        returntype: Box<Node>,
+        body: Vec<Node>
+    },
 
 
     BinaryOpNode {
@@ -71,12 +82,18 @@ pub enum NodeValue {
     UnaryOpNode {
         optoken: tokens::Token,
         node   : Box<Node>,
+    },
+
+
+    TypeNode {
+        value: String
     }
 }
 impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.nodevalue {
             NodeValue::NullNode                              => write!(f, "{}", "NULL".red()),
+            NodeValue::TypeNode      {value: _}              => write!(f, "{}", "TYPE".red()),
 
             NodeValue::IntNode       {token: _, value}       => write!(f, "i{}", value),
             NodeValue::FloatNode     {token: _, value}       => write!(f, "f{}", value),
@@ -88,7 +105,7 @@ impl fmt::Display for Node {
                 for i in 0 .. exprs.len() {
                     res += format!("{}", exprs[i]).as_str();
                     if i < exprs.len() - 1 {
-                        res += ", "
+                        res += ", ";
                     }
                 }
 
@@ -97,6 +114,7 @@ impl fmt::Display for Node {
 
             NodeValue::VarInitNode   {varname, node}         => write!(f, "(var {} = {})", varname.value, node),
             NodeValue::VarAssignNode {varname, node}         => write!(f, "({} = {})", varname.value, node),
+            NodeValue::CallNode      {varname, args: _}      => write!(f, "{}()", varname),
 
             NodeValue::IfNode        {cases, elsecase} => {
                 let mut res = "".to_string();
@@ -120,6 +138,27 @@ impl fmt::Display for Node {
             },
             NodeValue::WhileNode     {condition, body: _} => {
                 write!(f, "(while {})", *condition)
+            },
+            NodeValue::FuncNode      {args, returntype, body: _} => {
+                let mut resargs = "".to_string();
+
+                let mut i = 0;
+                for arg in args.keys() {
+                    resargs += format!("{}: {}", args[arg].0, args[arg].1).as_str();
+
+                    if i < args.len() - 1 {
+                        resargs += ", ";
+                    }
+
+                    i += 1
+                }
+
+                let returntype = match &returntype.nodevalue {
+                    NodeValue::TypeNode {value} => value,
+                    _ => panic!("Non TypeNode Stored")
+                };
+
+                write!(f, "(func({}): {})", resargs, returntype)
             }
 
             NodeValue::BinaryOpNode  {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),

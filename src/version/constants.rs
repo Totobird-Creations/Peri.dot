@@ -1,7 +1,7 @@
 pub const DIGITS   : &str = "0123456789";
 pub const ALPHABET : &str = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
 
-pub const KEYWORDS : [&str; 7] = [
+pub const KEYWORDS : [&str; 8] = [
     "var",
 
     "if",
@@ -10,5 +10,17 @@ pub const KEYWORDS : [&str; 7] = [
 
     "for",
     "in",
-    "while"
+    "while",
+
+    "func"
+];
+
+pub const TYPES    : [&str; 6] = [
+    "Str",
+    "Int",
+    "Float",
+    "Bool",
+    "Array",
+
+    "Func"
 ];

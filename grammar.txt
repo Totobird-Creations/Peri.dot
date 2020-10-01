@@ -2,6 +2,7 @@ Literal    : INT FLOAT STRING
 Operator   : PLUS MINUS TIMES DIVBY POW SQRT NOT
 Comparison : EQUALSEQ NOTEQ LSSTHN GRTTHN LSSTHNEQ GRTTHNEQ
 Combiner   : AND XOR OR
+Type       : TYPE:Str TYPE:Int TYPE:Float TYPE:Bool TYPE:Array TYPE:Func
 
 
 
@@ -14,7 +15,12 @@ expr:
   - opexpr
 
 opexpr:
-  - factor (factor (Operator|Comparison|Combiner) | opexpr)*
+  - call (call (Operator|Comparison|Combiner) | opexpr)*
+
+call:
+  - factor LPAREN (expr (COMMA expr)*)? RPAREN
+  - factor
+
 
 factor:
   - (PLUS|MINUS) factor
@@ -22,6 +28,7 @@ factor:
   - ifexpr
   - forexpr
   - whileexpr
+  - funcexpr
   - atom
 
 ifexpr:
@@ -35,6 +42,10 @@ forexpr:
 whileexpr:
   - KEYWORD:while LPAREN expr RPAREN codeblock
 
+funcexpr:
+  - KEYWORD:func LPAREN (IDENTIFIER COLON typeexpr (COMMA IDENTIFIER COLON typeexpr)*)? RPAREN
+    COLON typeexpr codeblock
+
 atom:
   - Literal
   - IDENTIFIER
@@ -46,6 +57,22 @@ arrayexpr:
     RSQUARE
 
 
+
+typeexpr:
+  - TYPE:Str
+  - TYPE:Int
+  - TYPE:Float
+  - TYPE:Bool
+  - TYPE:Array LSSTHN INT COMMA typeexpr GRTTHN
+  //- TYPE:Seq LSSTHN typeexpr GRTTHN
+  //- TYPE:Uarray LSSTHN (typeexpr (COMMA typeexpr)*)? GRTTHN
+  //- TYPE:Table LSSTHN typeexpr COMMA typeexpr GRTTHN
+  //- TYPE:Enum
+  //- TYPE:Excep LSSTHN IDENTIFIER GRTTHN
+  //- TYPE:Mod LSSTHN IDENTIFIER GRTTHN
+  //- TYPE:Struct
+  //- TYPE:Impl
+  - TYPE:Func LSSTHN LSQUARE (type (COMMA type)*)? RSQUARE COMMA type GRTTHN
 
 codeblock:
   - LCURLY EOL*

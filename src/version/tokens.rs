@@ -5,7 +5,7 @@ use super::lexer;
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, std::hash::Hash, std::cmp::Eq, std::cmp::PartialEq)]
 pub struct Token {
     pub token  : String,
     pub value  : String,
@@ -82,6 +82,7 @@ pub const TT_LCURLY     : &'static str = "LCURLY";     // \{
 pub const TT_RCURLY     : &'static str = "RCURLY";     // \}
 
 pub const TT_COMMA      : &'static str = "COMMA";      // ,
+pub const TT_COLON      : &'static str = "COLON";      // :
 
 pub const TT_AND        : &'static str = "AND";        // &
 pub const TT_XOR        : &'static str = "XOR";        // \|
@@ -89,6 +90,7 @@ pub const TT_OR         : &'static str = "OR";         // (&\|)|(\|&)
 pub const TT_NOT        : &'static str = "NOT";        // !
 
 pub const TT_KEYWORD    : &'static str = "KEYWORD";    // [A-Za-z_][A-Za-z0-9_]*
+pub const TT_TYPE       : &'static str = "TYPE";       // [A-Za-z_][A-Za-z0-9_]*
 pub const TT_IDENTIFIER : &'static str = "IDENTIFIER"; // [A-Za-z_][A-Za-z0-9_]*
 
 pub const TT_EOL        : &'static str = "EOL";        // \n

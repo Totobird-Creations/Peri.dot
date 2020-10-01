@@ -67,10 +67,11 @@ impl SymbolTable {
 
     pub fn biv(&mut self, name: String, value: types::Value) {
         self.symbols.insert(
-            name,
+            name.clone(),
             Symbol {
                 value: types::Type {
                     value: value,
+                    name: name,
                     start: lexer::LexerPosition {
                         index: 0, line: 0, column: 0,
                         file: "Built-In".to_string(),

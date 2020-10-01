@@ -1,6 +1,9 @@
+use std::collections::HashMap;
+
 use super::exceptions::ParserException;
 use super::tokens::*;
 use super::nodes::*;
+use super::lexer;
 
 
 
@@ -204,7 +207,7 @@ impl Parser {
         let start = self.curtoken.start.clone();
 
         let mut value: ParseResult;
-        let mut operations = vec![res.register(self.factor())];
+        let mut operations = vec![res.register(self.call())];
 
         if res.exception.failed {
             return res;
@@ -224,7 +227,7 @@ impl Parser {
             let bkindex = self.index.clone();
             let bkres   = res.clone();
 
-            value = self.factor();
+            value = self.call();
 
             if ! value.exception.failed {
                 operations.push(value.node);
@@ -274,6 +277,78 @@ impl Parser {
         }
 
         return res.success(operations[0].clone());
+    }
+
+
+
+    fn call(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let start = self.curtoken.start.clone();
+
+        let factor = res.register(self.factor());
+
+        if res.exception.failed {
+            return res;
+        }
+
+        if self.curtoken.token == TT_LPAREN {
+            res.registeradvancement();
+            self.advance();
+
+            let mut args = vec![];
+
+            let end: lexer::LexerPosition;
+
+            if self.curtoken.token == TT_RPAREN {
+                end = self.curtoken.end.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+            } else {
+                args.push(res.register(self.expr()));
+
+                if res.exception.failed {
+                    return res;
+                }
+
+                while self.curtoken.token == TT_COMMA {
+                    res.registeradvancement();
+                    self.advance();
+
+                    args.push(res.register(self.expr()));
+
+                    if res.exception.failed {
+                        return res;
+                    }
+                }
+
+                if self.curtoken.token != TT_RPAREN {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `)` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                end = self.curtoken.end.clone();
+
+                res.registeradvancement();
+                self.advance();
+            }
+
+            return res.success(Node {
+                nodevalue: NodeValue::CallNode {
+                    varname: Box::new(factor),
+                    args: args
+                },
+                start: start, end: end
+            });
+        }
+
+        return res.success(factor);
     }
 
 
@@ -351,6 +426,14 @@ impl Parser {
             return res.success(whileexpr);
 
 
+        } else if token.clone().matches(TT_KEYWORD, "func") {
+            let funcexpr = res.register(self.funcexpr());
+            if res.exception.failed {
+                return res;
+            }
+            return res.success(funcexpr);
+
+
         } else {
             let atom = res.register(self.atom());
 
@@ -372,7 +455,7 @@ impl Parser {
 
         if ! self.curtoken.clone().matches(TT_KEYWORD, "if") {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `if` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -385,7 +468,7 @@ impl Parser {
 
         if self.curtoken.token != TT_LPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `(` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -403,7 +486,7 @@ impl Parser {
 
         if self.curtoken.token != TT_RPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `)` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -431,7 +514,7 @@ impl Parser {
 
             if self.curtoken.token != TT_LPAREN {
                 return res.failure(ParserException {
-                    failed: false,
+                    failed: true,
                     name: "SyntaxException".to_string(),
                     msg: "Expected `(` not found".to_string(),
                     ucmsg: "Expected {} not found".to_string(),
@@ -449,7 +532,7 @@ impl Parser {
 
             if self.curtoken.token != TT_RPAREN {
                 return res.failure(ParserException {
-                    failed: false,
+                    failed: true,
                     name: "SyntaxException".to_string(),
                     msg: "Expected `)` not found".to_string(),
                     ucmsg: "Expected {} not found".to_string(),
@@ -503,7 +586,7 @@ impl Parser {
 
         if ! self.curtoken.clone().matches(TT_KEYWORD, "for") {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `for` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -523,7 +606,7 @@ impl Parser {
 
         if self.curtoken.token != TT_IDENTIFIER {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected IDENTIFIER not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -538,7 +621,7 @@ impl Parser {
 
         if ! self.curtoken.clone().matches(TT_KEYWORD, "in") {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `in` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -551,7 +634,7 @@ impl Parser {
 
         if self.curtoken.token != TT_LPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `(` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -570,7 +653,7 @@ impl Parser {
 
         if self.curtoken.token != TT_RPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `)` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -609,7 +692,7 @@ impl Parser {
 
         if ! self.curtoken.clone().matches(TT_KEYWORD, "while") {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `while` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -622,7 +705,7 @@ impl Parser {
 
         if self.curtoken.token != TT_LPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `(` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -641,7 +724,7 @@ impl Parser {
 
         if self.curtoken.token != TT_RPAREN {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `)` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -667,6 +750,170 @@ impl Parser {
                 body: codeblock
             },
             start: start, end: self.curtoken.start.clone()
+        });
+    }
+
+
+
+    fn funcexpr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let start = self.curtoken.start.clone();
+
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "func") {
+            return res.failure(ParserException {
+                failed: true,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `func` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        if self.curtoken.token != TT_LPAREN {
+            return res.failure(ParserException {
+                failed: true,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `(` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let mut args: HashMap<i32, (Token, String)> = HashMap::new();
+
+        if self.curtoken.token == TT_IDENTIFIER {
+            let nametoken = self.curtoken.clone();
+
+            res.registeradvancement();
+            self.advance();
+
+            if self.curtoken.token != TT_COLON {
+                return res.failure(ParserException {
+                    failed: true,
+                    name: "SyntaxException".to_string(),
+                    msg: "Expected `:` not found".to_string(),
+                    ucmsg: "Expected {} not found".to_string(),
+                    start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                });
+            }
+
+            res.registeradvancement();
+            self.advance();
+
+            let typeexpr = res.register(self.typeexpr());
+
+            if res.exception.failed {
+                return res;
+            }
+
+            let mut i = 0;
+
+            args.insert(i, (nametoken, match typeexpr.nodevalue {
+                NodeValue::TypeNode {value} => value,
+                _ => panic!("Non TypeNode received")
+            }));
+
+            while self.curtoken.token == TT_COMMA {
+                res.registeradvancement();
+                self.advance();
+
+                i += 1;
+
+                if self.curtoken.token != TT_IDENTIFIER {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected IDENTIFIER not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                let nametoken = self.curtoken.clone();
+    
+                res.registeradvancement();
+                self.advance();
+    
+                if self.curtoken.token != TT_COLON {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `:` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+    
+                res.registeradvancement();
+                self.advance();
+
+                let typeexpr = res.register(self.typeexpr());
+    
+                if res.exception.failed {
+                    return res;
+                }
+    
+                args.insert(i, (nametoken, match typeexpr.nodevalue {
+                    NodeValue::TypeNode {value} => value,
+                    _ => panic!("Non TypeNode received")
+                }));
+            }
+        }
+
+        if self.curtoken.token != TT_RPAREN {
+            return res.failure(ParserException {
+                failed: true,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `(` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+    
+        if self.curtoken.token != TT_COLON {
+            return res.failure(ParserException {
+                failed: true,
+                name: "SyntaxException".to_string(),
+                msg: "Expected `:` not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+            });
+        }
+
+        res.registeradvancement();
+        self.advance();
+
+        let returntype = res.register(self.typeexpr());
+
+        if res.exception.failed {
+            return res;
+        }
+
+        let response = self.codeblock();
+        let codeblock: Vec<Node>;
+        match response {
+            ParseResponse::Success(value) => {
+                codeblock = value;
+            },
+            ParseResponse::Failed(err) => {return res.failure(err)}
+        }
+
+        return res.success(Node {
+            nodevalue: NodeValue::FuncNode {
+                args: args,
+                returntype: Box::new(returntype),
+                body: codeblock
+            },
+            start: start, end: self.curtoken.end.clone()
         });
     }
 
@@ -741,7 +988,7 @@ impl Parser {
 
         if self.curtoken.token != TT_LSQUARE {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `[` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -763,7 +1010,7 @@ impl Parser {
 
             if self.curtoken.token != TT_RSQUARE {
                 return res.failure(ParserException {
-                    failed: false,
+                    failed: true,
                     name: "SyntaxException".to_string(),
                     msg: "Expected `]` not found".to_string(),
                     ucmsg: "Expected {} not found".to_string(),
@@ -834,7 +1081,7 @@ impl Parser {
 
         if self.curtoken.token != TT_RSQUARE {
             return res.failure(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `]` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -857,12 +1104,295 @@ impl Parser {
 
 
 
+    fn typeexpr(&mut self) -> ParseResult {
+        let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
+        let token = self.curtoken.clone();
+
+        if token.token == TT_TYPE {
+            if token.value == "Str" {
+                res.registeradvancement();
+                self.advance();
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: "Str".to_string()
+                    },
+                    start: token.start.clone(), end: token.end.clone()
+                });
+
+            } else if token.value == "Int" {
+                res.registeradvancement();
+                self.advance();
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: "Int".to_string()
+                    },
+                    start: token.start.clone(), end: token.end.clone()
+                });
+
+            } else if token.value == "Float" {
+                res.registeradvancement();
+                self.advance();
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: "Float".to_string()
+                    },
+                    start: token.start.clone(), end: token.end.clone()
+                });
+
+            } else if token.value == "Bool" {
+                res.registeradvancement();
+                self.advance();
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: "Bool".to_string()
+                    },
+                    start: token.start.clone(), end: token.end.clone()
+                });
+
+            } else if token.value == "Array" {
+                let start = token.start.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_LSSTHN {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `<` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_INT {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected INT not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                let len = self.curtoken.value.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_COMMA {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `,` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                res.registeradvancement();
+                self.advance();
+
+                let typ = res.register(self.typeexpr());
+
+                if res.exception.failed {
+                    return res;
+                }
+
+                let typ = match typ.nodevalue {
+                    NodeValue::TypeNode {value} => value,
+                    _ => panic!("Typeexpr returned non TypeNode")
+                };
+
+                if self.curtoken.token != TT_GRTTHN {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `>` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+                
+                let end = self.curtoken.end.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: format!("Array<{}, {}>", len, typ)
+                    },
+                    start: start, end: end
+                });
+
+            } else if token.value == "Func" {
+                let start = token.start.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_LSSTHN {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `<` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_LSQUARE {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `[` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                res.registeradvancement();
+                self.advance();
+
+                let mut params = vec![];
+
+                if self.curtoken.token == TT_RSQUARE {
+                    res.registeradvancement();
+                    self.advance();
+
+                } else {
+
+                    let typ = res.register(self.typeexpr());
+
+                    if res.exception.failed {
+                        return res;
+                    }
+
+                    params.push(match typ.nodevalue {
+                        NodeValue::TypeNode {value} => value,
+                        _ => panic!("Typeexpr returned non TypeNode")
+                    });
+
+                    while self.curtoken.token == TT_COMMA {
+                        res.registeradvancement();
+                        self.advance();
+
+                        let typ = res.register(self.typeexpr());
+
+                        if res.exception.failed {
+                            return res;
+                        }
+
+                        params.push(match typ.nodevalue {
+                            NodeValue::TypeNode {value} => value,
+                            _ => panic!("Typeexpr returned non TypeNode")
+                        });
+                    }
+
+                    if self.curtoken.token != TT_RSQUARE {
+                        return res.failure(ParserException {
+                            failed: true,
+                            name: "SyntaxException".to_string(),
+                            msg: "Expected `]` not found".to_string(),
+                            ucmsg: "Expected {} not found".to_string(),
+                            start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                        });
+                    }
+
+                    res.registeradvancement();
+                    self.advance();
+                }
+
+                if self.curtoken.token != TT_COMMA {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `,` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+
+                res.registeradvancement();
+                self.advance();
+
+                let typ = res.register(self.typeexpr());
+
+                if res.exception.failed {
+                    return res;
+                }
+
+                let returntype = match typ.nodevalue {
+                    NodeValue::TypeNode {value} => value,
+                    _ => panic!("Typeexpr returned non TypeNode")
+                };
+
+                if self.curtoken.token != TT_GRTTHN {
+                    return res.failure(ParserException {
+                        failed: true,
+                        name: "SyntaxException".to_string(),
+                        msg: "Expected `>` not found".to_string(),
+                        ucmsg: "Expected {} not found".to_string(),
+                        start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                    });
+                }
+                
+                let end = self.curtoken.end.clone();
+
+                res.registeradvancement();
+                self.advance();
+
+                let mut paramstr = "".to_string();
+
+                for i in 0 .. params.len() {
+                    paramstr += params[i].as_str();
+
+                    if i < params.len() - 1 {
+                        paramstr += ", "
+                    }
+                }
+
+                return res.success(Node {
+                    nodevalue: NodeValue::TypeNode {
+                        value: format!("Func<[{}], {}>", paramstr, returntype)
+                    },
+                    start: start, end: end
+                });
+
+            } else {
+                panic!("Unknown type value found");
+            }
+
+        } else {
+            return res.failure(ParserException {
+                failed: true,
+                name: "SyntaxException".to_string(),
+                msg: "Expected Type not found".to_string(),
+                ucmsg: "Expected {} not found".to_string(),
+                start: token.start.clone(), end: token.end.clone()
+            });
+        }
+    }
+
+
+
     fn codeblock(&mut self) -> ParseResponse {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
 
         if self.curtoken.token != TT_LCURLY {
             return ParseResponse::Failed(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `{` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),
@@ -893,7 +1423,7 @@ impl Parser {
 
         if self.curtoken.token != TT_RCURLY {
             return ParseResponse::Failed(ParserException {
-                failed: false,
+                failed: true,
                 name: "SyntaxException".to_string(),
                 msg: "Expected `}` not found".to_string(),
                 ucmsg: "Expected {} not found".to_string(),

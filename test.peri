@@ -1,9 +1,7 @@
-var div = func(a: Int, b: Int): Int {
-    a b/
-}
+# This is a toEOL comment.
+#= This is a multiline comment =#
 
-var f = func(of: Func<[Int, Int], Int>): Str {
-    of(10, 0)
-}
+#= Comment #= Stacked comment =# Comment =#
 
-f(div)
+# This is commented #= This is a comment in a comment.
+=# This is still commented because of the toEOL comment.

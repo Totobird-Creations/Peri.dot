@@ -144,7 +144,7 @@ impl fmt::Display for Node {
 
                 let mut i = 0;
                 for arg in args.keys() {
-                    resargs += format!("{}: {}", args[arg].0, args[arg].1).as_str();
+                    resargs += format!("{}: {}", args[arg].0.value, args[arg].1).as_str();
 
                     if i < args.len() - 1 {
                         resargs += ", ";

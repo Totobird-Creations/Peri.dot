@@ -378,6 +378,17 @@ impl Lexer {
 
             } else if (ALPHABET.to_string() + "_").contains(self.ch) {
                 tokens.push(self.makeidentifier());
+
+
+            } else if self.ch == '#' {
+                let res = self.makecomment();
+
+                if res.exception.failed {
+                    return LexerResult {
+                        result: vec![],
+                        exception: res.exception
+                    }
+                }
                 
 
 
@@ -563,6 +574,60 @@ impl Lexer {
         }
 
         return Token {token: tokentype.to_string(), value: identifier, start: start, end: self.pos.copy()};
+    }
+
+
+
+    fn makecomment(&mut self) -> LexerPartResult {
+        self.advance();
+
+        if self.ch == '=' {
+            self.advance();
+
+            loop {
+                if self.end {
+                    let mut end = self.pos.copy();
+                    end.advance(self.ch);
+                    end.advance(self.ch);
+                    return LexerPartResult {result: Token {token: TT_EOL.to_string(), value: "".to_string(), start: self.pos.copy(), end: self.pos.copy()}, exception: LexerException {failed: true, name: "SyntaxException".to_string(), msg: "Unclosed multiline comment".to_string(), ucmsg: "Unclosed multiline comment".to_string(), start: self.pos.copy(), end: end}};
+                }
+
+                if self.ch == '#' {
+                    let res = self.makecomment();
+
+                    if res.exception.failed {
+                        return res
+                    }
+                }
+
+                if self.ch == '=' {
+                    self.advance();
+                    
+                    if self.ch == '#' {
+                        self.advance();
+
+                        break;
+                    }
+                }
+
+                self.advance()
+            }
+
+        } else {
+            while (! self.end) && (self.ch != '\n') {
+                if self.ch == '#' {
+                    let res = self.makecomment();
+
+                    if res.exception.failed {
+                        return res
+                    }
+                }
+
+                self.advance();
+            }
+        }
+
+        return LexerPartResult {result: Token {token: TT_EOL.to_string(), value: "".to_string(), start: self.pos.copy(), end: self.pos.copy()}, exception: LexerException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.pos.copy(), end: self.pos.copy()}};
     }
 }
 

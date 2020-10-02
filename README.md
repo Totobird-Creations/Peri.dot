@@ -157,6 +157,20 @@ while (i 10<) {
     var i = i 1+
 }
 ```
+
+
+- ADDED: __Comments and Multiline Comments__
+```peridot
+# Rusty Peri.dot
+
+# This is a toEOL comment.
+#= This is a multiline comment =#
+
+#= Comment #= Stacked comment =# Comment =#
+
+# This is commented #= This is a comment in a comment.
+=# This is still commented because of the toEOL comment.
+```
 ---
 
 [Homepage](https://toto-bird.github.io/Peri.dot-lang/)<br />

@@ -1,11 +1,14 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use super::lexer;
 use super::types;
+use super::interpreter;
+use super::exceptions;
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Origin {
     pub start  : lexer::LexerPosition,
     pub end    : lexer::LexerPosition,
@@ -14,7 +17,7 @@ pub struct Origin {
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Context {
     pub display    : String,
     pub parent     : Box<Option<Context>>,
@@ -25,7 +28,7 @@ pub struct Context {
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Symbol {
     pub value: types::Type,
     pub readonly: bool
@@ -40,12 +43,34 @@ pub fn defaultsymbols() -> SymbolTable {
     symbols.biv("true".to_string(), types::Value::BoolType(true));
     symbols.biv("false".to_string(), types::Value::BoolType(false));
 
+    let mut arguments = HashMap::new();
+    arguments.insert(0, ("message".to_string(), "Str".to_string()));
+    fn exec_print(context: &mut Context, start: lexer::LexerPosition, end: lexer::LexerPosition) -> interpreter::RTResult {
+        let mut res = interpreter::RTResult {exception: exceptions::InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, end: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, context: Some(context.clone())}, value: types::Type {value: types::Value::NullType, name: "<Anonymous>".to_string(), start: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, end: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, context: context.clone()}};
+
+        let message = context.symbols.get("message".to_string()).unwrap().value;
+        println!("{}", message);
+
+        let mut value = message.clone();
+        value.name = "<Anonymous>".to_string();
+        value.setpos(start, end);
+        value.setcontext(context.clone());
+
+        return res.success(value);
+    }
+    symbols.biv("print".to_string(), types::Value::BuiltInFuncType(
+        "print".to_string(),
+        arguments,
+        "Str".to_string(),
+        Arc::new(exec_print)
+    ));
+
     return symbols;
 }
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct SymbolTable {
     pub symbols: HashMap<String, Symbol>,
     pub parent : Box<Option<SymbolTable>>

@@ -1,5 +1,6 @@
 use std::fmt;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use super::lexer;
 use super::interpreter::{RTResult, Interpreter};
@@ -10,31 +11,62 @@ use super::tokens;
 
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Type {
     pub value: Value,
     pub name: String,
     pub start: lexer::LexerPosition, pub end: lexer::LexerPosition,
     pub context: context::Context
 }
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum Value {
     NullType,
+
     IntType(i128),
+    //      |^^^
+    //      > Value
+
     FloatType(f64),
+    //        |^^
+    //        > Value
+
     StrType(String),
+    //      |^^^^^
+    //      > Value
+
     BoolType(bool),
+    //       |^^^
+    //       > Value
+
     ArrayType(Vec<Type>, String),
+    //        |^^^^^^^^  |^^^^^
+    //        > Values   > Value Type
+
     //SequenceType(Vec<Type>),
+
     //UntypedArrayType(Vec<Type>),
+
     //TableType(HashMap),
+
     //EnumerationType,
+
     //ExceptionType,
+
     //ModuleType,
+
     //StructureType,
+
     //ImplementationType,
-    FuncType(HashMap<i32, (tokens::Token, String)>, String, Vec<nodes::Node>)
-    //BuiltInFunctionType
+
+    FuncType(HashMap<i32, (tokens::Token, String)>, String, Vec<nodes::Node>),
+    //       |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  |^^^^^  |^^^^^^^^^^^^^^^
+    //       > Arguments                            |       > Body
+    //                                              > Return Type
+
+    BuiltInFuncType(String, HashMap<i32, (String, String)>, String, Arc::<dyn Fn(&mut context::Context, lexer::LexerPosition, lexer::LexerPosition) -> RTResult>)
+    //              |^^^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  |^^^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //              > Name  > Arguments                     |       > Callable
+    //                                                      > Return Type
 }
 impl Type {
     pub fn gettype(&self) -> String {
@@ -46,6 +78,22 @@ impl Type {
             Value::BoolType(_)                 => "Bool".to_string(),
             Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype),
             Value::FuncType(args, returntype, _)  => {
+                let mut res = "".to_string();
+
+                let mut i = 0;
+                for key in args.keys() {
+                    res += args[key].1.as_str();
+
+                    if i < args.len() - 1 {
+                        res += ", ";
+                    }
+
+                    i += 1;
+                }
+
+                format!("Func<[{}], {}>", res, returntype)
+            },
+            Value::BuiltInFuncType(_, args, returntype, _) => {
                 let mut res = "".to_string();
 
                 let mut i = 0;
@@ -809,7 +857,20 @@ impl Type {
 
 
 
-    pub fn checkpopargs(self, context: &mut context::Context, args: Vec<Type>, funcargs: HashMap<i32, (tokens::Token, String)>) -> RTResult {
+    pub fn gencontext(self) -> context::Context {
+        let mut symbols = context::defaultsymbols();
+        symbols.parent = Box::new(Some(self.context.symbols.clone()));
+
+        return context::Context {
+            display: self.name.to_string(),
+            parent: Box::from(Some(self.context.clone())),
+            parententry: Some(self.start.clone()),
+            symbols: symbols,
+            origin: vec![]
+        };
+    }
+
+    pub fn checkpopargs(self, context: &mut context::Context, args: Vec<Type>, funcargs: HashMap<i32, (String, String)>) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: self.end.clone(), context: self.context.clone()}};
 
         if args.len() != funcargs.len() {
@@ -827,13 +888,13 @@ impl Type {
                 return res.failure(InterpreterException {
                     failed: true,
                     name: "ParameterException".to_string(),
-                    msg: format!("Parameter `{}` must be of type {}, {} given", funcargs[key].0.value, funcargs[key].1, args[*key as usize].gettype()),
+                    msg: format!("Parameter `{}` must be of type {}, {} given", funcargs[key].0, funcargs[key].1, args[*key as usize].gettype()),
                     ucmsg: "Parameter {} must be of type {}, {} given".to_string(),
                     start: args[*key as usize].start.clone(), end: args[*key as usize].end.clone(), context: Some(args[*key as usize].context.clone())
                 });
             }
 
-            context.symbols.set(funcargs[key].0.value.clone(), args[*key as usize].clone().setcontext(context.clone()));
+            context.symbols.set(funcargs[key].0.clone(), args[*key as usize].clone().setcontext(context.clone()));
         }
 
         return res.success(Type {
@@ -853,18 +914,16 @@ impl Type {
 
             Value::FuncType(funcargs, returntype, body) => {
                 let mut interpreter = Interpreter {};
-                let mut symbols = context::defaultsymbols();
-                symbols.parent = Box::new(Some(self.context.symbols.clone()));
+                let context = &mut self.clone().gencontext();
 
-                let context = &mut context::Context {
-                    display: self.name.to_string(),
-                    parent: Box::from(Some(self.context.clone())),
-                    parententry: Some(self.start.clone()),
-                    symbols: symbols,
-                    origin: vec![]
-                };
+                let mut funcargsfix = HashMap::new();
 
-                res.register(self.clone().checkpopargs(context, args, funcargs));
+                for key in funcargs.keys() {
+                    let value = (funcargs[key].0.value.clone(), funcargs[key].1.clone());
+                    funcargsfix.insert(*key, value);
+                }
+
+                res.register(self.clone().checkpopargs(context, args, funcargsfix));
 
                 if res.exception.failed {
                     return res;
@@ -873,7 +932,7 @@ impl Type {
                 let mut value = Type {
                     value: Value::NullType,
                     name: "<Anonymous>".to_string(),
-                    start: self.start, end: self.end,
+                    start: self.start.clone(), end: self.end.clone(),
                     context: context.clone()
                 };
                 for i in body {
@@ -883,6 +942,44 @@ impl Type {
                     }
                 }
 
+                if value.gettype() != returntype {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "ReturnException".to_string(),
+                        msg: format!("`{}` must return {}, {} returned", self.name, returntype, value.gettype()),
+                        ucmsg: "`{}` must return {}, {} returned".to_string(),
+                        start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())
+                    })
+                }
+
+                return res.success(value);
+            }
+
+            Value::BuiltInFuncType(name, funcargs, returntype, func) => {
+                let context = &mut self.clone().gencontext();
+    
+                res.register(self.clone().checkpopargs(context, args, funcargs));
+    
+                if res.exception.failed {
+                    return res;
+                }
+    
+                let value = res.register(func(&mut context.clone(), self.start.clone(), self.end.clone()));
+    
+                if res.exception.failed {
+                    return res;
+                }
+
+                if value.gettype() != returntype {
+                    return res.failure(InterpreterException {
+                        failed: true,
+                        name: "ReturnException".to_string(),
+                        msg: format!("`{}` must return {}, {} returned", self.name, returntype, value.gettype()),
+                        ucmsg: "`{}` must return {}, {} returned".to_string(),
+                        start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())
+                    })
+                }
+    
                 return res.success(value);
             }
 
@@ -917,6 +1014,19 @@ impl Type {
                     context: self.context.clone()
                 }
             },
+            Value::BuiltInFuncType(name, args, returntype, func) => {
+                Type {
+                    value: Value::BuiltInFuncType(
+                        name.clone(),
+                        args.clone(),
+                        returntype.clone(),
+                        func.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
             _ => panic!("Illegal copy")
         }
     }
@@ -945,7 +1055,8 @@ impl fmt::Display for Type {
                 }
                 write!(f, "[{}]", res)
             },
-            Value::FuncType(_, _, _)     => write!(f, "<func {}>", self.name)
+            Value::FuncType(_, _, _)     => write!(f, "<func {}>", self.name),
+            Value::BuiltInFuncType(name, _, _, _)     => write!(f, "<built-in-func {}>", name)
         }
     }
 }

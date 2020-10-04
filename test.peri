@@ -1,7 +1,2 @@
-# This is a toEOL comment.
-#= This is a multiline comment =#
-
-#= Comment #= Stacked comment =# Comment =#
-
-# This is commented #= This is a comment in a comment.
-=# This is still commented because of the toEOL comment.
+var a = print("Hello")
+print(a)

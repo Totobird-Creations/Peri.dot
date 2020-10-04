@@ -31,6 +31,9 @@ var add = func(a: Int, b: Int): Int {
 }
 add(8, 5)
 
+# Built-In Function     : Func<[P, P, ...], R>
+print("Hello")
+
 ### COMING SOON ###
 # Sequence              : Seq<T>
 # Untyped Array         : Uarray<T, T, ...>
@@ -40,7 +43,6 @@ add(8, 5)
 # Module                : Mod<N>
 # Structure             : Struct<N>
 # Implementation        : Struct<N>
-# Built-In Function     : Func<[P, P, ...], R>
 ```
 
 

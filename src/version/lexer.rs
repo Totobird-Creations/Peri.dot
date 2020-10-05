@@ -290,6 +290,15 @@ impl Lexer {
                     tokens.push(Token{token: TT_LSSTHNEQ.to_string(), value: "".to_string(), start: start, end: end});
 
                     self.advance()
+
+                } else if self.ch == '>' && ! self.end {
+                    let mut end = self.pos.copy();
+                    end.advance(self.ch);
+                    logger.trace("Found token: CAST");
+                    tokens.push(Token{token: TT_CAST.to_string(), value: "".to_string(), start: start, end: end});
+    
+                    self.advance()
+
                 } else {
                     logger.trace("Found token: LSSTHN");
                     tokens.push(Token{token: TT_LSSTHN.to_string(), value: "".to_string(), start: start, end: self.pos.copy()})
@@ -307,14 +316,6 @@ impl Lexer {
                     tokens.push(Token{token: TT_GRTTHNEQ.to_string(), value: "".to_string(), start: start, end: end});
 
                     self.advance()
-
-                /*} else if self.ch == '>' && ! self.end {
-                    let mut end = self.pos.copy();
-                    end.advance(self.ch);
-                    logger.trace("Found token: CAST");
-                    tokens.push(Token{token: TT_CAST.to_string(), value: "".to_string(), start: start, end: end});
-
-                    self.advance()*/
 
                 } else {
                     logger.trace("Found token: GRTTHN");

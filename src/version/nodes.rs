@@ -79,6 +79,10 @@ pub enum NodeValue {
         optoken: tokens::Token,
         right  : Box<Node>,
     },
+    CastOpNode {
+        casttype: String,
+        node    : Box<Node>
+    },
     UnaryOpNode {
         optoken: tokens::Token,
         node   : Box<Node>,
@@ -162,6 +166,7 @@ impl fmt::Display for Node {
             }
 
             NodeValue::BinaryOpNode  {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),
+            NodeValue::CastOpNode    {casttype, node}  => write!(f, "({} <{}>)", node, casttype),
             NodeValue::UnaryOpNode   {optoken, node}         => write!(f, "({} {})", optoken, node)
         }
     }

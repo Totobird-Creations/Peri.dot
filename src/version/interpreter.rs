@@ -57,6 +57,7 @@ impl Interpreter {
             NodeValue::FuncNode      {args, returntype, body}                => self.visit_funcnode      (node, context, args, returntype, body),
 
             NodeValue::BinaryOpNode  {left, optoken, right}                  => self.visit_binaryopnode  (node, context, *left, optoken, *right),
+            NodeValue::CastOpNode    {casttype, node: onode}                 => self.visit_castopnode    (node, context, casttype, *onode),
             NodeValue::UnaryOpNode   {optoken, node: onode}                  => self.visit_unaryopnode   (node, context, optoken, *onode)
         }
     }
@@ -584,6 +585,26 @@ impl Interpreter {
         } else {
             panic!("Interpreter | visit_UnaryOpNode | Invalid operator recieved.");
         }
+
+        if res.exception.failed {
+            return res;
+        }
+
+        return res.success(
+            result.setpos(node.start, node.end)
+        );
+    }
+
+    fn visit_castopnode(&mut self, node: Node, context: &mut Context, casttype: String, onode: Node) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+
+        let value = res.register(self.visit(onode, context));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        let mut result = res.register(value.cast_op(casttype));
 
         if res.exception.failed {
             return res;

@@ -15,7 +15,7 @@ expr:
   - opexpr
 
 opexpr:
-  - call (call (Operator|Comparison|Combiner) | opexpr)*
+  - call (call (Operator|Comparison|Combiner) | opexpr | LSSTHN typeexpr GRTTHN)*
 
 call:
   - factor LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN

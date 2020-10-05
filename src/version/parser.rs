@@ -221,6 +221,44 @@ impl Parser {
                 res.registeradvancement();
                 self.advance();
                 continue;
+
+            } else if self.curtoken.token == TT_LSSTHN {
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token == TT_TYPE {
+                    let typeexpr = res.register(self.typeexpr());
+    
+                    if res.exception.failed {
+                        return res;
+                    }
+    
+                    let casttype = match typeexpr.nodevalue {
+                        NodeValue::TypeNode {value} => value,
+                        _ => panic!("Non TypeNode received")
+                    };
+
+                    if self.curtoken.token != TT_GRTTHN {
+                        return res.failure(ParserException {
+                            failed: true,
+                            name: "SyntaxException".to_string(),
+                            msg: "Expected `>` not found".to_string(),
+                            ucmsg: "Expected {} not found".to_string(),
+                            start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                        });
+                    }
+
+                    let a = operations[operations.len() - 1].clone();
+                    operations.remove(operations.len() - 1);
+                    operations.push(Node {nodevalue: NodeValue::CastOpNode {casttype: casttype, node: Box::new(a)}, start: start.clone(), end: self.curtoken.end.clone()});
+
+                    res.registeradvancement();
+                    self.advance();
+
+                } else {
+                    res.registerretreat();
+                    self.retreat();
+                }
             }
 
             let bktoken = self.curtoken.clone();

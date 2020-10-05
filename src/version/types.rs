@@ -475,6 +475,170 @@ impl Type {
 
 
 
+    pub fn cast_op(self, casttype: String) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: self.end.clone(), context: self.context.clone()}};
+        match self.value.clone() {
+
+
+            Value::IntType(_) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            },
+
+            Value::FloatType(_) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            },
+
+            Value::BoolType(_) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            },
+
+            Value::ArrayType(_, _) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            },
+
+            Value::FuncType(_, _, _) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            },
+
+            Value::BuiltInFuncType(_, _, _, _) => {
+                match casttype.as_str() {
+
+                    "Str" => {
+                        return res.success(Type {
+                            value: Value::StrType(format!("{}", self)),
+                            name: "<Anonymous>".to_string(),
+                            start: self.start, end: self.end, context: self.context
+                        });
+                    },
+
+                    &_ => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "TypeException".to_string(),
+                            msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                            ucmsg: "{} can not be casted to {}".to_string(),
+                            start: self.start, end: self.end, context: Some(self.context)
+                        });
+                    }
+
+                }
+            }
+
+            _ => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "TypeException".to_string(),
+                    msg: format!("{} can not be casted to {}", self.gettype(), casttype),
+                    ucmsg: "{} can not be casted to {}".to_string(),
+                    start: self.start, end: self.end, context: Some(self.context)
+                });
+            }
+
+        }
+    }
+
+
+
     pub fn pow_op(self, other: Type) -> RTResult {
         let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: other.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: other.end.clone(), context: self.context.clone()}};
         match (self.value.clone(), other.value.clone()) {

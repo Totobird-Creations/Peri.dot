@@ -74,7 +74,7 @@ pub const TT_NOTEQ      : &'static str = "NOTEQ";      // !=
 pub const TT_LSSTHN     : &'static str = "LSSTHN";     // <
 pub const TT_LSSTHNEQ   : &'static str = "LSSTHNEQ";   // <=
 pub const TT_GRTTHN     : &'static str = "GRTTHN";     // >
-pub const TT_CAST       : &'static str = "CAST";       // >>
+pub const TT_CAST       : &'static str = "CAST";       // <>
 pub const TT_GRTTHNEQ   : &'static str = "GRTTHNEQ";   // >=
 
 pub const TT_LPAREN     : &'static str = "LPAREN";     // \(

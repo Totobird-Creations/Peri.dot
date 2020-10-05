@@ -1002,6 +1002,65 @@ impl Type {
 
     pub fn copy(self) -> Type {
         match self.value.clone() {
+            Value::NullType => {
+                Type {
+                    value: Value::NullType,
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            Value::IntType(value) => {
+                Type {
+                    value: Value::IntType(
+                        value.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            Value::FloatType(value) => {
+                Type {
+                    value: Value::FloatType(
+                        value.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            Value::StrType(value) => {
+                Type {
+                    value: Value::StrType(
+                        value.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            Value::BoolType(value) => {
+                Type {
+                    value: Value::BoolType(
+                        value.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
+            Value::ArrayType(values, valtype) => {
+                Type {
+                    value: Value::ArrayType(
+                        values.clone(),
+                        valtype.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
             Value::FuncType(funcargs, returntype, body) => {
                 Type {
                     value: Value::FuncType(
@@ -1055,8 +1114,8 @@ impl fmt::Display for Type {
                 }
                 write!(f, "[{}]", res)
             },
-            Value::FuncType(_, _, _)     => write!(f, "<func {}>", self.name),
-            Value::BuiltInFuncType(name, _, _, _)     => write!(f, "<built-in-func {}>", name)
+            Value::FuncType(_, _, _)     => write!(f, "<Func {}>", self.name),
+            Value::BuiltInFuncType(name, _, _, _)     => write!(f, "<Built-In Func {}>", name)
         }
     }
 }

@@ -1,2 +1,5 @@
-var a = print("Hello")
-print(a)
+var buffer = func(f: Func<[Str], Str>, t: Str): Str {
+    f(t)
+}
+
+buffer(print, "Hello World!")

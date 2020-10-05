@@ -18,13 +18,12 @@ opexpr:
   - call (call (Operator|Comparison|Combiner) | opexpr)*
 
 call:
-  - factor LPAREN (expr (COMMA expr)*)? RPAREN
+  - factor LPAREN EOL* (expr (COMMA EOL* expr)*)? EOL* RPAREN
   - factor
 
 
 factor:
   - (PLUS|MINUS) factor
-  - LPAREN expr RPAREN
   - ifexpr
   - forexpr
   - whileexpr
@@ -32,18 +31,18 @@ factor:
   - atom
 
 ifexpr:
-  - KEYWORD:if LPAREN expr RPAREN codeblock
-    (KEYWORD:elif LPAREN expr RPAREN codeblock)*
-    (KEYWORD:else codeblock)?
+  - KEYWORD:if LPAREN EOL* expr EOL* RPAREN codeblock
+    (EOL* KEYWORD:elif LPAREN EOL* expr EOL* RPAREN codeblock)*
+    (EOL* KEYWORD:else codeblock)?
 
 forexpr:
-  - KEYWORD:for IDENTIFIER KEYWORD:in LPAREN expr RPAREN codeblock
+  - KEYWORD:for IDENTIFIER KEYWORD:in LPAREN EOL* expr EOL* RPAREN codeblock
 
 whileexpr:
-  - KEYWORD:while LPAREN expr RPAREN codeblock
+  - KEYWORD:while LPAREN EOL* expr EOL* RPAREN codeblock
 
 funcexpr:
-  - KEYWORD:func LPAREN (IDENTIFIER COLON typeexpr (COMMA IDENTIFIER COLON typeexpr)*)? RPAREN
+  - KEYWORD:func LPAREN EOL* (IDENTIFIER COLON EOL* typeexpr (COMMA EOL* IDENTIFIER COLON EOL* typeexpr)*)? EOL* RPAREN
     COLON typeexpr codeblock
 
 atom:

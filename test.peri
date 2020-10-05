@@ -2,4 +2,52 @@ var buffer = func(f: Func<[Str], Str>, t: Str): Str {
     f(t)
 }
 
-buffer(print, "Hello World!")
+buffer(
+    print,
+    "Hello World!"
+)
+
+
+
+if (
+    true
+) {
+    "if"
+}
+elif (
+    false
+) {
+    "elif1"
+}
+elif (
+    true
+) {
+    "elif2"
+}
+
+
+
+for var i in (
+    [1, 2, 3, 4, 5]
+) {
+    i
+}
+
+
+
+while (
+    false
+) {
+    "Loop"
+}
+
+
+
+func (
+    a:
+        Str,
+    b:
+        Str
+): Str {
+    a b +
+}

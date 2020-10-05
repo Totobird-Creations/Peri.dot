@@ -974,7 +974,7 @@ impl Type {
                     return res.failure(InterpreterException {
                         failed: true,
                         name: "ReturnException".to_string(),
-                        msg: format!("`{}` must return {}, {} returned", self.name, returntype, value.gettype()),
+                        msg: format!("`{}` must return {}, {} returned", name, returntype, value.gettype()),
                         ucmsg: "`{}` must return {}, {} returned".to_string(),
                         start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())
                     })
@@ -1085,8 +1085,7 @@ impl Type {
                     start: self.start.clone(), end: self.end.clone(),
                     context: self.context.clone()
                 }
-            },
-            _ => panic!("Illegal copy")
+            }
         }
     }
 }

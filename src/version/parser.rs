@@ -295,6 +295,11 @@ impl Parser {
             res.registeradvancement();
             self.advance();
 
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
             let mut args = vec![];
 
             let end: lexer::LexerPosition;
@@ -316,11 +321,21 @@ impl Parser {
                     res.registeradvancement();
                     self.advance();
 
+                    while self.curtoken.token == TT_EOL {
+                        res.registeradvancement();
+                        self.advance();
+                    }
+
                     args.push(res.register(self.expr()));
 
                     if res.exception.failed {
                         return res;
                     }
+                }
+
+                while self.curtoken.token == TT_EOL {
+                    res.registeradvancement();
+                    self.advance();
                 }
 
                 if self.curtoken.token != TT_RPAREN {
@@ -357,33 +372,7 @@ impl Parser {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let token = self.curtoken.clone();
 
-        if token.token == TT_LPAREN {
-            res.registeradvancement();
-            self.advance();
-
-            let expr = res.register(self.expr());
-            if res.exception.failed {
-                return res;
-            }
-
-            if self.curtoken.token != TT_RPAREN {
-                return res.failure(ParserException {
-                    failed: true,
-                    name: "SyntaxException".to_string(),
-                    msg: "Expected `)` not found".to_string(),
-                    ucmsg: "Expected {} not found".to_string(),
-                    start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
-                });
-            }
-
-            res.registeradvancement();
-            self.advance();
-
-            return res.success(expr);
-
-
-
-        } else if [TT_MINUS].contains(&token.token.as_str()) {
+        if [TT_MINUS].contains(&token.token.as_str()) {
             let start = self.curtoken.start.clone();
             res.registeradvancement();
             self.advance();
@@ -479,9 +468,19 @@ impl Parser {
         res.registeradvancement();
         self.advance();
 
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
         let condition = res.register(self.expr());
         if res.exception.failed {
             return res;
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
         }
 
         if self.curtoken.token != TT_RPAREN {
@@ -507,7 +506,21 @@ impl Parser {
         }
         cases.push((condition, codeblock));
 
+        let mut i = 0;
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+            i += 1;
+        }
 
+
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "elif") {
+            for _ in 0 .. i {
+                res.registerretreat();
+                self.retreat();
+            }
+        }
+        
         while self.curtoken.clone().matches(TT_KEYWORD, "elif") {
             res.registeradvancement();
             self.advance();
@@ -525,9 +538,19 @@ impl Parser {
             res.registeradvancement();
             self.advance();
 
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
             let condition = res.register(self.expr());
             if res.exception.failed {
                 return res;
+            }
+
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
             }
 
             if self.curtoken.token != TT_RPAREN {
@@ -543,6 +566,11 @@ impl Parser {
             res.registeradvancement();
             self.advance();
 
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
             let response = self.codeblock();
             let codeblock: Vec<Node>;
             match response {
@@ -552,6 +580,35 @@ impl Parser {
                 ParseResponse::Failed(err) => {return res.failure(err)}
             }
             cases.push((condition, codeblock));
+
+            let mut i = 0;
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+                i += 1;
+            }
+
+            if ! self.curtoken.clone().matches(TT_KEYWORD, "elif") {
+                for _ in 0 .. i {
+                    res.registerretreat();
+                    self.retreat();
+                }
+            }
+        }
+
+        let mut i = 0;
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+            i += 1;
+        }
+
+
+        if ! self.curtoken.clone().matches(TT_KEYWORD, "else") {
+            for _ in 0 .. i {
+                res.registerretreat();
+                self.retreat();
+            }
         }
 
 
@@ -645,10 +702,20 @@ impl Parser {
         res.registeradvancement();
         self.advance();
 
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
         let expr = res.register(self.expr());
 
         if res.exception.failed {
             return res;
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
         }
 
         if self.curtoken.token != TT_RPAREN {
@@ -716,10 +783,20 @@ impl Parser {
         res.registeradvancement();
         self.advance();
 
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
         let condition = res.register(self.expr());
 
         if res.exception.failed {
             return res;
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
         }
 
         if self.curtoken.token != TT_RPAREN {
@@ -785,6 +862,11 @@ impl Parser {
         res.registeradvancement();
         self.advance();
 
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
+        }
+
         let mut args: HashMap<i32, (Token, String)> = HashMap::new();
 
         if self.curtoken.token == TT_IDENTIFIER {
@@ -806,6 +888,11 @@ impl Parser {
             res.registeradvancement();
             self.advance();
 
+            while self.curtoken.token == TT_EOL {
+                res.registeradvancement();
+                self.advance();
+            }
+
             let typeexpr = res.register(self.typeexpr());
 
             if res.exception.failed {
@@ -824,6 +911,11 @@ impl Parser {
                 self.advance();
 
                 i += 1;
+
+                while self.curtoken.token == TT_EOL {
+                    res.registeradvancement();
+                    self.advance();
+                }
 
                 if self.curtoken.token != TT_IDENTIFIER {
                     return res.failure(ParserException {
@@ -853,6 +945,11 @@ impl Parser {
                 res.registeradvancement();
                 self.advance();
 
+                while self.curtoken.token == TT_EOL {
+                    res.registeradvancement();
+                    self.advance();
+                }
+
                 let typeexpr = res.register(self.typeexpr());
     
                 if res.exception.failed {
@@ -864,6 +961,11 @@ impl Parser {
                     _ => panic!("Non TypeNode received")
                 }));
             }
+        }
+
+        while self.curtoken.token == TT_EOL {
+            res.registeradvancement();
+            self.advance();
         }
 
         if self.curtoken.token != TT_RPAREN {

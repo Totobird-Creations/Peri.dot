@@ -64,6 +64,9 @@ pub const TT_TIMES      : &'static str = "TIMES";      // \*
 pub const TT_DIVBY      : &'static str = "DIVBY";      // \/
 pub const TT_POW        : &'static str = "POW";        // \*\*
 
+pub const TT_DOT        : &'static str = "DOT";        // \.
+pub const TT_RANGE      : &'static str = "RANGE";      // \.\.
+
 pub const TT_EQUALS     : &'static str = "EQUALS";     // =
 
 pub const TT_EQUALEQ    : &'static str = "EQUALEQ";    // ==

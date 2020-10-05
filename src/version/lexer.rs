@@ -189,6 +189,24 @@ impl Lexer {
                 self.advance();
 
 
+            } else if self.ch == '.' {
+                let start = self.pos.copy();
+                self.advance();
+
+                if self.ch == '.' && ! self.end {
+                    let mut end = self.pos.copy();
+                    end.advance(self.ch);
+                    logger.trace("Found token: RANGE");
+                    tokens.push(Token{token: TT_RANGE.to_string(), value: "".to_string(), start: start, end: end});
+
+                    self.advance()
+
+                } else {
+                    logger.trace("Found token: DOT");
+                    tokens.push(Token{token: TT_DOT.to_string(), value: "".to_string(), start: start, end: self.pos.copy()})
+                }
+
+
             } else if self.ch == '=' {
                 let start = self.pos.copy();
                 self.advance();

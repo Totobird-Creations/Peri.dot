@@ -52,7 +52,10 @@ pub enum Value {
 
     //ExceptionType,
 
-    //ModuleType,
+    ModuleType(String, context::SymbolTable),
+    //         |^^^^^  |^^^^^^^^^^^^^^^^^^^
+    //         |       > Values
+    //         > Module Name
 
     //StructureType,
 
@@ -63,9 +66,10 @@ pub enum Value {
     //       > Arguments                            |       > Body
     //                                              > Return Type
 
-    BuiltInFuncType(String, HashMap<i32, (String, String)>, String, Arc::<dyn Fn(&mut context::Context, lexer::LexerPosition, lexer::LexerPosition) -> RTResult>)
-    //              |^^^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  |^^^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    //              > Name  > Arguments                     |       > Callable
+    BuiltInFuncType(String, HashMap<i32, (String, String)>, String, bool, Arc::<dyn Fn(&mut context::Context, lexer::LexerPosition, lexer::LexerPosition) -> RTResult>)
+    //              |^^^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  |^^^^^  |^^^  |^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    //              > Name  > Arguments                     |       |     > Callable
+    //                                                      |       > Untyped Return Value
     //                                                      > Return Type
 }
 impl Type {
@@ -77,6 +81,7 @@ impl Type {
             Value::StrType(_)                  => "Str".to_string(),
             Value::BoolType(_)                 => "Bool".to_string(),
             Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype),
+            Value::ModuleType(name, _)      => format!("Module<{}>", name),
             Value::FuncType(args, returntype, _)  => {
                 let mut res = "".to_string();
 
@@ -93,7 +98,7 @@ impl Type {
 
                 format!("Func<[{}], {}>", res, returntype)
             },
-            Value::BuiltInFuncType(_, args, returntype, _) => {
+            Value::BuiltInFuncType(_, args, returntype, _, _) => {
                 let mut res = "".to_string();
 
                 let mut i = 0;
@@ -600,7 +605,7 @@ impl Type {
                 }
             },
 
-            Value::BuiltInFuncType(_, _, _, _) => {
+            Value::BuiltInFuncType(_, _, _, _, _) => {
                 match casttype.as_str() {
 
                     "Str" => {
@@ -1119,7 +1124,7 @@ impl Type {
                 return res.success(value);
             }
 
-            Value::BuiltInFuncType(name, funcargs, returntype, func) => {
+            Value::BuiltInFuncType(name, funcargs, returntype, untypedreturn, func) => {
                 let context = &mut self.clone().gencontext();
     
                 res.register(self.clone().checkpopargs(context, args, funcargs));
@@ -1134,7 +1139,7 @@ impl Type {
                     return res;
                 }
 
-                if value.gettype() != returntype {
+                if (value.gettype() != returntype) && (! untypedreturn) {
                     return res.failure(InterpreterException {
                         failed: true,
                         name: "ReturnException".to_string(),
@@ -1225,6 +1230,17 @@ impl Type {
                     context: self.context.clone()
                 }
             },
+            Value::ModuleType(name, symbols) => {
+                Type {
+                    value: Value::ModuleType(
+                        name.clone(),
+                        symbols.clone()
+                    ),
+                    name: self.name.clone(),
+                    start: self.start.clone(), end: self.end.clone(),
+                    context: self.context.clone()
+                }
+            },
             Value::FuncType(funcargs, returntype, body) => {
                 Type {
                     value: Value::FuncType(
@@ -1237,12 +1253,13 @@ impl Type {
                     context: self.context.clone()
                 }
             },
-            Value::BuiltInFuncType(name, args, returntype, func) => {
+            Value::BuiltInFuncType(name, args, returntype, untypedreturn, func) => {
                 Type {
                     value: Value::BuiltInFuncType(
                         name.clone(),
                         args.clone(),
                         returntype.clone(),
+                        untypedreturn.clone(),
                         func.clone()
                     ),
                     name: self.name.clone(),
@@ -1256,8 +1273,8 @@ impl Type {
 impl fmt::Display for Type {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.value {
-            Value::NullType              => write!(f, "null"),
-            Value::IntType(value)        => write!(f, "{}", value),
+            Value::NullType                          => write!(f, "null"),
+            Value::IntType(value)                    => write!(f, "{}", value),
             Value::FloatType(value) => {
                 let mut value = value.to_string();
                 if ! value.contains(".") {
@@ -1265,8 +1282,8 @@ impl fmt::Display for Type {
                 }
                 write!(f, "{}", value)
             },
-            Value::StrType(value)        => write!(f, "{}", value),
-            Value::BoolType(value)       => write!(f, "{}", if *value {"true"} else {"false"}),
+            Value::StrType(value)                    => write!(f, "{}", value),
+            Value::BoolType(value)                   => write!(f, "{}", if *value {"true"} else {"false"}),
             Value::ArrayType(value, _) => {
                 let mut res = "".to_string();
                 for i in 0..value.len() {
@@ -1277,8 +1294,9 @@ impl fmt::Display for Type {
                 }
                 write!(f, "[{}]", res)
             },
-            Value::FuncType(_, _, _)     => write!(f, "<Func {}>", self.name),
-            Value::BuiltInFuncType(name, _, _, _)     => write!(f, "<Built-In Func {}>", name)
+            Value::ModuleType(name, _)               => write!(f, "<Module {}>", name),
+            Value::FuncType(_, _, _)                 => write!(f, "<Func {}>", self.name),
+            Value::BuiltInFuncType(name, _, _, _, _) => write!(f, "<Built-In Func {}>", name)
         }
     }
 }

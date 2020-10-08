@@ -6,8 +6,9 @@ use super::lexer;
 use super::parser;
 use super::nodes;
 use super::interpreter;
+use super::context;
 
-pub fn run(file: &str) {
+pub fn run(file: &str) -> context::Context {
     let script = read(file);
 
     let result = lexer::lex(file, script.as_str());
@@ -37,7 +38,7 @@ pub fn run(file: &str) {
 
     let results = interpreter::interpret(nodesres);
 
-    for result in results {
+    for result in results.0 {
         if result.exception.failed {
             println!("{}", result.exception);
             exit(1);
@@ -45,6 +46,8 @@ pub fn run(file: &str) {
 
         println!("INTERPRETER RESULT => {}", result.value);
     }
+
+    return results.1;
 }
 
 fn read(filename: &str) -> String {

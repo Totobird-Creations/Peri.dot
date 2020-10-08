@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::panic;
 
 use super::exceptions::InterpreterException;
 use super::tokens;
@@ -646,7 +647,7 @@ impl Interpreter {
 
 
 
-pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
+pub fn interpret(nodes: Vec<Node>) -> (Vec<RTResult>, Context) {
     let mut interpreter = Interpreter {};
     let symbols = defaultsymbols();
 
@@ -662,5 +663,5 @@ pub fn interpret(nodes: Vec<Node>) -> Vec<RTResult> {
         result.push(interpreter.visit(node, context));
     }
 
-    return result;
+    return (result, context.clone());
 }

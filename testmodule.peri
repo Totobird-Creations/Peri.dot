@@ -1,0 +1,5 @@
+include("test")
+
+var add = func(a: Int, b: Int): Int {
+    a b+
+}

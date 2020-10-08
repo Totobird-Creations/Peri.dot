@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::path::Path;
+use std::fs;
 
 use super::lexer;
 use super::types;
 use super::interpreter;
 use super::exceptions;
+use super::run;
 
 
 
@@ -43,6 +46,8 @@ pub fn defaultsymbols() -> SymbolTable {
     symbols.biv("true".to_string(), types::Value::BoolType(true));
     symbols.biv("false".to_string(), types::Value::BoolType(false));
 
+
+
     let mut arguments = HashMap::new();
     arguments.insert(0, ("message".to_string(), "Str".to_string()));
     fn exec_print(context: &mut Context, start: lexer::LexerPosition, end: lexer::LexerPosition) -> interpreter::RTResult {
@@ -62,7 +67,43 @@ pub fn defaultsymbols() -> SymbolTable {
         "print".to_string(),
         arguments,
         "Str".to_string(),
+        false,
         Arc::new(exec_print)
+    ));
+
+
+
+    let mut arguments = HashMap::new();
+    arguments.insert(0, ("name".to_string(), "Str".to_string()));
+    fn exec_include(context: &mut Context, start: lexer::LexerPosition, end: lexer::LexerPosition) -> interpreter::RTResult {
+        let mut res = interpreter::RTResult {exception: exceptions::InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, end: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, context: Some(context.clone())}, value: types::Type {value: types::Value::NullType, name: "<Anonymous>".to_string(), start: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, end: lexer::LexerPosition {index: 0, line: 0, column: 0, file:"Built-In".to_string(), script: "".to_string(), lines: vec!["".to_string()]}, context: context.clone()}};
+
+        let name = match context.symbols.get("name".to_string()).unwrap().value.value {
+            types::Value::StrType(value) => value,
+            _ => panic!("Include received non string value")
+        };
+
+        let file = format!("{}.peri", fs::canonicalize(Path::new(start.file.as_str()).parent().unwrap()).unwrap().join(name).into_os_string().into_string().unwrap());
+
+        let symbols = run::run(file.as_str()).symbols;
+
+        let value = types::Type {
+            value: types::Value::ModuleType(
+                fs::canonicalize(Path::new(&file)).unwrap().into_os_string().into_string().unwrap(), symbols
+            ),
+            name: "<Anonymous>".to_string(),
+            start: start, end: end,
+            context: context.clone()
+        };
+
+        return res.success(value);
+    }
+    symbols.biv("include".to_string(), types::Value::BuiltInFuncType(
+        "include".to_string(),
+        arguments,
+        "Module".to_string(),
+        true,
+        Arc::new(exec_include)
     ));
 
     return symbols;

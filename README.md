@@ -4,6 +4,7 @@
 
 ---
 ![Language](https://img.shields.io/badge/Language-Rust-000000) ![Licence](https://img.shields.io/github/license/toto-bird/Peri.dot?label=Licence) ![Docs](https://img.shields.io/badge/Docs-Unwritten-red)
+<br />
 ![Tests](https://img.shields.io/badge/Tests-0%20✔%200%20✘%200%20➟-brightgreen) ![Version](https://img.shields.io/badge/Pre--Release-2.0.0--pre--01-yellow)
 ---
 

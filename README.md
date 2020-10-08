@@ -3,6 +3,9 @@
 ![Peri.dot Logo](https://raw.githubusercontent.com/toto-bird/Peri.dot/master/logo.png)
 
 ---
+![Language](https://img.shields.io/badge/Language-Rust-000000) ![Licence](https://img.shields.io/github/license/toto-bird/Peri.dot?label=Licence) ![Docs](https://img.shields.io/badge/Docs-Unwritten-red)
+![Tests](https://img.shields.io/badge/Tests-0%20✔%200%20✘%200%20➟-brightgreen) ![Version](https://img.shields.io/badge/Pre--Release-2.0.0--pre--01-yellow)
+---
 
 ### Pre-Release Notes
 - ADDED __Types__
@@ -173,11 +176,19 @@ while (i 10<) {
 # This is commented #= This is a comment in a comment.
 =# This is still commented because of the toEOL comment.
 ```
+
+
+- ADDED: __Including Other Files__
+```peridot
+# Rusty Peri.dot
+
+var module = include("mymodule")
+```
 ---
 
 [Homepage](https://toto-bird.github.io/Peri.dot-lang/)<br />
 ```diff
-- WARNING: Documentation and Playground are currently outdated (1.1.1)
+- WARNING: Documentation and Playground are currently outdated (1.1)
 ```
 [Documentation](https://toto-bird.github.io/Peri.dot-lang/docs)<br />
 [Playground](https://toto-bird.github.io/Peri.dot-lang/playground)<br />

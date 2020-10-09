@@ -1,5 +1,3 @@
-#var test = include("test")
+var test = include("test")
 
-var add = func(a: Int, b: Int): Int {
-    a b+
-}
+var TESTMODULE = "this is a testmodule"

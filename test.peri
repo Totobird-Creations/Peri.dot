@@ -1,5 +1,5 @@
 var testmodule = include("testmodule")
 
-#var this = "HALLO"
-
-testmodule.add(1, 2)
+print(
+    testmodule.TESTMODULE
+)

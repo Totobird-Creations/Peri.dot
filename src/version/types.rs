@@ -8,6 +8,7 @@ use super::exceptions::InterpreterException;
 use super::context;
 use super::nodes;
 use super::tokens;
+use super::run;
 
 
 
@@ -52,9 +53,8 @@ pub enum Value {
 
     //ExceptionType,
 
-    ModuleType(String, context::SymbolTable),
-    //         |^^^^^  |^^^^^^^^^^^^^^^^^^^
-    //         |       > Values
+    ModuleType(String),
+    //         |^^^^^
     //         > Module Name
 
     //StructureType,
@@ -81,7 +81,7 @@ impl Type {
             Value::StrType(_)                  => "Str".to_string(),
             Value::BoolType(_)                 => "Bool".to_string(),
             Value::ArrayType(value, arraytype) => format!("Array<{}, {}>", value.len(), arraytype),
-            Value::ModuleType(name, _)      => format!("Module<{}>", name),
+            Value::ModuleType(name)            => format!("Module<{}>", name),
             Value::FuncType(args, returntype, _)  => {
                 let mut res = "".to_string();
 
@@ -1174,8 +1174,9 @@ impl Type {
 
         match self.value.clone() {
 
-            Value::ModuleType(_, mut values) => {
-                let value = values.get(attribute.value.clone());
+            Value::ModuleType(name) => {
+                let mut symbols = run::run(name.as_str()).symbols;
+                let value = symbols.get(attribute.value.clone());
 
                 match value {
                     Some(value) => {
@@ -1270,11 +1271,10 @@ impl Type {
                     context: self.context.clone()
                 }
             },
-            Value::ModuleType(name, symbols) => {
+            Value::ModuleType(name) => {
                 Type {
                     value: Value::ModuleType(
-                        name.clone(),
-                        symbols.clone()
+                        name.clone()
                     ),
                     name: self.name.clone(),
                     start: self.start.clone(), end: self.end.clone(),
@@ -1334,7 +1334,7 @@ impl fmt::Display for Type {
                 }
                 write!(f, "[{}]", res)
             },
-            Value::ModuleType(name, _)               => write!(f, "<Module {}>", name),
+            Value::ModuleType(name)                  => write!(f, "<Module `{}`>", name),
             Value::FuncType(_, _, _)                 => write!(f, "<Func {}>", self.name),
             Value::BuiltInFuncType(name, _, _, _, _) => write!(f, "<Built-In Func {}>", name)
         }

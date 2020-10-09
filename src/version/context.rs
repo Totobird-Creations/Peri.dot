@@ -7,7 +7,6 @@ use super::lexer;
 use super::types;
 use super::interpreter;
 use super::exceptions;
-use super::run;
 
 
 
@@ -85,11 +84,9 @@ pub fn defaultsymbols() -> SymbolTable {
 
         let file = format!("{}.peri", fs::canonicalize(Path::new(start.file.as_str()).parent().unwrap()).unwrap().join(name).into_os_string().into_string().unwrap());
 
-        let symbols = run::run(file.as_str()).symbols;
-
         let value = types::Type {
             value: types::Value::ModuleType(
-                fs::canonicalize(Path::new(&file)).unwrap().into_os_string().into_string().unwrap(), symbols
+                fs::canonicalize(Path::new(&file)).unwrap().into_os_string().into_string().unwrap()
             ),
             name: "<Anonymous>".to_string(),
             start: start, end: end,

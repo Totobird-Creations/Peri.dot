@@ -207,7 +207,7 @@ impl Parser {
         let start = self.curtoken.start.clone();
 
         let mut value: ParseResult;
-        let mut operations = vec![res.register(self.call())];
+        let mut operations = vec![res.register(self.calltribute())];
 
         if res.exception.failed {
             return res;
@@ -265,7 +265,7 @@ impl Parser {
             let bkindex = self.index.clone();
             let bkres   = res.clone();
 
-            value = self.call();
+            value = self.calltribute();
 
             if ! value.exception.failed {
                 operations.push(value.node);
@@ -319,86 +319,118 @@ impl Parser {
 
 
 
-    fn call(&mut self) -> ParseResult {
+    fn calltribute(&mut self) -> ParseResult {
         let mut res = ParseResult {exception: ParserException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, node: Node {nodevalue: NodeValue::NullNode, start: self.curtoken.start.clone(), end: self.curtoken.end.clone()}, advancecount: 0};
         let start = self.curtoken.start.clone();
 
-        let factor = res.register(self.factor());
+        let mut factor = res.register(self.factor());
 
         if res.exception.failed {
             return res;
         }
 
-        if self.curtoken.token == TT_LPAREN {
-            res.registeradvancement();
-            self.advance();
-
-            while self.curtoken.token == TT_EOL {
+        loop {
+            if self.curtoken.token == TT_LPAREN {
                 res.registeradvancement();
                 self.advance();
-            }
-
-            let mut args = vec![];
-
-            let end: lexer::LexerPosition;
-
-            if self.curtoken.token == TT_RPAREN {
-                end = self.curtoken.end.clone();
-
-                res.registeradvancement();
-                self.advance();
-
-            } else {
-                args.push(res.register(self.expr()));
-
-                if res.exception.failed {
-                    return res;
-                }
-
-                while self.curtoken.token == TT_COMMA {
-                    res.registeradvancement();
-                    self.advance();
-
-                    while self.curtoken.token == TT_EOL {
-                        res.registeradvancement();
-                        self.advance();
-                    }
-
-                    args.push(res.register(self.expr()));
-
-                    if res.exception.failed {
-                        return res;
-                    }
-                }
 
                 while self.curtoken.token == TT_EOL {
                     res.registeradvancement();
                     self.advance();
                 }
 
-                if self.curtoken.token != TT_RPAREN {
+                let mut args = vec![];
+
+                let end: lexer::LexerPosition;
+
+                if self.curtoken.token == TT_RPAREN {
+                    end = self.curtoken.end.clone();
+
+                    res.registeradvancement();
+                    self.advance();
+
+                } else {
+                    args.push(res.register(self.expr()));
+
+                    if res.exception.failed {
+                        return res;
+                    }
+
+                    while self.curtoken.token == TT_COMMA {
+                        res.registeradvancement();
+                        self.advance();
+
+                        while self.curtoken.token == TT_EOL {
+                            res.registeradvancement();
+                            self.advance();
+                        }
+
+                        args.push(res.register(self.expr()));
+
+                        if res.exception.failed {
+                            return res;
+                        }
+                    }
+
+                    while self.curtoken.token == TT_EOL {
+                        res.registeradvancement();
+                        self.advance();
+                    }
+
+                    if self.curtoken.token != TT_RPAREN {
+                        return res.failure(ParserException {
+                            failed: true,
+                            name: "SyntaxException".to_string(),
+                            msg: "Expected `)` not found".to_string(),
+                            ucmsg: "Expected {} not found".to_string(),
+                            start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
+                        });
+                    }
+
+                    end = self.curtoken.end.clone();
+
+                    res.registeradvancement();
+                    self.advance();
+                }
+
+                factor = Node {
+                    nodevalue: NodeValue::CallNode {
+                        varname: Box::new(factor),
+                        args: args
+                    },
+                    start: start.clone(), end: end
+                };
+
+
+            } else if self.curtoken.token == TT_DOT {
+                res.registeradvancement();
+                self.advance();
+
+                if self.curtoken.token != TT_IDENTIFIER {
                     return res.failure(ParserException {
                         failed: true,
                         name: "SyntaxException".to_string(),
-                        msg: "Expected `)` not found".to_string(),
+                        msg: "Expected identifier not found".to_string(),
                         ucmsg: "Expected {} not found".to_string(),
                         start: self.curtoken.start.clone(), end: self.curtoken.end.clone()
                     });
                 }
 
-                end = self.curtoken.end.clone();
+                factor = Node {
+                    nodevalue: NodeValue::AttributeNode {
+                        varname: Box::new(factor),
+                        attribute: self.curtoken.clone()
+                    },
+                    start: start.clone(), end: self.curtoken.end.clone()
+                };
 
                 res.registeradvancement();
                 self.advance();
-            }
 
-            return res.success(Node {
-                nodevalue: NodeValue::CallNode {
-                    varname: Box::new(factor),
-                    args: args
-                },
-                start: start, end: end
-            });
+
+            } else {
+                break;
+            }
         }
 
         return res.success(factor);

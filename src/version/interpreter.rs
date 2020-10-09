@@ -48,6 +48,7 @@ impl Interpreter {
             NodeValue::VarAccessNode {token}                                 => self.visit_varaccessnode (node, context, token),
             NodeValue::ArrayNode     {exprs}                                 => self.visit_arraynode     (node, context, exprs),
             NodeValue::CallNode      {varname, args}                         => self.visit_callnode      (node, context, *varname, args),
+            NodeValue::AttributeNode {varname, attribute}                    => self.visit_attributenode (node, context, *varname, attribute),
 
             NodeValue::VarInitNode   {varname, node: onode}                  => self.visit_varinitnode   (node, context, varname, *onode),
             NodeValue::VarAssignNode {varname, node: onode}                  => self.visit_varassignnode (node, context, varname, *onode),
@@ -224,6 +225,26 @@ impl Interpreter {
         }
 
         let value = res.register(func.call(resargs));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        return res.success(value);
+    }
+
+    fn visit_attributenode(&mut self, node: Node, context: &mut Context, varname: Node, attribute: tokens::Token) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: node.start.clone(), end: node.end.clone(), context: Some(context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: node.start.clone(), end: node.end.clone(), context: context.clone()}};
+
+        let mut value = res.register(self.visit(varname, context));
+
+        if res.exception.failed {
+            return res;
+        }
+
+        value = value.copy().setpos(node.start, node.end);
+
+        let value = res.register(value.attribute(attribute));
 
         if res.exception.failed {
             return res;

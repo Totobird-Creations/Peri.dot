@@ -41,6 +41,10 @@ pub enum NodeValue {
         varname: Box<Node>,
         args   : Vec<Node>
     },
+    AttributeNode {
+        varname  : Box<Node>,
+        attribute: tokens::Token
+    },
 
 
     VarInitNode {
@@ -97,13 +101,13 @@ impl fmt::Display for Node {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.nodevalue {
             NodeValue::NullNode                              => write!(f, "{}", "NULL".red()),
-            NodeValue::TypeNode      {value: _}              => write!(f, "{}", "TYPE".red()),
+            NodeValue::TypeNode       {value: _}              => write!(f, "{}", "TYPE".red()),
 
-            NodeValue::IntNode       {token: _, value}       => write!(f, "i{}", value),
-            NodeValue::FloatNode     {token: _, value}       => write!(f, "f{}", value),
-            NodeValue::StringNode    {token: _, value}       => write!(f, "`{}`", value),
-            NodeValue::VarAccessNode {token}                 => write!(f, "{}", token.value),
-            NodeValue::ArrayNode     {exprs}                 => {
+            NodeValue::IntNode        {token: _, value}       => write!(f, "i{}", value),
+            NodeValue::FloatNode      {token: _, value}       => write!(f, "f{}", value),
+            NodeValue::StringNode     {token: _, value}       => write!(f, "`{}`", value),
+            NodeValue::VarAccessNode  {token}                 => write!(f, "{}", token.value),
+            NodeValue::ArrayNode      {exprs}                 => {
                 let mut res = "".to_string();
 
                 for i in 0 .. exprs.len() {
@@ -116,11 +120,12 @@ impl fmt::Display for Node {
                 write!(f, "[{}]", res)
             },
 
-            NodeValue::VarInitNode   {varname, node}         => write!(f, "(var {} = {})", varname.value, node),
-            NodeValue::VarAssignNode {varname, node}         => write!(f, "({} = {})", varname.value, node),
-            NodeValue::CallNode      {varname, args: _}      => write!(f, "{}()", varname),
+            NodeValue::VarInitNode    {varname, node}         => write!(f, "(var {} = {})", varname.value, node),
+            NodeValue::VarAssignNode  {varname, node}         => write!(f, "({} = {})", varname.value, node),
+            NodeValue::CallNode       {varname, args: _}      => write!(f, "{}()", varname),
+            NodeValue::AttributeNode  {varname, attribute}    => write!(f, "{}.{}", varname, attribute.value),
 
-            NodeValue::IfNode        {cases, elsecase} => {
+            NodeValue::IfNode         {cases, elsecase} => {
                 let mut res = "".to_string();
 
                 for i in 0 .. cases.len() {
@@ -137,13 +142,13 @@ impl fmt::Display for Node {
 
                 write!(f, "({})", res)
             },
-            NodeValue::ForNode       {varoverwrite, varname, iterable, body: _} => {
+            NodeValue::ForNode        {varoverwrite, varname, iterable, body: _} => {
                 write!(f, "(for {}{} in {})", if *varoverwrite {"var "} else {""}, varname.value, *iterable)
             },
-            NodeValue::WhileNode     {condition, body: _} => {
+            NodeValue::WhileNode      {condition, body: _} => {
                 write!(f, "(while {})", *condition)
             },
-            NodeValue::FuncNode      {args, returntype, body: _} => {
+            NodeValue::FuncNode       {args, returntype, body: _} => {
                 let mut resargs = "".to_string();
 
                 let mut i = 0;
@@ -165,9 +170,9 @@ impl fmt::Display for Node {
                 write!(f, "(func({}): {})", resargs, returntype)
             }
 
-            NodeValue::BinaryOpNode  {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),
-            NodeValue::CastOpNode    {casttype, node}  => write!(f, "({} <{}>)", node, casttype),
-            NodeValue::UnaryOpNode   {optoken, node}         => write!(f, "({} {})", optoken, node)
+            NodeValue::BinaryOpNode   {left, optoken, right}  => write!(f, "({} {} {})", left, optoken, right),
+            NodeValue::CastOpNode     {casttype, node}  => write!(f, "({} <{}>)", node, casttype),
+            NodeValue::UnaryOpNode    {optoken, node}         => write!(f, "({} {})", optoken, node)
         }
     }
 }

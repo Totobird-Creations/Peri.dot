@@ -1169,6 +1169,46 @@ impl Type {
 
 
 
+    pub fn attribute(self, attribute: tokens::Token) -> RTResult {
+        let mut res = RTResult {exception: InterpreterException {failed: false, name: "".to_string(), msg: "".to_string(), ucmsg: "".to_string(), start: self.start.clone(), end: self.end.clone(), context: Some(self.context.clone())}, value: Type {value: Value::NullType, name: "<Anonymous>".to_string(), start: self.start.clone(), end: self.end.clone(), context: self.context.clone()}};
+
+        match self.value.clone() {
+
+            Value::ModuleType(_, mut values) => {
+                let value = values.get(attribute.value.clone());
+
+                match value {
+                    Some(value) => {
+                        return res.success(value.value);
+                    },
+                    None => {
+                        return res.failure(InterpreterException {
+                            failed: true,
+                            name: "MethodException".to_string(),
+                            msg: format!("`{}` has no method or value `{}`", self.name, attribute.value),
+                            ucmsg: "`{}` has no method of value `{}`".to_string(),
+                            start: attribute.start, end: attribute.end, context: Some(self.context)
+                        });
+                    }
+                }
+            },
+
+            _ => {
+                return res.failure(InterpreterException {
+                    failed: true,
+                    name: "MethodException".to_string(),
+                    msg: format!("`{}` has no method or value `{}`", self.name, attribute.value),
+                    ucmsg: "`{}` has no method of value `{}`".to_string(),
+                    start: attribute.start, end: attribute.end, context: Some(self.context)
+                });
+            }
+
+        }
+
+    }
+
+
+
     pub fn copy(self) -> Type {
         match self.value.clone() {
             Value::NullType => {
